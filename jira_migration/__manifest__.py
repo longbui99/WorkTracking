@@ -16,6 +16,8 @@
 
         'views/menus.xml',
 
+        'wizard/load_by_link_views.xml',
+
     ],
     "application": False,
 }

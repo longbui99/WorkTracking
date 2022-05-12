@@ -10,6 +10,8 @@
                 <field name="name"/>
                 <field name="time"/>
                 <field name="description"/>
+                <field name="duration"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>

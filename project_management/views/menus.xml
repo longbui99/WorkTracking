@@ -15,5 +15,10 @@
                 sequence="1"
                 name="Work Logs"
                 action="project_management.action_jira_time_log"/>
+        <menuitem
+                id="project_management.menu_status"
+                sequence="1"
+                name="Statuses"
+                action="project_management.action_jira_status"/>
     </menuitem>
 </odoo>

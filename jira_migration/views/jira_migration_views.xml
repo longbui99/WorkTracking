@@ -20,7 +20,10 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="load_all_project" type="object" string="Load Projects" class="btn-primary"/>
+                    <button name="load_projects" type="object" string="Load All Projects" class="btn-primary"/>
+                    <button name="load_all_tickets" type="object" string="Load All Tickets" class="btn-primary"/>
+                    <button name="load_my_tickets" type="object" string="Load My Tickets" class="btn-primary"/>
+                    <button name="load_by_links" type="object" string="Load By Keys" class="btn-primary"/>
                 </header>
                 <sheet>
                     <label for="name" class="oe_edit_only"/>
