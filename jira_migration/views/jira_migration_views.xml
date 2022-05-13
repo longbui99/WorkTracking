@@ -35,6 +35,13 @@
                             <field name="jira_server_url"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Work Logs">
+                            <group>
+                                <field name="import_work_log" widget="boolean_toggle"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

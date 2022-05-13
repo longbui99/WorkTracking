@@ -68,7 +68,6 @@ class JiraProject(models.Model):
                 })
             if not record.time_log_ids.filtered(lambda r: r.cluster_id == record.progress_cluster_id):
                 record.time_log_ids = [fields.Command.create({
-                    'name': f"{values.get('custom_name', 'Internal')}",
                     'description': '',
                     'duration': 0.0,
                     'cluster_id': record.progress_cluster_id.id,
@@ -82,6 +81,21 @@ class JiraProject(models.Model):
                 'source': source
             })]
         return self
+
+    @api.model
+    def convert_second_to_log_format(self, time):
+        data = [{'key': 'w', 'duration': 604800},
+                {'key': 'd', 'duration': 86400},
+                {'key': 'h', 'duration': 3600},
+                {'key': 'm', 'duration': 60},
+                {'key': 's', 'duration': 1}]
+        response = ""
+        for segment in data:
+            duration = segment['duration']
+            if time > duration:
+                response += f"{int(time/duration)}{segment['key']} "
+                time -= (int(time/duration) * duration)
+        return response
 
     def action_done_work_log(self, values={}):
         self.action_pause_work_log()
@@ -98,7 +112,11 @@ class JiraProject(models.Model):
             time_log_id = record.time_log_ids.filtered_domain(domain + [('state', '=', 'progress')])
             total_duration = sum(work_log_ids.mapped('duration'))
             if time_log_id:
-                time_log_id.duration = total_duration
-                time_log_id.state = 'done'
+                time_log_id.update({
+                    'duration': total_duration,
+                    'state': 'done',
+                    'description': values.get('comment', ''),
+                    'time': self.convert_second_to_log_format(total_duration)
+                })
             record.progress_cluster_id = None
         return self

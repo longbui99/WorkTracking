@@ -7,7 +7,7 @@
     'category': 'Project',
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",
-    "depends": ['project_management', 'hr'],
+    "depends": ['project_management', 'hr' ,'queue_job'],
     "data": [
         'security/ir.model.access.csv',
 

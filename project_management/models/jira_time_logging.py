@@ -6,7 +6,6 @@ class JiraTimeLog(models.Model):
     _description = "JIRA Time Log"
     _order = 'create_date desc'
 
-    name = fields.Char(string='Name', required=True)
     time = fields.Char(string='Time Logging')
     description = fields.Html(string='Description', required=True)
     ticket_id = fields.Many2one('jira.ticket', string='Ticket')
