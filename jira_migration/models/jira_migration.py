@@ -107,15 +107,16 @@ class JIRAMigration(models.Model):
                     status_id = self.env['jira.status'].create({
                         'name': new_status['name'],
                         'key': new_status['id'],
+                        'jira_key': self.__load_from_key_paths(ticket_fields, ['status', 'statusCategory', 'key'])
                     }).id
                     local['dict_status'][status] = status_id
                 response.append(res)
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
-                if not response or not isinstance(response[0], dict):
-                    response.insert(0, existing_record)
-                else:
+                if response and not isinstance(response[0], dict):
                     response[0] |= existing_record
+                else:
+                    response.insert(0, existing_record)
         return response
 
     def do_request(self, request_data, domain=[], paging=50, load_all=False):
@@ -154,12 +155,12 @@ class JIRAMigration(models.Model):
         return self.do_request(request_data, domain=domain, load_all=load_all)
 
     def load_all_tickets(self):
-        self.load_tickets(load_all=True)
+        return self.load_tickets(load_all=True)
 
     def load_my_tickets(self):
-        extra_jql = f"""jql=assignee='{self.env.user.login}' ORDER BY createdDate ASC"""
+        extra_jql = f"""jql=assignee='{self.env.user.partner_id.email}' ORDER BY createdDate ASC"""
         ticket_ids = self.load_tickets(extra_jql, domain=[('assignee_id', '=', self.env.user.id)], load_all=True)
-        if ticket_ids:
+        if ticket_ids and self.import_work_log:
             for ticket_id in ticket_ids:
                 self.with_delay().load_work_logs(ticket_id)
 

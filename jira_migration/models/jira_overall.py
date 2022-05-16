@@ -8,6 +8,11 @@ class JiraProject(models.Model):
 
     jira_migration_id = fields.Many2one('jira.migration', string='Jira Migration')
 
+class JiraStatus(models.Model):
+    _inherit = "jira.status"
+
+    jira_key = fields.Char(string='Jira Key')
+
 
 class JiraTimeLog(models.Model):
     _inherit = "jira.time.log"

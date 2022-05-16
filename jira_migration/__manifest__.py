@@ -13,6 +13,7 @@
 
         'views/hr_employee_views.xml',
         'views/jira_migration_views.xml',
+        'views/jira_ticket_views.xml',
 
         'views/menus.xml',
 

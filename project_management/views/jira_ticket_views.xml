@@ -87,9 +87,7 @@
                 <field name="ticket_name"/>
                 <filter string="My tickets" name="filter_my_ticket" domain="[('assignee_id','=', uid)]"/>
                 <separator/>
-                <filter string="In Progress" name="filter_in_progress"
-                        domain="[('status_value','in', ('new','indeterminate'))]"/>
-                <!--                Group-->
+                <filter string="In Progress" name="filter_in_progress" domain="[('status_value','=', 'new')]"/>
                 <separator/>
                 <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
             </search>
