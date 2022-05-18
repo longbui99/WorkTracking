@@ -38,7 +38,12 @@
                     <notebook>
                         <page string="Work Logs">
                             <group>
-                                <field name="import_work_log" widget="boolean_toggle"/>
+                                <group>
+                                    <field name="import_work_log" widget="boolean_toggle"/>
+                                </group>
+                                <group>
+                                    <field name="auto_export_work_log" widget="boolean_toggle"/>
+                                </group>
                             </group>
                         </page>
                     </notebook>

@@ -25,11 +25,23 @@ class JiraProject(models.Model):
     duration = fields.Integer('Duration', compute='_compute_duration', store=True)
     progress_cluster_id = fields.Many2one('jira.work.log.cluster', string='Progress Cluster')
     work_log_ids = fields.One2many('jira.work.log', 'ticket_id', string='Work Log Statuses')
+    active_duration = fields.Integer("Active Duration", compute='_compute_active_duration', store=True)
+    last_start = fields.Datetime("Last Start")
 
     @api.depends('time_log_ids', 'time_log_ids.duration')
     def _compute_duration(self):
         for record in self:
             record.duration = sum(record.time_log_ids.mapped('duration'))
+
+    @api.depends('work_log_ids', 'work_log_ids.duration')
+    def _compute_active_duration(self):
+        current_user = self.env.user.id
+        for record in self:
+            record.active_duration = sum(record. \
+                                         work_log_ids. \
+                                         filtered(lambda r: r.cluster_id.id == record.progress_cluster_id.id and
+                                                            r.user_id.id == current_user). \
+                                         mapped('duration'))
 
     def __assign_assignee(self):
         for record in self:
@@ -57,6 +69,7 @@ class JiraProject(models.Model):
                 'end': datetime.datetime.now(),
                 'state': 'done'
             })
+            record.last_start = False
 
     def generate_progress_work_log(self, values={}):
         source = values.get('source', 'internal')
@@ -68,7 +81,7 @@ class JiraProject(models.Model):
                 })
             if not record.time_log_ids.filtered(lambda r: r.cluster_id == record.progress_cluster_id):
                 record.time_log_ids = [fields.Command.create({
-                    'description': '',
+                    'description': values.get('description', ''),
                     'duration': 0.0,
                     'cluster_id': record.progress_cluster_id.id,
                     'user_id': self.env.user.id,
@@ -78,24 +91,11 @@ class JiraProject(models.Model):
                 'start': datetime.datetime.now(),
                 'cluster_id': record.progress_cluster_id.id,
                 'user_id': self.env.user.id,
-                'source': source
+                'source': source,
+                'description': values.get('description', '')
             })]
+            record.last_start = datetime.datetime.now()
         return self
-
-    @api.model
-    def convert_second_to_log_format(self, time):
-        data = [{'key': 'w', 'duration': 604800},
-                {'key': 'd', 'duration': 86400},
-                {'key': 'h', 'duration': 3600},
-                {'key': 'm', 'duration': 60},
-                {'key': 's', 'duration': 1}]
-        response = ""
-        for segment in data:
-            duration = segment['duration']
-            if time > duration:
-                response += f"{int(time/duration)}{segment['key']} "
-                time -= (int(time/duration) * duration)
-        return response
 
     def action_done_work_log(self, values={}):
         self.action_pause_work_log()
@@ -113,10 +113,10 @@ class JiraProject(models.Model):
             total_duration = sum(work_log_ids.mapped('duration'))
             if time_log_id:
                 time_log_id.update({
-                    'duration': total_duration,
+                    'duration': total_duration > 60 and total_duration or 60,
                     'state': 'done',
-                    'description': values.get('comment', ''),
-                    'time': self.convert_second_to_log_format(total_duration)
+                    'description': values.get('description', ''),
                 })
             record.progress_cluster_id = None
+            record.last_start = False
         return self

@@ -16,6 +16,7 @@ class JIRAMigration(models.Model):
     sequence = fields.Integer(string='Sequence')
     jira_server_url = fields.Char(string='JIRA Server URL')
     import_work_log = fields.Boolean(string='Import Work Logs?')
+    auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
 
     def __get_request_headers(self):
         self.ensure_one()
@@ -52,9 +53,16 @@ class JIRAMigration(models.Model):
             return {}
         if 'params' in request_data:
             endpoint += "?" + '&'.join(request_data['params'])
+        body = "{}"
+        if 'body' in request_data:
+            body = json.dumps(request_data['body'])
+        if request_data.get('method', 'get') in ['post', 'put']:
+            headers.update({'Content-Type': 'application/json'})
         method = getattr(requests, request_data.get('method', 'get'))
-        result = method(endpoint, headers=headers)
-        body = json.loads(result.text)
+        result = method(url=endpoint, headers=headers, data=body)
+        body = result.json()
+        if body.get('errorMessages', False):
+            raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
         return body
 
     # ===========================================  Section for loading tickets/issues =============================================
@@ -79,27 +87,26 @@ class JIRAMigration(models.Model):
 
     def processing_issue_raw_data(self, local, raw):
         response = []
-        if raw.get('errorMessages', False):
-            raise UserError(_("\n".join(raw['errorMessages'])))
         for ticket in raw.get('issues', [raw]):
+            ticket_fields = ticket['fields']
+            status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
+            story_point = ticket_fields.get('customfield_10008', 0.0) or 0.0
+            assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'key'])
+            project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
             if ticket.get('key', '-') not in local['dict_ticket_key']:
-                ticket_fields = ticket['fields']
                 if not ticket_fields:
                     continue
                 res = {
                     'ticket_name': ticket_fields['summary'],
                     'ticket_key': ticket['key'],
                     'ticket_url': ticket['self'],
-                    'story_point': ticket_fields.get('customfield_10008', 0.0) or 0.0,
+                    'story_point': story_point,
                     'jira_migration_id': self.id
                 }
-                project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
                 if local['project_key_dict'].get(project, False):
                     res['project_id'] = local['project_key_dict'][project]
-                assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'key'])
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
-                status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
@@ -113,6 +120,14 @@ class JIRAMigration(models.Model):
                 response.append(res)
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
+                update_dict = {
+                    'story_point': story_point,
+                }
+                if existing_record.status_id.id != local['dict_status'][status]:
+                    update_dict['status_id'] = local['dict_status'][status]
+                if assignee and existing_record.assignee_id.id != local['dict_user'][assignee]:
+                    update_dict['assignee_id'] = local['dict_user'][assignee]
+                existing_record.write(update_dict)
                 if response and not isinstance(response[0], dict):
                     response[0] |= existing_record
                 else:
@@ -120,6 +135,7 @@ class JIRAMigration(models.Model):
         return response
 
     def do_request(self, request_data, domain=[], paging=50, load_all=False):
+        existing_record = self.env['jira.ticket']
         headers = self.__get_request_headers()
         start_index = 0
         total_response = paging
@@ -127,6 +143,7 @@ class JIRAMigration(models.Model):
         local_data = self.get_local_issue_data(domain)
         request_data['params'] = request_data.get('params', [])
         request = request_data.copy()
+
         while start_index < total_response:
             page_size = paging if total_response - start_index > paging else total_response - start_index
             params = request_data['params'].copy()
@@ -138,14 +155,12 @@ class JIRAMigration(models.Model):
                 total_response = body['total']
             start_index += paging
             new_tickets = self.processing_issue_raw_data(local_data, body)
+            if new_tickets:
+                if not isinstance(new_tickets[0], dict):
+                    existing_record |= new_tickets[0]
+                    new_tickets.pop(0)
             response.extend(new_tickets)
-        if response:
-            existing_record = self.env['jira.ticket']
-            if not isinstance(response[0], dict):
-                existing_record = response[0]
-                response.pop(0)
-            return existing_record | self.env['jira.ticket'].create(response)
-        return False
+        return existing_record | self.env['jira.ticket'].create(response)
 
     def load_tickets(self, extra_jql="", domain=[], load_all=False):
         request_data = {
@@ -173,14 +188,15 @@ class JIRAMigration(models.Model):
         return action
 
     def load_by_keys(self, type, keys):
+        keys = list(map(lambda r: r.upper(), keys))
         ticket_ids = self.env['jira.ticket']
         if type == 'ticket':
             for key in keys:
                 request_data = {
-                    'endpoint': f"{self.jira_server_url}/issue/{key}",
+                    'endpoint': f"{self.jira_server_url}/issue/{key.upper()}",
                 }
                 ticket_ids |= self.do_request(request_data, [('ticket_key', 'in', keys)])
-
+            self.load_work_logs(ticket_ids)
         elif type == 'project':
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",
@@ -189,7 +205,9 @@ class JIRAMigration(models.Model):
                 ]
             }
             ticket_ids |= self.do_request(request_data, load_all=True)
-        self.load_work_logs(ticket_ids)
+            if ticket_ids and self.import_work_log:
+                for ticket_id in ticket_ids:
+                    self.with_delay().load_work_logs(ticket_id)
 
     # ===========================================  Section for loading work logs ===================================
     def get_local_worklog_data(self, ticket_id, domain):
@@ -201,11 +219,11 @@ class JIRAMigration(models.Model):
 
     def processing_worklog_raw_data(self, data, body):
         new_tickets = []
-        if body.get('errorMessages', False):
-            raise UserError(_("\n".join(body['errorMessages'])))
         ticket_id = data['ticket_id']
+        affected_jira_ids = set()
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
+            affected_jira_ids.add(log_id)
             if log_id not in data['work_logs']:
                 to_create = {
                     'time': work_log['timeSpent'],
@@ -230,6 +248,10 @@ class JIRAMigration(models.Model):
                     to_update['user_id'] = data['dict_user'].get(logging_email, False)
                 if to_update:
                     work_log_id.write(to_update)
+        deleted = set(list(data['work_logs'].keys())) - affected_jira_ids
+        if deleted:
+            self.env['jira.time.log'].search([('id_on_jira', 'in', list(deleted))]).unlink()
+
         return new_tickets
 
     # @job(retry_pattern={1: 1 * 60,
@@ -264,3 +286,43 @@ class JIRAMigration(models.Model):
                     to_create.extend(new_tickets)
                 if to_create:
                     self.env['jira.time.log'].create(to_create)
+
+    @api.model
+    def _get_time_log_payload(self, time_log_id):
+        return {
+            "comment": time_log_id.description,
+            "started": time_log_id.write_date.isoformat(sep='T', timespec='milliseconds') + "+0000",
+            "timeSpentSeconds": time_log_id.duration
+        }
+
+    def add_time_logs(self, ticket_id, time_log_ids):
+        headers = self.__get_request_headers()
+        request_data = {
+            'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}/worklog",
+            'method': 'post',
+        }
+        for log in time_log_ids:
+            payload = self._get_time_log_payload(log)
+            request_data['body'] = payload
+            res = self.make_request(request_data, headers)
+            log.id_on_jira = res['id']
+
+    def update_time_logs(self, ticket_id, time_log_ids):
+        headers = self.__get_request_headers()
+        request_data = {
+            'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}/worklog",
+            'method': 'put',
+        }
+        for log in time_log_ids:
+            payload = self._get_time_log_payload(log)
+            request_data['body'] = payload
+            request_clone = request_data.copy()
+            request_clone['endpoint'] += f"/{log.id_on_jira}"
+            res = self.make_request(request_clone, headers)
+
+    def export_time_log(self, ticket_id):
+        time_log_to_create_ids = ticket_id.time_log_ids.filtered(lambda x: not x.id_on_jira)
+        time_log_to_update_ids = ticket_id.time_log_ids.filtered(
+            lambda x: x.id_on_jira and x.write_date > ticket_id.last_export)
+        self.add_time_logs(ticket_id, time_log_to_create_ids)
+        self.update_time_logs(ticket_id, time_log_to_update_ids)

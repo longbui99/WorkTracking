@@ -11,6 +11,8 @@
                 <field name="description"/>
                 <field name="duration"/>
                 <field name="state"/>
+                <field name="user_id"/>
+                <field name="create_date" string="Start Date"/>
             </tree>
         </field>
     </record>
@@ -49,7 +51,7 @@
         <field name="res_model">jira.time.log</field>
         <field name="view_mode">tree,form</field>
         <field name="context">{'search_default_group_by_ticket_id': True}</field>
-        <field name="domain">[('ticket_id.assignee_id','=',uid)]</field>
+        <field name="domain">[('user_id','=',uid)]</field>
         <field name="view_id" ref="jira_time_log_tree_view"/>
         <field name="search_view_id" ref="project_management.jira_time_log_search_view"/>
     </record>

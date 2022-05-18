@@ -25,8 +25,10 @@
             <form>
                 <header>
                     <button name="generate_progress_work_log" string="Start" type="object" class="btn-primary"/>
-                    <button name="action_pause_work_log" string="Pause" type="object" class="btn-warning"/>
-                    <button name="action_done_work_log" string="Done Progress" type="object" class="btn-primary"/>
+                    <button name="action_pause_work_log" string="Pause" type="object" class="btn-success"
+                            attrs="{'invisible':[('progress_cluster_id','=',False)]}"/>
+                    <button name="action_done_work_log" string="Done Progress" type="object" class="btn-primary"
+                            attrs="{'invisible':[('progress_cluster_id','=',False)]}"/>
                 </header>
                 <sheet>
                     <label for="ticket_name" class="oe_edit_only"/>
@@ -51,18 +53,19 @@
                     <notebook>
                         <page string="Work Logs">
                             <field name="time_log_ids">
-                                <tree>
+                                <tree editable="bottom">
                                     <field name="time"/>
                                     <field name="description"/>
                                     <field name="state"/>
                                     <field name="user_id"/>
                                     <field name="duration"/>
+                                    <field name="create_date" string="Start Date"/>
                                 </tree>
                             </field>
                         </page>
                         <page string="Work Log Breakdowns">
                             <field name="work_log_ids">
-                                <tree>
+                                <tree editable="bottom" decoration-muted="state == 'cancel'">
                                     <field name="start"/>
                                     <field name="end"/>
                                     <field name="duration"/>

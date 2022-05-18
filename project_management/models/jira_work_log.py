@@ -9,9 +9,11 @@ class JiraWorkLog(models.Model):
     start = fields.Datetime(string='Start')
     end = fields.Datetime(string='End')
     duration = fields.Integer(string='Duration', compute='_compute_duration', store=True)
+    description = fields.Text(string='Description', required=True)
     ticket_id = fields.Many2one('jira.ticket', string='Ticket')
     cluster_id = fields.Many2one('jira.work.log.cluster', string='Cluster')
-    state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')
+    state = fields.Selection([('progress', 'In Progress'), ('done', 'Done'), ('cancel', 'Canceled')], string='Status',
+                             default='progress')
     source = fields.Char(string='Source')
     user_id = fields.Many2one('res.users', string='User', required=True)
 
