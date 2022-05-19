@@ -15,7 +15,7 @@ from odoo.exceptions import AccessError, MissingError, UserError
 
 
 class Auth(http.Controller):
-    @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="json", auth="none")
+    @http.route(['/web/login/jwt'], methods=['POST'], cors="*", type="json", auth="none", csrf=False)
     def auth_login_encrypt(self):
         res = {
             "code": 404,
