@@ -4,6 +4,7 @@
 from werkzeug import urls
 from werkzeug.exceptions import NotFound, Forbidden
 import jwt
+import json
 
 from odoo import http, _
 from odoo.http import request
@@ -15,24 +16,14 @@ from odoo.exceptions import AccessError, MissingError, UserError
 
 
 class Auth(http.Controller):
-    @http.route(['/web/login/jwt'], methods=['POST'], cors="*", type="json", auth="none", csrf=False)
+    @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
     def auth_login_encrypt(self):
-        res = {
-            "code": 404,
-            "state": "Failed",
-            "message": "Authentication Failed",
-            "data": ""
-        }
+        res = {"data": ""}
         uid = request.env['res.users'].authenticate(request.env.cr.dbname,
                                                     request.params.get('login', ''),
                                                     request.params.get('password', ''),
                                                     {'interactive': False})
         if uid:
             response = jwt.encode({"uid": uid}, request.env.cr.dbname + "longlml", algorithm="HS256")
-            res.update({
-                "code": 200,
-                "state": "Success",
-                "message": "Login Successfully",
-                "data": response
-            })
-        return res
+            res = {'data': response}
+        return http.Response(json.dumps(res), content_type='application/json', status=200)

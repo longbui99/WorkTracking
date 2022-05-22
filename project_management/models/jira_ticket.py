@@ -33,7 +33,7 @@ class JiraProject(models.Model):
         for record in self:
             record.duration = sum(record.time_log_ids.mapped('duration'))
 
-    @api.depends('work_log_ids', 'work_log_ids.duration')
+    @api.depends('work_log_ids', 'work_log_ids.duration', 'progress_cluster_id')
     def _compute_active_duration(self):
         current_user = self.env.user.id
         for record in self:
@@ -67,13 +67,14 @@ class JiraProject(models.Model):
             suitable_time_log = record.work_log_ids.filtered_domain(domain)
             suitable_time_log.write({
                 'end': datetime.datetime.now(),
-                'state': 'done'
+                'state': 'done',
+                'description': values.get('description', '')
             })
             record.last_start = False
 
     def generate_progress_work_log(self, values={}):
         source = values.get('source', 'internal')
-        self.action_pause_work_log()
+        self.action_pause_work_log(values)
         for record in self:
             if not record.progress_cluster_id:
                 record.progress_cluster_id = self.env['jira.work.log.cluster'].create({
@@ -98,7 +99,7 @@ class JiraProject(models.Model):
         return self
 
     def action_done_work_log(self, values={}):
-        self.action_pause_work_log()
+        self.action_pause_work_log(values)
         source = values.get('source', 'internal')
         for record in self:
             domain = [

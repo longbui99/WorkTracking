@@ -18,7 +18,7 @@ class JiraProject(models.Model):
         for record in self:
             record.jira_migration_id.load_by_keys('ticket', [record.ticket_key])
 
-    def action_done_work_log(self):
-        res = super().action_done_work_log()
+    def action_done_work_log(self, values={}):
+        res = super().action_done_work_log(values)
         self.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
         return res
