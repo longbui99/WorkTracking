@@ -6,7 +6,7 @@ from odoo.exceptions import UserError
 class JiraProject(models.Model):
     _name = "jira.ticket"
     _description = "JIRA Ticket"
-    _order = 'pin desc, sequence asc, create_date desc'
+    _order = 'ticket_sequence desc, sequence asc, create_date desc'
     _rec_name = 'ticket_key'
 
     pin = fields.Boolean(string='Pin')
@@ -26,7 +26,21 @@ class JiraProject(models.Model):
     progress_cluster_id = fields.Many2one('jira.work.log.cluster', string='Progress Cluster')
     work_log_ids = fields.One2many('jira.work.log', 'ticket_id', string='Work Log Statuses')
     active_duration = fields.Integer("Active Duration", compute='_compute_active_duration', store=True)
+    my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration", store=True)
     last_start = fields.Datetime("Last Start")
+    ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
+
+    @api.depends('time_log_ids', 'time_log_ids.duration')
+    def _compute_my_total_duration(self):
+        for record in self:
+            record.my_total_duration = sum(
+                record.time_log_ids.filtered(lambda r: r.user_id.id == self.env.user.id).mapped('duration'))
+
+    @api.depends('ticket_key')
+    def _compute_ticket_sequence(self):
+        for record in self:
+            if record.ticket_key:
+                record.ticket_sequence = int(record.ticket_key.split('-')[1])
 
     @api.depends('time_log_ids', 'time_log_ids.duration')
     def _compute_duration(self):

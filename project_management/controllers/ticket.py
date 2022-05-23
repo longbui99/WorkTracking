@@ -40,6 +40,7 @@ class JiraTicket(http.Controller):
                 "assigneeEmail": ticket_id.assignee_id.partner_id.email,
                 "status": ticket_id.status_id.name,
                 "total_duration": ticket_id.duration,
+                "my_total_duration": ticket_id.my_total_duration,
                 "active_duration": ticket_id.active_duration,
                 "last_start": ticket_id.last_start and ticket_id.last_start.isoformat() or False
             })
