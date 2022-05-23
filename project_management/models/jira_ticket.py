@@ -73,7 +73,6 @@ class JiraProject(models.Model):
         source = values.get('source', 'internal')
         for record in self:
             domain = [
-                ('cluster_id', '=', record.progress_cluster_id.id),
                 ('state', '=', 'progress'),
                 ('source', '=', source),
                 ('user_id', '=', self.env.user.id)
@@ -117,7 +116,6 @@ class JiraProject(models.Model):
         source = values.get('source', 'internal')
         for record in self:
             domain = [
-                ('cluster_id', '=', record.progress_cluster_id.id),
                 ('source', '=', source),
                 ('user_id', '=', self.env.user.id)
             ]
