@@ -324,6 +324,6 @@ class JIRAMigration(models.Model):
     def export_time_log(self, ticket_id):
         time_log_to_create_ids = ticket_id.time_log_ids.filtered(lambda x: not x.id_on_jira)
         time_log_to_update_ids = ticket_id.time_log_ids.filtered(
-            lambda x: x.id_on_jira and x.write_date > ticket_id.last_export)
+            lambda x: x.id_on_jira and (not ticket_id.last_export or x.write_date > ticket_id.last_export))
         self.add_time_logs(ticket_id, time_log_to_create_ids)
         self.update_time_logs(ticket_id, time_log_to_update_ids)

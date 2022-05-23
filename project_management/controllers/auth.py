@@ -25,5 +25,7 @@ class Auth(http.Controller):
                                                     {'interactive': False})
         if uid:
             response = jwt.encode({"uid": uid}, request.env.cr.dbname + "longlml", algorithm="HS256")
-            res = {'data': response.decode('utf-8')}
+            if not (isinstance(response, str)):
+                response = response.decode('utf-8')
+            res = {'data': response}
         return http.Response(json.dumps(res), content_type='application/json', status=200)
