@@ -14,3 +14,14 @@ class JiraProject(models.Model):
     allowed_user_ids = fields.Many2many('res.users', string='Allowed Users')
     allowed_manager_ids = fields.Many2many('res.users', 'res_user_jira_project_rel_2', string='Managers')
     ticket_ids = fields.One2many('jira.ticket', 'project_id', string='Tickets')
+
+    def fetch_user_from_ticket(self):
+        for record in self:
+            user_ids = self.env['jira.ticket'] \
+                .search([('project_id', '=', record.id)]) \
+                .mapped('time_log_ids').mapped('user_id')
+            record.allowed_user_ids = [fields.Command.set(user_ids.ids)]
+
+    @api.model
+    def cron_fetch_user_from_ticket(self):
+        self.search([]).fetch_user_from_ticket()

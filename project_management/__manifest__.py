@@ -8,6 +8,8 @@
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",
     "data": [
+        'data/project_data.xml',
+        
         'security/jira_security.xml',
         'security/ir.model.access.csv',
 

@@ -40,6 +40,9 @@
         <field name="model">jira.project</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="fetch_user_from_ticket" string="Fetch User" type="object" class="btn-primary"/>
+                </header>
                 <sheet>
                     <label for="project_name" class="oe_edit_only"/>
                     <h1>
