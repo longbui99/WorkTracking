@@ -121,3 +121,17 @@ class JiraProject(models.Model):
             record.progress_cluster_id = None
             record.last_start = False
         return self
+
+    def action_manual_work_log(self, values={}):
+        source = values.get('source', 'internal')
+        log_ids = self.env['jira.time.log']
+        for record in self:
+            log_ids |= record.env['jira.time.log'].create({
+                'description': values.get('description', ''),
+                'time': values.get('time', ''),
+                'user_id': self.env.user.id,
+                'source': source,
+                'ticket_id': record.id,
+                'state': 'done'
+            })
+        return log_ids

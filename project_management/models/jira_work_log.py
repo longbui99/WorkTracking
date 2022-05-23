@@ -8,7 +8,7 @@ class JiraWorkLog(models.Model):
 
     start = fields.Datetime(string='Start')
     end = fields.Datetime(string='End')
-    duration = fields.Integer(string='Duration', compute='_compute_duration', store=True)
+    duration = fields.Integer(string='Duration (s)', compute='_compute_duration', store=True)
     description = fields.Text(string='Description', required=True)
     ticket_id = fields.Many2one('jira.ticket', string='Ticket')
     cluster_id = fields.Many2one('jira.work.log.cluster', string='Cluster')

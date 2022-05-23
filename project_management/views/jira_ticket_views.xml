@@ -54,11 +54,12 @@
                         <page string="Work Logs">
                             <field name="time_log_ids">
                                 <tree editable="bottom">
+                                    <field name="state"/>
                                     <field name="time"/>
                                     <field name="description"/>
-                                    <field name="state"/>
                                     <field name="user_id"/>
-                                    <field name="duration"/>
+                                    <field name="duration" optional="hide"/>
+                                    <field name="source" optional="hide"/>
                                     <field name="create_date" string="Start Date"/>
                                 </tree>
                             </field>
@@ -66,12 +67,13 @@
                         <page string="Work Log Breakdowns">
                             <field name="work_log_ids">
                                 <tree editable="bottom" decoration-muted="state == 'cancel'">
+                                    <field name="state"/>
                                     <field name="start"/>
                                     <field name="end"/>
-                                    <field name="duration"/>
-                                    <field name="state"/>
+                                    <field name="duration" optional="hide"/>
+                                    <field name="description"/>
                                     <field name="user_id"/>
-                                    <field name="source"/>
+                                    <field name="source" optional="hide"/>
                                 </tree>
                             </field>
                         </page>

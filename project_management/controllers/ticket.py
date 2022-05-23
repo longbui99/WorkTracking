@@ -108,3 +108,13 @@ class JiraTicket(http.Controller):
         except Exception as e:
             return http.Response(e, content_type='application/json', status=404)
         return http.Response("", content_type='application/json', status=200)
+
+    @http.route(['/management/ticket/work-log/manual'], type="http", cors="*", methods=['GET', 'POST'],
+                auth='jwt')
+    def manual_ticket_work_log(self):
+        try:
+            ticket_id = self.__check_work_log_prerequisite()
+            ticket_id.action_manual_work_log(json.loads(request.params.get('payload', {})))
+        except Exception as e:
+            return http.Response(str(e), content_type='application/json', status=404)
+        return http.Response("", content_type='application/json', status=200)

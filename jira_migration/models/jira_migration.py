@@ -208,6 +208,7 @@ class JIRAMigration(models.Model):
             if ticket_ids and self.import_work_log:
                 for ticket_id in ticket_ids:
                     self.with_delay().load_work_logs(ticket_id)
+        return ticket_ids
 
     # ===========================================  Section for loading work logs ===================================
     def get_local_worklog_data(self, ticket_id, domain):
