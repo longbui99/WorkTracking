@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record model="ir.module.category" id="module_category_jira">
+            <field name="name">JIRA</field>
+        </record>
+
+        <record id="group_jira_user" model="res.groups">
+            <field name="name">JIRA User</field>
+            <field name="category_id" ref="project_management.module_category_jira"/>
+        </record>
+
+        <record id="group_jira_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="project_management.module_category_jira"/>
+            <field name="implied_ids" eval="[(4, ref('project_management.group_jira_user'))]"/>
+        </record>
+
+        <record id="group_jira_admin" model="res.groups">
+            <field name="name">Administrator</field>
+            <field name="category_id" ref="project_management.module_category_jira"/>
+            <field name="implied_ids" eval="[(4, ref('project_management.group_jira_manager'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+    </data>
+
+    <data noupdate="1">
+        <record id="ir_ticket_for_project_only" model="ir.rule">
+        <field name="name">User can only edit ticket inside their allowed projects</field>
+        <field name="model_id" ref="model_jira_ticket"/>
+        <field name="domain_force">[('project_id.allowed_user_ids', '!=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+        <field name="groups" eval="[(4,ref('base.group_user'))]"/>
+    </record>
+    </data>
+</odoo>

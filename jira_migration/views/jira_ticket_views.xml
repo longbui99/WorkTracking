@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="jira_ticket_search_view" model="ir.ui.view">
+        <field name="name">Jira Tickets</field>
+        <field name="model">jira.ticket</field>
+        <field name="inherit_id" ref="project_management.jira_ticket_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_in_progress" position="replace">
+                <filter string="In Progress" name="filter_in_progress"
+                        domain="[('status_value','in', ('new','indeterminate'))]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="jira_ticket_form_view_inherited" model="ir.ui.view">
+        <field name="name">Jira Tickets</field>
+        <field name="model">jira.ticket</field>
+        <field name="inherit_id" ref="project_management.jira_ticket_form_view"/>
+        <field name="arch" type="xml">
+            <button name="action_done_work_log" position="after">
+                <button name="export_time_log_to_jira" string="Export Work Log" type="object" class="btn-secondary"/>
+                <button name="import_ticket_jira" string="Import Ticket" type="object" class="btn-secondary"/>
+            </button>
+        </field>
+    </record>
+</odoo>

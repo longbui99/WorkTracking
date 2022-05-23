@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="jira_time_log_tree_view" model="ir.ui.view">
+        <field name="name">JIRA Configurations</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook[1]" position="inside">
+                <page string="JIRA Configurations">
+                    <group>
+                        <field name="jira_private_key" type="password"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
