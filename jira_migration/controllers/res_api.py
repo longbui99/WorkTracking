@@ -18,3 +18,13 @@ class JiraTicketMigration(JiraTicket):
                 data = self._get_ticket(ticket_ids.sorted(lambda r: r.ticket_sequence))
                 return http.Response(json.dumps(data), content_type='application/json', status=200)
         return res
+
+    @http.route(['/management/ticket/fetch/<string:keyword>'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
+    def get_related_active(self, keyword):
+        try:
+            assert keyword != ''
+            request.env['jira.migration'].load_by_keys('ticket', [keyword])
+        except Exception as e:
+            return http.Response(str(e), content_type='application/json', status=404)
+        else:
+            return http.Response("", content_type='application/json', status=200)

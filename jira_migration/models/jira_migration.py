@@ -94,7 +94,7 @@ class JIRAMigration(models.Model):
             assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'key'])
             project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
             server_url = urlparse(self.jira_server_url).netloc
-            map_url = (lambda r: server_url + "/browse/" + r)
+            map_url = (lambda r: f"https://{server_url}/browse/{r}")
             if ticket.get('key', '-') not in local['dict_ticket_key']:
                 if not ticket_fields:
                     continue
