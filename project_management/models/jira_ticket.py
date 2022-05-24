@@ -47,15 +47,20 @@ class JiraProject(models.Model):
         for record in self:
             record.duration = sum(record.time_log_ids.mapped('duration'))
 
-    @api.depends('work_log_ids', 'work_log_ids.duration', 'progress_cluster_id')
+    @api.depends('work_log_ids', 'work_log_ids.duration')
     def _compute_active_duration(self):
         current_user = self.env.user.id
         for record in self:
-            record.active_duration = sum(record. \
-                                         work_log_ids. \
-                                         filtered(lambda r: r.cluster_id.id == record.progress_cluster_id.id and
-                                                            r.user_id.id == current_user). \
-                                         mapped('duration'))
+            if record.time_log_ids:
+                cluster_id = record.time_log_ids[0].cluster_id.id
+                source = record.time_log_ids[0].source
+                record.active_duration = sum(record. \
+                                             work_log_ids. \
+                                             filtered(lambda r: r.cluster_id.id == cluster_id and
+                                                                r.user_id.id == current_user and
+                                                                r.source == source
+                                                      ). \
+                                             mapped('duration'))
 
     def __assign_assignee(self):
         for record in self:
@@ -70,7 +75,7 @@ class JiraProject(models.Model):
         self.__assign_assignee()
 
     def action_pause_work_log(self, values={}):
-        source = values.get('source', 'internal')
+        source = values.get('source', 'Internal')
         for record in self:
             domain = [
                 ('state', '=', 'progress'),
@@ -86,7 +91,7 @@ class JiraProject(models.Model):
             record.last_start = False
 
     def generate_progress_work_log(self, values={}):
-        source = values.get('source', 'internal')
+        source = values.get('source', 'Internal')
         self.action_pause_work_log(values)
         for record in self:
             if not record.progress_cluster_id:
@@ -113,7 +118,7 @@ class JiraProject(models.Model):
 
     def action_done_work_log(self, values={}):
         self.action_pause_work_log(values)
-        source = values.get('source', 'internal')
+        source = values.get('source', 'Internal')
         for record in self:
             domain = [
                 ('source', '=', source),
@@ -135,7 +140,7 @@ class JiraProject(models.Model):
         return self
 
     def action_manual_work_log(self, values={}):
-        source = values.get('source', 'internal')
+        source = values.get('source', 'Internal')
         log_ids = self.env['jira.time.log']
         for record in self:
             log_ids |= record.env['jira.time.log'].create({
@@ -147,3 +152,17 @@ class JiraProject(models.Model):
                 'state': 'done'
             })
         return log_ids
+
+    @api.model
+    def get_all_active(self, values={}):
+        except_ids = self
+        source = values.get('source', 'Internal')
+        if values.get('except', False):
+            except_ids = self.browse(values['except'])
+        active_log_ids = self.env['jira.work.log'].search([('user_id', '=', self.env.user.id),
+                                                           ('ticket_id.active_duration', '>', 0.0),
+                                                           ('source', '=', source)])
+        active_ticket_ids = (active_log_ids.mapped('ticket_id') - except_ids)
+        if values.get('limit', False):
+            active_ticket_ids = active_ticket_ids[:values['limit']]
+        return active_ticket_ids

@@ -67,7 +67,8 @@ class JiraTicket(http.Controller):
     def search_ticket(self, keyword):
         limit = int(request.params.get('limitRecord', 80))
         ticket_ids = request.env['jira.ticket'].search(
-            ['|', ('ticket_name', 'ilike', keyword), ('ticket_key', 'ilike', keyword)], limit=limit)
+            ['|', ('ticket_name', 'ilike', keyword), ('ticket_key', 'ilike', keyword)], limit=limit,
+            order='ticket_sequence')
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
@@ -85,7 +86,7 @@ class JiraTicket(http.Controller):
     def add_ticket_work_log(self):
         try:
             ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.generate_progress_work_log(json.loads(request.params.get('payload', {})))
+            ticket_id.generate_progress_work_log(json.loads(request.params.get('payload', "{}")))
             data = self._get_ticket(ticket_id)
         except Exception:
             return http.Response("", content_type='application/json', status=404)
@@ -96,7 +97,7 @@ class JiraTicket(http.Controller):
     def pause_ticket_work_log(self):
         try:
             ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_pause_work_log(json.loads(request.params.get('payload', {})))
+            ticket_id.action_pause_work_log(json.loads(request.params.get('payload', "{}")))
         except Exception:
             return http.Response("", content_type='application/json', status=404)
         return http.Response("", content_type='application/json', status=200)
@@ -105,7 +106,7 @@ class JiraTicket(http.Controller):
     def done_ticket_work_log(self):
         try:
             ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_done_work_log(json.loads(request.params.get('payload', {})))
+            ticket_id.action_done_work_log(json.loads(request.params.get('payload', "{}")))
         except Exception as e:
             return http.Response(e, content_type='application/json', status=404)
         return http.Response("", content_type='application/json', status=200)
@@ -115,7 +116,18 @@ class JiraTicket(http.Controller):
     def manual_ticket_work_log(self):
         try:
             ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_manual_work_log(json.loads(request.params.get('payload', {})))
+            ticket_id.action_manual_work_log(json.loads(request.params.get('payload', "{}")))
         except Exception as e:
             return http.Response(str(e), content_type='application/json', status=404)
         return http.Response("", content_type='application/json', status=200)
+
+    @http.route(['/management/ticket/my-active'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
+    def get_related_active(self):
+        try:
+            active_ticket_ids = request.env['jira.ticket'].get_all_active(
+                json.loads(request.params.get("payload", "{}")))
+            data = self._get_ticket(active_ticket_ids)
+        except Exception as e:
+            return http.Response(str(e), content_type='application/json', status=404)
+        else:
+            return http.Response(json.dumps(data), content_type='application/json', status=200)
