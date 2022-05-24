@@ -22,6 +22,8 @@ class JiraTicketMigration(JiraTicket):
     @http.route(['/management/ticket/fetch/<int:id>'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
     def get_related_active(self, ticket_id):
         try:
+            if not ticket_id:
+                raise Exception("Need to provide ticket id")
             ticket_id = request.env['jira.ticket'].browse(ticket_id)
             ticket_id.jira_migration_id.load_by_keys('ticket', [ticket_id.key])
         except Exception as e:
