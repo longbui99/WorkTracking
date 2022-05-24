@@ -19,11 +19,11 @@ class JiraTicketMigration(JiraTicket):
                 return http.Response(json.dumps(data), content_type='application/json', status=200)
         return res
 
-    @http.route(['/management/ticket/fetch/<string:keyword>'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
-    def get_related_active(self, keyword):
+    @http.route(['/management/ticket/fetch/<int:id>'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
+    def get_related_active(self, ticket_id):
         try:
-            assert keyword != ''
-            request.env['jira.migration'].load_by_keys('ticket', [keyword])
+            ticket_id = request.env['jira.ticket'].browse(ticket_id)
+            ticket_id.jira_migration_id.load_by_keys('ticket', [ticket_id.key])
         except Exception as e:
             return http.Response(str(e), content_type='application/json', status=404)
         else:
