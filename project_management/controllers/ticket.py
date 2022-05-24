@@ -42,7 +42,8 @@ class JiraTicket(http.Controller):
                 "total_duration": ticket_id.duration,
                 "my_total_duration": ticket_id.my_total_duration,
                 "active_duration": ticket_id.active_duration,
-                "last_start": ticket_id.last_start and ticket_id.last_start.isoformat() or False
+                "last_start": ticket_id.last_start and ticket_id.last_start.isoformat() or False,
+                "url": ticket_id.ticket_url
             })
         return res
 

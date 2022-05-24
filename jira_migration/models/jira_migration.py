@@ -1,6 +1,6 @@
 import requests
 import json
-from dateutil import parser
+from urllib. parse import urlparse
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -93,13 +93,15 @@ class JIRAMigration(models.Model):
             story_point = ticket_fields.get('customfield_10008', 0.0) or 0.0
             assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'key'])
             project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
+            server_url = urlparse(self.jira_server_url).netloc
+            map_url = (lambda r: server_url + "/browse/" + r)
             if ticket.get('key', '-') not in local['dict_ticket_key']:
                 if not ticket_fields:
                     continue
                 res = {
                     'ticket_name': ticket_fields['summary'],
                     'ticket_key': ticket['key'],
-                    'ticket_url': ticket['self'],
+                    'ticket_url': map_url(ticket['key']),
                     'story_point': story_point,
                     'jira_migration_id': self.id
                 }
