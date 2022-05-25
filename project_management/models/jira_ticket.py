@@ -80,10 +80,16 @@ class JiraProject(models.Model):
     def action_pause_work_log(self, values={}):
         source = values.get('source', 'Internal')
         for record in self:
+            suitable_time_log_pivot_id = record.time_log_ids.filtered(
+                lambda r: r.user_id == self.env.user.id
+                          and r.state == 'progress'
+                          and r.source == source
+            )
             domain = [
                 ('state', '=', 'progress'),
                 ('source', '=', source),
-                ('user_id', '=', self.env.user.id)
+                ('user_id', '=', self.env.user.id),
+                ('cluster_id', '=', suitable_time_log_pivot_id.cluster_id)
             ]
             suitable_time_log = record.work_log_ids.filtered_domain(domain)
             suitable_time_log.write({
@@ -123,9 +129,15 @@ class JiraProject(models.Model):
         self.action_pause_work_log(values)
         source = values.get('source', 'Internal')
         for record in self:
+            suitable_time_log_pivot_id = record.time_log_ids.filtered(
+                lambda r: r.user_id == self.env.user.id
+                          and r.state == 'progress'
+                          and r.source == source
+            )
             domain = [
                 ('source', '=', source),
-                ('user_id', '=', self.env.user.id)
+                ('user_id', '=', self.env.user.id),
+                ('cluster_id', '=', suitable_time_log_pivot_id.cluster_id)
             ]
             work_log_ids = record.work_log_ids.filtered_domain(domain)
             if work_log_ids:
