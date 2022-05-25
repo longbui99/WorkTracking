@@ -81,7 +81,7 @@ class JiraProject(models.Model):
         source = values.get('source', 'Internal')
         for record in self:
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
-                lambda r: r.user_id == self.env.user.id
+                lambda r: r.user_id == self.env.user
                           and r.state == 'progress'
                           and r.source == source
             )
@@ -130,7 +130,7 @@ class JiraProject(models.Model):
         source = values.get('source', 'Internal')
         for record in self:
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
-                lambda r: r.user_id == self.env.user.id
+                lambda r: r.user_id == self.env.user
                           and r.state == 'progress'
                           and r.source == source
             )
