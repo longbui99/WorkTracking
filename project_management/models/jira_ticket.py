@@ -60,13 +60,12 @@ class JiraProject(models.Model):
                 if suitable_time_log_pivot_id:
                     cluster_id = suitable_time_log_pivot_id[0].cluster_id.id
                     source = suitable_time_log_pivot_id[0].source
-                    record.active_duration = sum(record. \
-                                                 work_log_ids. \
-                                                 filtered(lambda r: r.cluster_id.id == cluster_id and
-                                                                    r.user_id.id == current_user and
-                                                                    r.source == source
-                                                          ). \
-                                                 mapped(lambda r: r.duration or (now_time-r.start).total_seconds()))
+                    data = record.work_log_ids.filtered(lambda r: r.cluster_id.id == cluster_id and
+                                                                  r.user_id.id == current_user and
+                                                                  r.source == source
+                                                        ).mapped(
+                        lambda r: r.duration or (now_time - r.start).total_seconds())
+                    record.active_duration = sum(data) or 1
 
     def __assign_assignee(self):
         for record in self:
