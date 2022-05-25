@@ -53,7 +53,7 @@ class JiraProject(models.Model):
         for record in self:
             if record.time_log_ids:
                 suitable_time_log_pivot_id = record.time_log_ids.filtered(
-                    lambda r: r.user_id == current_user and r.state == 'progress')
+                    lambda r: r.user_id.id == current_user and r.state == 'progress')
                 if suitable_time_log_pivot_id:
                     cluster_id = suitable_time_log_pivot_id[0].cluster_id.id
                     source = suitable_time_log_pivot_id[0].source

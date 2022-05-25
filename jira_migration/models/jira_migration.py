@@ -327,15 +327,22 @@ class JIRAMigration(models.Model):
             'method': 'put',
         }
         for log in time_log_ids:
-            payload = self._get_time_log_payload(log)
-            request_data['body'] = payload
-            request_clone = request_data.copy()
-            request_clone['endpoint'] += f"/{log.id_on_jira}"
-            res = self.make_request(request_clone, headers)
+            try:
+                payload = self._get_time_log_payload(log)
+                request_data['body'] = payload
+                request_clone = request_data.copy()
+                request_clone['endpoint'] += f"/{log.id_on_jira}"
+                res = self.make_request(request_clone, headers)
+            except:
+                continue
 
     def export_time_log(self, ticket_id):
+        current_user_id = self.env.user.id
         time_log_to_create_ids = ticket_id.time_log_ids.filtered(lambda x: not x.id_on_jira)
         time_log_to_update_ids = ticket_id.time_log_ids.filtered(
-            lambda x: x.id_on_jira and (not ticket_id.last_export or x.write_date > ticket_id.last_export))
+            lambda x: x.id_on_jira
+                      and (not ticket_id.last_export or x.write_date > ticket_id.last_export)
+                      and (x.user_id.id == current_user_id)
+        )
         self.add_time_logs(ticket_id, time_log_to_create_ids)
         self.update_time_logs(ticket_id, time_log_to_update_ids)
