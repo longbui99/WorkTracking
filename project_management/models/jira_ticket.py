@@ -89,7 +89,7 @@ class JiraProject(models.Model):
                 ('state', '=', 'progress'),
                 ('source', '=', source),
                 ('user_id', '=', self.env.user.id),
-                ('cluster_id', '=', suitable_time_log_pivot_id.cluster_id)
+                ('cluster_id', '=', suitable_time_log_pivot_id.cluster_id.id)
             ]
             suitable_time_log = record.work_log_ids.filtered_domain(domain)
             suitable_time_log.write({
@@ -137,7 +137,7 @@ class JiraProject(models.Model):
             domain = [
                 ('source', '=', source),
                 ('user_id', '=', self.env.user.id),
-                ('cluster_id', '=', suitable_time_log_pivot_id.cluster_id)
+                ('cluster_id', '=', suitable_time_log_pivot_id.cluster_id.id)
             ]
             work_log_ids = record.work_log_ids.filtered_domain(domain)
             if work_log_ids:
