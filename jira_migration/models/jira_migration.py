@@ -127,7 +127,7 @@ class JIRAMigration(models.Model):
                 }
                 if existing_record.status_id.id != local['dict_status'][status]:
                     update_dict['status_id'] = local['dict_status'][status]
-                if assignee and existing_record.assignee_id.id != local['dict_user'][assignee]:
+                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
                 existing_record.write(update_dict)
                 if response and not isinstance(response[0], dict):
