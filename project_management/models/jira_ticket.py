@@ -65,7 +65,8 @@ class JiraProject(models.Model):
                                                                   r.source == source
                                                         ).mapped(
                         lambda r: r.duration or (now_time - r.start).total_seconds())
-                    record.active_duration = sum(data) or 1
+                    print(data)
+                    record.active_duration = sum(data) + 1
 
     def __assign_assignee(self):
         for record in self:
