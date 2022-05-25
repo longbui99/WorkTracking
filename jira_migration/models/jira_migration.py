@@ -247,7 +247,7 @@ class JIRAMigration(models.Model):
     # ===========================================  Section for loading work logs ===================================
     def get_local_worklog_data(self, ticket_id, domain):
         return {
-            'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids},
+            'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids if x.id_on_jira},
             'ticket_id': ticket_id,
             'dict_user': {r.partner_id.email: r.id for r in self.env['res.users'].sudo().search([])},
         }
