@@ -52,15 +52,18 @@ class JiraProject(models.Model):
         current_user = self.env.user.id
         for record in self:
             if record.time_log_ids:
-                cluster_id = record.time_log_ids[0].cluster_id.id
-                source = record.time_log_ids[0].source
-                record.active_duration = sum(record. \
-                                             work_log_ids. \
-                                             filtered(lambda r: r.cluster_id.id == cluster_id and
-                                                                r.user_id.id == current_user and
-                                                                r.source == source
-                                                      ). \
-                                             mapped('duration'))
+                suitable_time_log_pivot_id = record.time_log_ids.filtered(
+                    lambda r: r.user_id == current_user and r.state == 'progress')
+                if suitable_time_log_pivot_id:
+                    cluster_id = suitable_time_log_pivot_id[0].cluster_id.id
+                    source = suitable_time_log_pivot_id[0].source
+                    record.active_duration = sum(record. \
+                                                 work_log_ids. \
+                                                 filtered(lambda r: r.cluster_id.id == cluster_id and
+                                                                    r.user_id.id == current_user and
+                                                                    r.source == source
+                                                          ). \
+                                                 mapped('duration'))
 
     def __assign_assignee(self):
         for record in self:
