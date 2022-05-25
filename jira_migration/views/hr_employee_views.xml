@@ -8,7 +8,7 @@
             <xpath expr="//notebook[1]" position="inside">
                 <page string="JIRA Configurations">
                     <group>
-                        <field name="jira_private_key" type="password"/>
+                        <field name="jira_private_key" password="True"/>
                     </group>
                 </page>
             </xpath>
