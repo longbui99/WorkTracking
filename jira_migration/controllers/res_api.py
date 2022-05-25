@@ -6,14 +6,23 @@ from odoo.addons.project_management.controllers.ticket import JiraTicket
 
 class JiraTicketMigration(JiraTicket):
 
+    def _get_search_request(self, keyword):
+        is_ticket = keyword.split('-')
+        try:
+            int(is_ticket[1])
+            return "ticket", [keyword]
+        except Exception:
+            return "custom", keyword
+
     @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def search_ticket(self, keyword):
         res = super().search_ticket(keyword)
         if res.data == b'[]':
             ticket_ids = request.env['jira.ticket']
+            load_type, payload = self._get_search_request(keyword)
             for migrate in request.env['jira.migration'].sudo().search([]):
-                ticket_ids |= migrate.sudo().load_by_keys("ticket", [keyword])
+                ticket_ids |= migrate.sudo().load_by_keys(load_type, payload)
             if ticket_ids:
                 data = self._get_ticket(ticket_ids.sorted(lambda r: r.ticket_sequence))
                 return http.Response(json.dumps(data), content_type='application/json', status=200)

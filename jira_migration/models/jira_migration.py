@@ -190,7 +190,8 @@ class JIRAMigration(models.Model):
         return action
 
     def load_by_keys(self, type, keys):
-        keys = list(map(lambda r: r.upper(), keys))
+        if isinstance(keys, (list, tuple)):
+            keys = list(map(lambda r: r.upper(), keys))
         ticket_ids = self.env['jira.ticket']
         if type == 'ticket':
             for key in keys:
@@ -210,6 +211,15 @@ class JIRAMigration(models.Model):
             if ticket_ids and self.import_work_log:
                 for ticket_id in ticket_ids:
                     self.with_delay().load_work_logs(ticket_id)
+        elif type == "custom":
+            request_data = {
+                'endpoint': f"{self.jira_server_url}/search",
+                "params": [
+                    f"""jql=text~"{keys}" ORDER BY createdDate DESC"""
+                ]
+            }
+            ticket_ids |= self.do_request(request_data, load_all=True)
+            self.load_work_logs(ticket_ids)
         return ticket_ids
 
     # ===========================================  Section for loading work logs ===================================
