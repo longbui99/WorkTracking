@@ -10,6 +10,7 @@ from odoo.tools import consteq, plaintext2html
 from odoo.addons.mail.controllers import mail
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.exceptions import AccessError, MissingError, UserError
+from odoo.addons.project_management.utils.search_parser import get_search_request
 
 
 class MissingParams(Exception):
@@ -67,9 +68,7 @@ class JiraTicket(http.Controller):
                 auth='jwt')
     def search_ticket(self, keyword):
         limit = int(request.params.get('limitRecord', 80))
-        ticket_ids = request.env['jira.ticket'].search(
-            ['|', ('ticket_name', 'ilike', keyword), ('ticket_key', 'ilike', keyword)], limit=limit,
-            order='ticket_sequence')
+        ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword).sorted(lambda r: r.ticket_sequence)
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 

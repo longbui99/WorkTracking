@@ -1,6 +1,7 @@
 import requests
 import json
-from urllib. parse import urlparse
+from urllib.parse import urlparse
+from odoo.addons.project_management.utils.search_parser import get_search_request
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -127,7 +128,8 @@ class JIRAMigration(models.Model):
                 }
                 if existing_record.status_id.id != local['dict_status'][status]:
                     update_dict['status_id'] = local['dict_status'][status]
-                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][assignee]:
+                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
+                    assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
                 existing_record.write(update_dict)
                 if response and not isinstance(response[0], dict):
@@ -189,34 +191,54 @@ class JIRAMigration(models.Model):
         action['context'] = context
         return action
 
-    def load_by_keys(self, type, keys):
-        if isinstance(keys, (list, tuple)):
-            keys = list(map(lambda r: r.upper(), keys))
+    @api.model
+    def search_ticket(self, keyword):
+        return self.search_load(*get_search_request(keyword))
+
+    def search_load(self, type, params):
+        if isinstance(params, (list, tuple)):
+            params = list(map(lambda r: r.upper(), params))
         ticket_ids = self.env['jira.ticket']
         if type == 'ticket':
-            for key in keys:
+            for key in params:
                 request_data = {
                     'endpoint': f"{self.jira_server_url}/issue/{key.upper()}",
                 }
-                ticket_ids |= self.do_request(request_data, [('ticket_key', 'in', keys)])
+                ticket_ids |= self.do_request(request_data, [('ticket_key', 'in', params)])
             self.load_work_logs(ticket_ids)
         elif type == 'project':
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",
                 "params": [
-                    f"""jql={' OR '.join(list(map(lambda x: f'project="{x}"', keys)))} ORDER BY createdDate ASC"""
+                    f"""jql={' OR '.join(list(map(lambda x: f'project="{x}"', params)))} ORDER BY createdDate ASC"""
                 ]
             }
             ticket_ids |= self.do_request(request_data, load_all=True)
             if ticket_ids and self.import_work_log:
                 for ticket_id in ticket_ids:
                     self.with_delay().load_work_logs(ticket_id)
-        elif type == "custom":
+        elif type == "text":
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",
                 "params": [
-                    f"""jql=text~"{keys}" ORDER BY createdDate DESC"""
+                    f"""jql=text~"{params}" ORDER BY createdDate DESC"""
                 ]
+            }
+            ticket_ids |= self.do_request(request_data, load_all=True)
+            self.load_work_logs(ticket_ids)
+        elif type == "project_text":
+            request_data = {
+                'endpoint': f"{self.jira_server_url}/search",
+                "params": [
+                    f"""jql=project="{params[0]}" AND text~"{params[1]}"" ORDER BY createdDate ASC"""
+                ]
+            }
+            ticket_ids |= self.do_request(request_data, load_all=True)
+            self.load_work_logs(ticket_ids)
+        elif type == "jql":
+            request_data = {
+                'endpoint': f"{self.jira_server_url}/search",
+                "params": [params]
             }
             ticket_ids |= self.do_request(request_data, load_all=True)
             self.load_work_logs(ticket_ids)

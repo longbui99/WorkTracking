@@ -1,6 +1,8 @@
 import datetime
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.osv import expression
+from odoo.addons.project_management.utils.search_parser import get_search_request
 
 
 class JiraProject(models.Model):
@@ -50,6 +52,7 @@ class JiraProject(models.Model):
     @api.depends('work_log_ids', 'work_log_ids.duration')
     def _compute_active_duration(self):
         current_user = self.env.user.id
+        now_time = datetime.datetime.now()
         for record in self:
             if record.time_log_ids:
                 suitable_time_log_pivot_id = record.time_log_ids.filtered(
@@ -63,7 +66,7 @@ class JiraProject(models.Model):
                                                                     r.user_id.id == current_user and
                                                                     r.source == source
                                                           ). \
-                                                 mapped('duration'))
+                                                 mapped(lambda r: r.duration or (now_time-r.start).total_seconds()))
 
     def __assign_assignee(self):
         for record in self:
@@ -181,3 +184,23 @@ class JiraProject(models.Model):
         if values.get('limit', False):
             active_ticket_ids = active_ticket_ids[:values['limit']]
         return active_ticket_ids
+
+    def search_ticket_by_criteria(self, payload):
+        extra_domain = []
+        if payload.startswith("my-"):
+            extra_domain = [('assignee_id', '=', self.env.user.id)]
+            payload = payload[3:]
+        load_type, params = get_search_request(payload)
+        limit = self._context.get('limit', 80)
+        if isinstance(params, (list, tuple)):
+            params = list(map(lambda r: r.upper(), params))
+        ticket_ids = self.env['jira.ticket']
+        if load_type == 'ticket' or load_type == "text":
+            return self.search(expression.AND(
+                [extra_domain, ['|', ('ticket_name', 'ilike', params), ('ticket_key', 'ilike', params)]]), limit=limit)
+        elif load_type == "project_text":
+            project_ids = self.env['jira.project'].search(
+                ['|', ('project_key', 'ilike', params[0]), ('project_name', '=', params[0])]).ids
+            return self.search([('project_id', 'in', project_ids), ('ticket_name', 'ilike', params[1])] + extra_domain,
+                               limit=limit)
+        return ticket_ids
