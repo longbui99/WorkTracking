@@ -16,7 +16,7 @@ class JiraProject(models.Model):
 
     def import_ticket_jira(self):
         for record in self:
-            record.jira_migration_id.search_load('ticket', [record.ticket_key])
+            record.jira_migration_id._search_load('ticket', [record.ticket_key])
 
     def action_done_work_log(self, values={}):
         res = super().action_done_work_log(values)

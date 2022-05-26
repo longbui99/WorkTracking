@@ -11,7 +11,7 @@ class LoadByLinkTransient(models.TransientModel):
 
     def load(self):
         self.ensure_one()
-        self.migration_id.search_load(self.link_line_ids.mapped('url'))
+        self.migration_id._search_load(self.type, self.link_line_ids.mapped('url'))
 
 
 class LoadByLinkLine(models.TransientModel):

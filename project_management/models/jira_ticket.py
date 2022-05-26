@@ -178,8 +178,6 @@ class JiraProject(models.Model):
         source = values.get('source', 'Internal')
         if values.get('except', False):
             except_ids = self.browse(values['except'])
-        # active_log_ids = self.env['jira.work.log'].search([('user_id', '=', self.env.user.id),
-        #                                                    ('source', '=', source)])
         active_time_ids = self.env['jira.time.log'].search([('user_id', '=', self.env.user.id),
                                                             ('source', '=', source),
                                                             ('state', '=', 'progress')])
