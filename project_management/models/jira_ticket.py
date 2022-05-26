@@ -65,6 +65,8 @@ class JiraProject(models.Model):
                                                         ).mapped(
                         lambda r: r.duration or (now_time - r.start).total_seconds())
                     record.active_duration = sum(data) + 1
+                    continue
+            record.active_duration = 0
 
     def __assign_assignee(self):
         for record in self:
@@ -180,8 +182,7 @@ class JiraProject(models.Model):
         #                                                    ('source', '=', source)])
         active_time_ids = self.env['jira.time.log'].search([('user_id', '=', self.env.user.id),
                                                             ('source', '=', source),
-                                                            ('state', ' =', 'progress')
-                                                            ])
+                                                            ('state', '=', 'progress')])
         active_ticket_ids = (active_time_ids.mapped('ticket_id') - except_ids)
         if values.get('limit', False):
             active_ticket_ids = active_ticket_ids[:values['limit']]
