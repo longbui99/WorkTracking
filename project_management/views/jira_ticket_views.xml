@@ -47,8 +47,8 @@
                             <field name="progress_cluster_id"/>
                             <field name="suitable_assignee" invisible="1"/>
                             <field name="assignee_id" domain="[('id','in', suitable_assignee)]"/>
-                            <field name="last_start" group="base.group_no_one"/>
-                            <field name="active_duration" group="base.group_no_one"/>
+                            <field name="last_start" groups="base.group_no_one"/>
+                            <field name="active_duration" groups="base.group_no_one"/>
                         </group>
                     </group>
                     <notebook>
@@ -62,7 +62,8 @@
                                     <field name="duration" optional="hide"/>
                                     <field name="source" optional="hide"/>
                                     <field name="write_date" optional="hide"/>
-                                    <field name="create_date" string="Start Date"/>
+                                    <field name="create_date" optional="hide"/>
+                                    <field name="start_date"/>
                                 </tree>
                             </field>
                         </page>

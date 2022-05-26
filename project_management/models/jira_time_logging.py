@@ -5,7 +5,7 @@ from odoo.tools.float_utils import float_is_zero
 class JiraTimeLog(models.Model):
     _name = "jira.time.log"
     _description = "JIRA Time Log"
-    _order = 'create_date desc'
+    _order = 'start_date desc'
     _rec_name = 'ticket_id'
 
     time = fields.Char(string='Time Logging', compute='_compute_time_data', store=True)
@@ -16,6 +16,7 @@ class JiraTimeLog(models.Model):
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')
     source = fields.Char(string='Source')
     user_id = fields.Many2one('res.users', string='User')
+    start_date = fields.Datetime("Start Date")
 
     @api.model
     def convert_second_to_log_format(self, time):

@@ -2,6 +2,7 @@ import requests
 import json
 from urllib.parse import urlparse
 from odoo.addons.project_management.utils.search_parser import get_search_request
+from datetime import datetime
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -104,7 +105,8 @@ class JIRAMigration(models.Model):
                     'ticket_key': ticket['key'],
                     'ticket_url': map_url(ticket['key']),
                     'story_point': story_point,
-                    'jira_migration_id': self.id
+                    'jira_migration_id': self.id,
+                    'create_date': ticket_fields['created']
                 }
                 if local['project_key_dict'].get(project, False):
                     res['project_id'] = local['project_key_dict'][project]
@@ -271,7 +273,8 @@ class JIRAMigration(models.Model):
                     'state': 'done',
                     'source': 'sync',
                     'ticket_id': ticket_id.id,
-                    'id_on_jira': work_log['id']
+                    'id_on_jira': work_log['id'],
+                    'start_date': datetime.fromisoformat(work_log['started'][:-5])
                 }
                 logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'key'])
                 to_create['user_id'] = data['dict_user'].get(logging_email, False)
@@ -283,8 +286,11 @@ class JIRAMigration(models.Model):
                     to_update['duration'] = work_log['timeSpentSeconds']
                     to_update['time'] = work_log['timeSpent']
                 logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'key'])
+                start_date = self.__load_from_key_paths(work_log, ['created'])
                 if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
                     to_update['user_id'] = data['dict_user'].get(logging_email, False)
+                if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date[:16]:
+                    to_update['start_date'] = datetime.fromisoformat(start_date[:-5])
                 if to_update:
                     work_log_id.write(to_update)
         deleted = set(list(data['work_logs'].keys())) - affected_jira_ids
