@@ -38,7 +38,7 @@
                     <group>
                         <group>
                             <field name="ticket_key"/>
-                            <field name="ticket_url"/>
+                            <field name="ticket_url" widget="url"/>
                             <field name="story_point"/>
                             <field name="project_id"/>
                         </group>
