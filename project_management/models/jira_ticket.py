@@ -35,8 +35,7 @@ class JiraProject(models.Model):
 
     def _compute_my_total_duration(self):
         for record in self:
-            record.my_total_duration = sum(
-                record.time_log_ids.filtered(lambda r: r.user_id.id == self.env.user.id).mapped('duration'))
+            record.my_total_duration = sum(record.time_log_ids.filtered(lambda r: r.user_id.id == self.env.user.id).mapped('duration'))
 
     @api.depends('ticket_key')
     def _compute_ticket_sequence(self):
@@ -59,11 +58,10 @@ class JiraProject(models.Model):
                 if suitable_time_log_pivot_id:
                     cluster_id = suitable_time_log_pivot_id[0].cluster_id.id
                     source = suitable_time_log_pivot_id[0].source
-                    data = record.work_log_ids.filtered(lambda r: r.cluster_id.id == cluster_id and
+                    log_ids = record.work_log_ids.filtered(lambda r: r.cluster_id.id == cluster_id and
                                                                   r.user_id.id == current_user and
-                                                                  r.source == source
-                                                        ).mapped(
-                        lambda r: r.duration or (now_time - r.start).total_seconds())
+                                                                  r.source == source)
+                    data = log_ids.mapped(lambda r: r.duration or (now_time - r.start).total_seconds())
                     record.active_duration = sum(data) + 1
                     continue
             record.active_duration = 0
