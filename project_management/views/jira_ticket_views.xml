@@ -62,6 +62,7 @@
                                     <field name="user_id"/>
                                     <field name="duration" optional="hide"/>
                                     <field name="source" optional="hide"/>
+                                    <field name="write_date" optional="hide"/>
                                     <field name="create_date" string="Start Date"/>
                                 </tree>
                             </field>
