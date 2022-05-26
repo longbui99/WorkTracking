@@ -61,7 +61,9 @@ class JiraProject(models.Model):
                     log_ids = record.work_log_ids.filtered(lambda r: r.cluster_id.id == cluster_id and
                                                                   r.user_id.id == current_user and
                                                                   r.source == source)
+                    print(log_ids)
                     data = log_ids.mapped(lambda r: r.duration or (now_time - r.start).total_seconds())
+                    print(data)
                     record.active_duration = sum(data) + 1
                     continue
             record.active_duration = 0
