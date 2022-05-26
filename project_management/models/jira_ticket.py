@@ -195,7 +195,7 @@ class JiraProject(models.Model):
         ticket_ids = self.env['jira.ticket']
         if load_type == 'ticket' or load_type == "text":
             return self.search(expression.AND(
-                [extra_domain, ['|', ('ticket_name', 'ilike', params[0]), ('ticket_key', 'ilike', params[0])]]),
+                [extra_domain, ['|', ('ticket_name', 'ilike', params), ('ticket_key', 'ilike', params)]]),
                 limit=limit)
         elif load_type == "project_text":
             project_ids = self.env['jira.project'].search(

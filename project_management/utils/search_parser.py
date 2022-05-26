@@ -1,4 +1,3 @@
-
 def get_search_request(keyword):
     if isinstance(keyword, str):
         if keyword.startswith("jql="):
@@ -11,7 +10,7 @@ def get_search_request(keyword):
                 is_ticket = keyword.split('-')
                 try:
                     int(is_ticket[1])
-                    return "ticket", [keyword]
+                    return "ticket", keyword
                 except Exception:
                     return "text", keyword
     else:

@@ -200,6 +200,8 @@ class JIRAMigration(models.Model):
     def _search_load(self, type, params, is_my=False):
         ticket_ids = self.env['jira.ticket']
         if type == 'ticket':
+            if not isinstance(params, (list, tuple)):
+                params = [params]
             for key in params:
                 request_data = {
                     'endpoint': f"{self.jira_server_url}/issue/{key.upper()}",
