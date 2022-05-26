@@ -193,9 +193,13 @@ class JIRAMigration(models.Model):
 
     @api.model
     def search_ticket(self, keyword):
-        return self.search_load(*get_search_request(keyword))
+        return self.search_load(keyword)
 
-    def search_load(self, type, params):
+    def search_load(self, payload):
+        is_my = payload.startswith("my-")
+        if is_my:
+            payload = payload[3:]
+        type, params = get_search_request(payload)
         if isinstance(params, (list, tuple)):
             params = list(map(lambda r: r.upper(), params))
         ticket_ids = self.env['jira.ticket']
@@ -221,7 +225,7 @@ class JIRAMigration(models.Model):
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",
                 "params": [
-                    f"""jql=text~"{params}" ORDER BY createdDate DESC"""
+                    f"""jql=text~"{params}" {is_my and f' AND assignee="{self.env.user.partner_id.email}"' or ""} ORDER BY createdDate DESC"""
                 ]
             }
             ticket_ids |= self.do_request(request_data, load_all=True)
@@ -230,7 +234,7 @@ class JIRAMigration(models.Model):
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",
                 "params": [
-                    f"""jql=project="{params[0]}" AND text~"{params[1]}"" ORDER BY createdDate ASC"""
+                    f"""jql=project="{params[0]}" AND text~"{params[1]}" {is_my and f'AND assignee="{self.env.user.partner_id.email}"' or ""} ORDER BY createdDate ASC"""
                 ]
             }
             ticket_ids |= self.do_request(request_data, load_all=True)
