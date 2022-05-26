@@ -27,12 +27,12 @@ class JiraProject(models.Model):
     duration = fields.Integer('Duration', compute='_compute_duration', store=True)
     progress_cluster_id = fields.Many2one('jira.work.log.cluster', string='Progress Cluster')
     work_log_ids = fields.One2many('jira.work.log', 'ticket_id', string='Work Log Statuses')
-    active_duration = fields.Integer("Active Duration", compute='_compute_active_duration', store=True)
-    my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration", store=True)
+    active_duration = fields.Integer("Active Duration", compute='_compute_active_duration')
+    my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration")
     last_start = fields.Datetime("Last Start")
     ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
+    start_date = fields.Datetime("Start Date")
 
-    @api.depends('time_log_ids', 'time_log_ids.duration')
     def _compute_my_total_duration(self):
         for record in self:
             record.my_total_duration = sum(
@@ -49,7 +49,6 @@ class JiraProject(models.Model):
         for record in self:
             record.duration = sum(record.time_log_ids.mapped('duration'))
 
-    @api.depends('work_log_ids', 'work_log_ids.duration')
     def _compute_active_duration(self):
         current_user = self.env.user.id
         now_time = datetime.datetime.now()
