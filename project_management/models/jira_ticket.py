@@ -117,7 +117,8 @@ class JiraProject(models.Model):
                     'duration': 0.0,
                     'cluster_id': record.progress_cluster_id.id,
                     'user_id': self.env.user.id,
-                    'source': source
+                    'source': source,
+                    'start_date': datetime.datetime.now()
                 })]
             record.work_log_ids = [fields.Command.create({
                 'start': datetime.datetime.now(),
