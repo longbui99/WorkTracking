@@ -55,16 +55,13 @@ class JiraProject(models.Model):
             if record.time_log_ids:
                 suitable_time_log_pivot_id = record.time_log_ids.filtered(
                     lambda r: r.user_id.id == current_user and r.state == 'progress')
-                print(suitable_time_log_pivot_id)
                 if suitable_time_log_pivot_id:
                     cluster_id = suitable_time_log_pivot_id[0].cluster_id.id
                     source = suitable_time_log_pivot_id[0].source
                     log_ids = record.work_log_ids.filtered(lambda r: r.cluster_id.id == cluster_id and
                                                                   r.user_id.id == current_user and
                                                                   r.source == source)
-                    print(log_ids)
                     data = log_ids.mapped(lambda r: r.duration or (now_time - r.start).total_seconds())
-                    print(data)
                     record.active_duration = sum(data) + 1
                     continue
             record.active_duration = 0
@@ -114,11 +111,9 @@ class JiraProject(models.Model):
             if not record.time_log_ids.filtered(lambda r: r.cluster_id == record.progress_cluster_id):
                 record.time_log_ids = [fields.Command.create({
                     'description': values.get('description', ''),
-                    'duration': 0.0,
                     'cluster_id': record.progress_cluster_id.id,
                     'user_id': self.env.user.id,
                     'source': source,
-                    'start_date': datetime.datetime.now()
                 })]
             record.work_log_ids = [fields.Command.create({
                 'start': datetime.datetime.now(),

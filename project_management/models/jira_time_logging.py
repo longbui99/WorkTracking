@@ -1,3 +1,4 @@
+from datetime import datetime
 from odoo import api, fields, models, _
 from odoo.tools.float_utils import float_is_zero
 
@@ -64,4 +65,6 @@ class JiraTimeLog(models.Model):
         if 'time' in values:
             values['duration'] = self.convert_log_format_to_second(values['time'])
             values.pop('time')
+        if 'start_date' not in values:
+            values['start_date'] = datetime.now()
         return super().create(values)

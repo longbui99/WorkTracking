@@ -249,7 +249,7 @@ class JIRAMigration(models.Model):
         if is_my:
             payload = payload[3:]
         type, params = get_search_request(payload)
-        self._search_load(type, params, is_my)
+        return self._search_load(type, params, is_my)
 
     # ===========================================  Section for loading work logs ===================================
     def get_local_worklog_data(self, ticket_id, domain):
