@@ -8,6 +8,7 @@
             <xpath expr="//notebook[1]" position="inside">
                 <page string="JIRA Configurations">
                     <group>
+                        <field name="auto_export_work_log" widget="boolean_toggle"/>
                         <field name="jira_private_key" password="True"/>
                     </group>
                 </page>

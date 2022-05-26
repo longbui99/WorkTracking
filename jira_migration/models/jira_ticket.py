@@ -20,11 +20,14 @@ class JiraProject(models.Model):
 
     def action_done_work_log(self, values={}):
         res = super().action_done_work_log(values)
-        self.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
+        if self.env['hr.employee'].search([('user_id', '=', self.env.user.id)]).mapped('auto_export_work_log'):
+            self.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
         return res
 
     def action_manual_work_log(self, values={}):
         self.ensure_one()
         res = super().action_manual_work_log(values)
-        self.jira_migration_id.add_time_logs(self, res)
+        if self.env['hr.employee'].search([('user_id', '=', self.env.user.id)]).mapped('auto_export_work_log'):
+            if self.jira_migration_id.auto_export_work_log:
+                self.jira_migration_id.export_time_log_to_jira()
         return res
