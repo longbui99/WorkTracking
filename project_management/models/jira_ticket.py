@@ -176,10 +176,13 @@ class JiraProject(models.Model):
         source = values.get('source', 'Internal')
         if values.get('except', False):
             except_ids = self.browse(values['except'])
-        active_log_ids = self.env['jira.work.log'].search([('user_id', '=', self.env.user.id),
-                                                           ('ticket_id.active_duration', '>', 0.0),
-                                                           ('source', '=', source)])
-        active_ticket_ids = (active_log_ids.mapped('ticket_id') - except_ids)
+        # active_log_ids = self.env['jira.work.log'].search([('user_id', '=', self.env.user.id),
+        #                                                    ('source', '=', source)])
+        active_time_ids = self.env['jira.time.log'].search([('user_id', '=', self.env.user.id),
+                                                            ('source', '=', source),
+                                                            ('state', ' =', 'progress')
+                                                            ])
+        active_ticket_ids = (active_time_ids.mapped('ticket_id') - except_ids)
         if values.get('limit', False):
             active_ticket_ids = active_ticket_ids[:values['limit']]
         return active_ticket_ids
@@ -196,7 +199,8 @@ class JiraProject(models.Model):
         ticket_ids = self.env['jira.ticket']
         if load_type == 'ticket' or load_type == "text":
             return self.search(expression.AND(
-                [extra_domain, ['|', ('ticket_name', 'ilike', params[0]), ('ticket_key', 'ilike', params[0])]]), limit=limit)
+                [extra_domain, ['|', ('ticket_name', 'ilike', params[0]), ('ticket_key', 'ilike', params[0])]]),
+                limit=limit)
         elif load_type == "project_text":
             project_ids = self.env['jira.project'].search(
                 ['|', ('project_key', 'ilike', params[0]), ('project_name', '=', params[0])]).ids
