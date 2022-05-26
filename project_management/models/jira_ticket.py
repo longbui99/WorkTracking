@@ -166,7 +166,7 @@ class JiraProject(models.Model):
                 'ticket_id': record.id,
                 'state': 'done'
             })
-        self.last_start = datetime.datetime.now()
+        self.last_start = False
         return log_ids
 
     @api.model

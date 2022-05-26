@@ -31,3 +31,9 @@ class JiraProject(models.Model):
             if self.jira_migration_id.auto_export_work_log:
                 self.jira_migration_id.export_time_log_to_jira()
         return res
+
+    @api.model
+    def create(self, values):
+        res = super().create(values)
+        res.last_export = datetime.datetime.now()
+        return res
