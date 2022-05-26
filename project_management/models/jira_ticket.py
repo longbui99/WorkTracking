@@ -65,7 +65,6 @@ class JiraProject(models.Model):
                                                                   r.source == source
                                                         ).mapped(
                         lambda r: r.duration or (now_time - r.start).total_seconds())
-                    print(data)
                     record.active_duration = sum(data) + 1
 
     def __assign_assignee(self):
@@ -169,6 +168,7 @@ class JiraProject(models.Model):
                 'ticket_id': record.id,
                 'state': 'done'
             })
+        self.last_start = datetime.datetime.now()
         return log_ids
 
     @api.model
