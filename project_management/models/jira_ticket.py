@@ -113,6 +113,7 @@ class JiraProject(models.Model):
                     'description': values.get('description', ''),
                     'cluster_id': record.progress_cluster_id.id,
                     'user_id': self.env.user.id,
+                    'duration': 0,
                     'source': source,
                 })]
             record.work_log_ids = [fields.Command.create({
