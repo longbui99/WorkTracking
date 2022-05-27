@@ -15,7 +15,7 @@ class JiraTicketMigration(JiraTicket):
             for migrate in request.env['jira.migration'].sudo().search([]):
                 ticket_ids |= migrate.sudo().search_ticket(keyword)
             if ticket_ids:
-                data = self._get_ticket(ticket_ids.sorted(lambda r: r.ticket_sequence))
+                data = self._get_ticket(ticket_ids)
                 return http.Response(json.dumps(data), content_type='application/json', status=200)
         return res
 

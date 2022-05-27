@@ -1,6 +1,6 @@
 from datetime import datetime
 from odoo import api, fields, models, _
-from odoo.tools.float_utils import float_is_zero
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second
 
 
 class JiraTimeLog(models.Model):
@@ -19,40 +19,11 @@ class JiraTimeLog(models.Model):
     user_id = fields.Many2one('res.users', string='User')
     start_date = fields.Datetime("Start Date")
 
-    @api.model
-    def convert_second_to_log_format(self, time):
-        data = [{'key': 'w', 'duration': 604800},
-                {'key': 'd', 'duration': 86400},
-                {'key': 'h', 'duration': 3600},
-                {'key': 'm', 'duration': 60},
-                {'key': 's', 'duration': 1}]
-        response = ""
-        for segment in data:
-            duration = segment['duration']
-            if time >= duration:
-                response += f"{int(time / duration)}{segment['key']} "
-                time -= (int(time / duration) * duration)
-        return response
-
-    @api.model
-    def convert_log_format_to_second(self, log_data):
-        logs = log_data.split(' ')
-        total_time = 0
-        data = {'w': 604800, 'd': 86400, 'h': 3600, 'm': 60, 's': 1}
-        for log in logs:
-            if len(log) <= 1:
-                raise AttributeError("Your format is incorrect")
-            else:
-                total_time += int(log[:-1]) * data.get(log[-1], 0)
-        if float_is_zero(total_time, 3):
-            raise AttributeError("Nothing to log")
-        return total_time
-
     @api.depends('duration')
     def _compute_time_data(self):
         for record in self:
             if record.duration:
-                record.time = self.convert_second_to_log_format(record.duration)
+                record.time = convert_second_to_log_format(record.duration)
 
     def unlink(self):
         cluster_ids = self.mapped('cluster_id')
@@ -63,7 +34,7 @@ class JiraTimeLog(models.Model):
     @api.model
     def create(self, values):
         if 'time' in values:
-            values['duration'] = self.convert_log_format_to_second(values['time'])
+            values['duration'] = convert_log_format_to_second(values['time'])
             values.pop('time')
         if 'start_date' not in values:
             values['start_date'] = datetime.now()

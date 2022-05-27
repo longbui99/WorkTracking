@@ -29,6 +29,7 @@
                             attrs="{'invisible':[('progress_cluster_id','=',False)]}"/>
                     <button name="action_done_work_log" string="Done Progress" type="object" class="btn-primary"
                             attrs="{'invisible':[('progress_cluster_id','=',False)]}"/>
+                    <button name="action_done_work" string="Log Work" type="object" class="btn-primary"/>
                 </header>
                 <sheet>
                     <label for="ticket_name" class="oe_edit_only"/>
@@ -43,7 +44,7 @@
                             <field name="project_id"/>
                         </group>
                         <group>
-                            <field name="duration"/>
+                            <field name="duration_in_text"/>
                             <field name="progress_cluster_id"/>
                             <field name="suitable_assignee" invisible="1"/>
                             <field name="assignee_id" domain="[('id','in', suitable_assignee)]"/>
@@ -77,6 +78,14 @@
                                     <field name="description"/>
                                     <field name="user_id"/>
                                     <field name="source" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Subtasks">
+                            <field name="children_ticket_ids">
+                                <tree edit="0">
+                                    <field name="ticket_key"/>
+                                    <field name="duration"/>
                                 </tree>
                             </field>
                         </page>

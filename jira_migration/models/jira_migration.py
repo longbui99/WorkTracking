@@ -22,13 +22,16 @@ class JIRAMigration(models.Model):
 
     def __get_request_headers(self):
         self.ensure_one()
-        employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
-        if not employee_id:
-            raise UserError(_("Don't have any related Employee, please set up on Employee Application"))
-        if not employee_id.jira_private_key:
-            raise UserError(_("Missing the Access token in the related Employee"))
+        jira_private_key = self._context.get('access_token')
+        if not jira_private_key:
+            employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
+            if not employee_id:
+                raise UserError(_("Don't have any related Employee, please set up on Employee Application"))
+            if not employee_id.jira_private_key:
+                raise UserError(_("Missing the Access token in the related Employee"))
+            jira_private_key = employee_id.jira_private_key
         headers = {
-            'Authorization': "Bearer " + employee_id.jira_private_key,
+            'Authorization': "Bearer " + jira_private_key
         }
         return headers
 
@@ -43,6 +46,7 @@ class JIRAMigration(models.Model):
                 new_project.append({
                     'project_name': record['name'],
                     'project_key': record['key'],
+                    'jira_migration_id': self.id
                 })
 
         if new_project:
@@ -308,8 +312,8 @@ class JIRAMigration(models.Model):
 
     def load_work_logs(self, ticket_ids, paging=50, domain=[], load_all=False):
         if self.import_work_log:
+            headers = self.__get_request_headers()
             for ticket_id in ticket_ids:
-                headers = self.__get_request_headers()
                 request_data = {
                     'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}/worklog",
                 }
@@ -380,3 +384,17 @@ class JIRAMigration(models.Model):
         )
         self.add_time_logs(ticket_id, time_log_to_create_ids)
         self.update_time_logs(ticket_id, time_log_to_update_ids)
+
+    def _update_project(self, project_id, access_token):
+        self = self.with_context(access_token=access_token)
+        updated_date = '0001-01-01'
+        if project_id.last_update:
+            updated_date = project_id.last_update.strftime('%Y-%m-%d %H:%m')
+        params = f"""jql=project="{project_id.project_key}" AND updatedDate >= '{updated_date}'"""
+        request_data = {'endpoint': f"{self.jira_server_url}/search", "params": [params]}
+        ticket_ids = self.do_request(request_data, load_all=True)
+        self.load_work_logs(ticket_ids)
+        project_id.last_update = datetime.now()
+
+    def update_project(self, project_id, access_token):
+        self.with_delay()._update_project(project_id, access_token)

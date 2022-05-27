@@ -14,6 +14,7 @@ class JiraProject(models.Model):
     allowed_user_ids = fields.Many2many('res.users', string='Allowed Users')
     allowed_manager_ids = fields.Many2many('res.users', 'res_user_jira_project_rel_2', string='Managers')
     ticket_ids = fields.One2many('jira.ticket', 'project_id', string='Tickets')
+    jira_migration_id = fields.Many2one("jira.migration", string="Jira Migration Credentials")
 
     def fetch_user_from_ticket(self):
         for record in self:

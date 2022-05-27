@@ -68,7 +68,7 @@ class JiraTicket(http.Controller):
                 auth='jwt')
     def search_ticket(self, keyword):
         limit = int(request.params.get('limitRecord', 80))
-        ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword).sorted(lambda r: r.ticket_sequence)
+        ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword)
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 

@@ -1,8 +1,9 @@
 import datetime
+import json
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
 from odoo.osv import expression
 from odoo.addons.project_management.utils.search_parser import get_search_request
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format
 
 
 class JiraProject(models.Model):
@@ -32,10 +33,20 @@ class JiraProject(models.Model):
     last_start = fields.Datetime("Last Start")
     ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
     start_date = fields.Datetime("Start Date")
+    parent_ticket_id = fields.Many2one("jira.ticket", string="Parent")
+    log_to_parent = fields.Boolean("Log to Parent?")
+    children_ticket_ids = fields.One2many("jira.ticket", "parent_ticket_id", store=False)
+    duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
+
+    @api.depends("duration")
+    def _compute_duration_in_text(self):
+        for record in self:
+            record.duration_in_text = convert_second_to_log_format(record.duration)
 
     def _compute_my_total_duration(self):
         for record in self:
-            record.my_total_duration = sum(record.time_log_ids.filtered(lambda r: r.user_id.id == self.env.user.id).mapped('duration'))
+            record.my_total_duration = sum(
+                record.time_log_ids.filtered(lambda r: r.user_id.id == self.env.user.id).mapped('duration'))
 
     @api.depends('ticket_key')
     def _compute_ticket_sequence(self):
@@ -59,8 +70,8 @@ class JiraProject(models.Model):
                     cluster_id = suitable_time_log_pivot_id[0].cluster_id.id
                     source = suitable_time_log_pivot_id[0].source
                     log_ids = record.work_log_ids.filtered(lambda r: r.cluster_id.id == cluster_id and
-                                                                  r.user_id.id == current_user and
-                                                                  r.source == source)
+                                                                     r.user_id.id == current_user and
+                                                                     r.source == source)
                     data = log_ids.mapped(lambda r: r.duration or (now_time - r.start).total_seconds())
                     record.active_duration = sum(data) + 1
                     continue
@@ -126,10 +137,25 @@ class JiraProject(models.Model):
             record.last_start = datetime.datetime.now()
         return self
 
+    def action_done_work(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_view")
+        context = json.loads(action['context'])
+        context.update({'default_ticket_id': self.id})
+        action['context'] = context
+        return action
+
+    def _get_suitable_log(self):
+        record = self
+        while record.parent_ticket_id and record.log_to_parent:
+            record = record.parent_ticket_id
+        return record
+
     def action_done_work_log(self, values={}):
         self.action_pause_work_log(values)
         source = values.get('source', 'Internal')
-        for record in self:
+        for ticket in self:
+            record = ticket._get_suitable_log()
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
                 lambda r: r.user_id == self.env.user
                           and r.state == 'progress'
@@ -170,8 +196,12 @@ class JiraProject(models.Model):
         self.last_start = False
         return log_ids
 
+    def _get_result_management(self):
+        return self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], order='last_activity desc', limit=1)
+
     @api.model
     def get_all_active(self, values={}):
+        employee = self._get_result_management()
         except_ids = self
         source = values.get('source', 'Internal')
         if values.get('except', False):
@@ -179,28 +209,31 @@ class JiraProject(models.Model):
         active_time_ids = self.env['jira.time.log'].search([('user_id', '=', self.env.user.id),
                                                             ('source', '=', source),
                                                             ('state', '=', 'progress')])
-        active_ticket_ids = (active_time_ids.mapped('ticket_id') - except_ids)
+        active_ticket_ids = (active_time_ids.mapped('ticket_id') - except_ids).ids
+        self.search([('id', 'in', active_ticket_ids)], order=employee.order_style,
+                    limit=employee.maximum_relative_result)
         if values.get('limit', False):
             active_ticket_ids = active_ticket_ids[:values['limit']]
         return active_ticket_ids
 
     def search_ticket_by_criteria(self, payload):
+        employee = self._get_result_management()
         extra_domain = []
         if payload.startswith("my-"):
             extra_domain = [('assignee_id', '=', self.env.user.id)]
             payload = payload[3:]
         load_type, params = get_search_request(payload)
-        limit = self._context.get('limit', 80)
         if isinstance(params, (list, tuple)):
             params = list(map(lambda r: r.upper(), params))
         ticket_ids = self.env['jira.ticket']
         if load_type == 'ticket' or load_type == "text":
             return self.search(expression.AND(
                 [extra_domain, ['|', ('ticket_name', 'ilike', params), ('ticket_key', 'ilike', params)]]),
-                limit=limit)
+                order=employee.order_style, limit=employee.maximum_search_result)
         elif load_type == "project_text":
             project_ids = self.env['jira.project'].search(
                 ['|', ('project_key', 'ilike', params[0]), ('project_name', '=', params[0])]).ids
-            return self.search([('project_id', 'in', project_ids), ('ticket_name', 'ilike', params[1])] + extra_domain,
-                               limit=limit)
+            return self.search(
+                [('project_id', 'in', project_ids), ('ticket_name', 'ilike', params[1])] + extra_domain,
+                order=employee.order_style, limit=employee.maximum_search_result)
         return ticket_ids
