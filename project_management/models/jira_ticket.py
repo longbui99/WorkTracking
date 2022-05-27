@@ -10,12 +10,11 @@ class JiraProject(models.Model):
     _name = "jira.ticket"
     _description = "JIRA Ticket"
     _order = 'ticket_sequence desc, sequence asc, create_date desc'
-    _rec_name = 'ticket_key'
 
     pin = fields.Boolean(string='Pin')
     sequence = fields.Integer(string='Sequence')
     ticket_name = fields.Char(string='Name', required=True)
-    ticket_key = fields.Char(string='Ticket Key')
+    ticket_key = fields.Char(string='Ticket Key', required=True)
     ticket_url = fields.Char(string='JIRA Ticket')
     time_log_ids = fields.One2many('jira.time.log', 'ticket_id', string='Log Times')
     story_point = fields.Integer(string='Story Point')
@@ -37,6 +36,21 @@ class JiraProject(models.Model):
     log_to_parent = fields.Boolean("Log to Parent?")
     children_ticket_ids = fields.One2many("jira.ticket", "parent_ticket_id", store=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
+
+    @api.model
+    def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
+        if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
+            args = args or []
+            domain = ['|', ('ticket_name', operator, name), ('ticket_key', operator, name)]
+            return self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
+        return super(JiraProject, self)._name_search(name=name, args=args, operator=operator, limit=limit,
+                                                     name_get_uid=name_get_uid)
+
+    def name_get(self):
+        # Prefetch the fields used by the `name_get`, so `browse` doesn't fetch other fields
+        self.browse(self.ids).read(['ticket_key', 'ticket_name'])
+        return [(template.id, '%s: %s' % (template.ticket_key and template.ticket_key or '', template.ticket_name))
+                for template in self]
 
     @api.depends("duration")
     def _compute_duration_in_text(self):
@@ -154,6 +168,7 @@ class JiraProject(models.Model):
     def action_done_work_log(self, values={}):
         self.action_pause_work_log(values)
         source = values.get('source', 'Internal')
+        change_records = self.env['jira.ticket']
         for ticket in self:
             record = ticket._get_suitable_log()
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
@@ -179,12 +194,15 @@ class JiraProject(models.Model):
                 })
             record.progress_cluster_id = None
             record.last_start = False
-        return self
+            change_records |= record
+        return change_records
 
     def action_manual_work_log(self, values={}):
         source = values.get('source', 'Internal')
         log_ids = self.env['jira.time.log']
-        for record in self:
+        change_records = self.env['jira.ticket']
+        for ticket in self:
+            record = ticket._get_suitable_log()
             log_ids |= record.env['jira.time.log'].create({
                 'description': values.get('description', ''),
                 'time': values.get('time', ''),
@@ -193,8 +211,9 @@ class JiraProject(models.Model):
                 'ticket_id': record.id,
                 'state': 'done'
             })
-        self.last_start = False
-        return log_ids
+            change_records |= record
+            record.last_start = False
+        return change_records
 
     def _get_result_management(self):
         return self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], order='last_activity desc', limit=1)

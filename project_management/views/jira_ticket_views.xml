@@ -42,6 +42,8 @@
                             <field name="ticket_url" widget="url"/>
                             <field name="story_point"/>
                             <field name="project_id"/>
+                            <field name="parent_ticket_id" domain="[('project_id','=',project_id)]" attrs="{'required':[('log_to_parent','=', True)]}"/>
+                            <field name="log_to_parent" widget="boolean_toggle"/>
                         </group>
                         <group>
                             <field name="duration_in_text"/>
