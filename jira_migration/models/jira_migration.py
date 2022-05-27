@@ -261,14 +261,14 @@ class JIRAMigration(models.Model):
             'dict_user': {r.partner_id.email: r.id for r in self.env['res.users'].sudo().search([])},
         }
 
-    def update_work_log_data(self, log_id, data):
+    def update_work_log_data(self, log_id, work_log, data):
         to_update = {}
         work_log_id = data['work_logs'][log_id]
-        if work_log_id.duration != data['timeSpentSeconds']:
-            to_update['duration'] = data['timeSpentSeconds']
-            to_update['time'] = data['timeSpent']
-        logging_email = self.__load_from_key_paths(data, ['updateAuthor', 'key'])
-        start_date = self.__load_from_key_paths(data, ['created'])
+        if work_log_id.duration != work_log['timeSpentSeconds']:
+            to_update['duration'] = work_log['timeSpentSeconds']
+            to_update['time'] = work_log['timeSpent']
+        logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'key'])
+        start_date = self.__load_from_key_paths(work_log, ['created'])
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
         if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date[:16]:
@@ -298,7 +298,7 @@ class JIRAMigration(models.Model):
                 to_create['user_id'] = data['dict_user'].get(logging_email, False)
                 new_tickets.append(to_create)
             else:
-                self.update_work_log_data(log_id, work_log)
+                self.update_work_log_data(log_id, work_log, data)
 
         deleted = set(list(data['work_logs'].keys())) - affected_jira_ids
         if deleted:
