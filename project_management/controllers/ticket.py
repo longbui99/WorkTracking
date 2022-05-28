@@ -24,10 +24,10 @@ class NotFound(Exception):
 class JiraTicket(http.Controller):
 
     def _get_ticket(self, ticket_ids):
-        if isinstance(ticket_ids, list) or isinstance(ticket_ids, int):
+        if ticket_ids and isinstance(ticket_ids, list) or isinstance(ticket_ids, int):
             ticket_ids = request.env['jira.ticket'].browse(ticket_ids)
             if not ticket_ids.exists():
-                raise MissingError("Cannot found ticket in our system!")
+                return MissingError("Cannot found ticket in our system!")
         res = []
         for ticket_id in ticket_ids:
             res.append({
@@ -121,7 +121,7 @@ class JiraTicket(http.Controller):
             return http.Response(str(e), content_type='application/json', status=404)
         return http.Response("", content_type='application/json', status=200)
 
-    @http.route(['/management/ticket/my-active'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
+    @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def get_related_active(self):
         try:
             active_ticket_ids = request.env['jira.ticket'].get_all_active(

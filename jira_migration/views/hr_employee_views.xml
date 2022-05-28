@@ -8,6 +8,9 @@
             <field name="order_style" position="after">
                 <field name="auto_export_work_log" widget="boolean_toggle"/>
                 <field name="jira_private_key" password="True"/>
+                <field name="auto_remove_access" widget="boolean_toggle"/>
+                <field name="maximum_connection" attrs="{'invisible': [('auto_remove_access', '=', False)]}"/>
+                <button name="action_reset_token" type="object" string="Reset Extension Token" class="btn-secondary"/>
             </field>
         </field>
     </record>

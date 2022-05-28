@@ -2,6 +2,7 @@ import json
 from odoo import http, _
 from odoo.http import request
 from odoo.addons.project_management.controllers.ticket import JiraTicket
+from odoo.addons.project_management.controllers.auth import Auth
 
 
 class JiraTicketMigration(JiraTicket):
@@ -19,14 +20,29 @@ class JiraTicketMigration(JiraTicket):
                 return http.Response(json.dumps(data), content_type='application/json', status=200)
         return res
 
-    @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", method=["GET", "POST"], auth="jwt")
+    @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET", "POST"],
+                auth="jwt")
     def fetch_ticket_from_server(self, ticket_id):
         try:
             if not ticket_id:
-                raise Exception("Need to provide ticket id")
+                return Exception("Need to provide ticket id")
             ticket_id = request.env['jira.ticket'].browse(ticket_id)
             ticket_id.jira_migration_id.search_load('ticket', [ticket_id.ticket_key])
         except Exception as e:
             return http.Response(str(e), content_type='application/json', status=404)
         else:
             return http.Response("", content_type='application/json', status=200)
+
+
+class AuthInherited(Auth):
+
+    @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
+    def auth_login_encrypt(self):
+        res = super().auth_login_encrypt()
+        employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', request.env.user.id)],
+                                                               order='last_activity desc', limit=1)
+        if employee_id and employee_id.auto_remove_access:
+            request.env['user.access.code'].sudo().search([('uid', '=', request.env.user.id)],
+                                                          order='create_date desc',
+                                                          offset=employee_id.maximum_connection).unlink()
+        return res
