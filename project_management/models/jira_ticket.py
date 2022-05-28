@@ -1,5 +1,6 @@
 import datetime
 import json
+import pytz
 from odoo import api, fields, models, _
 from odoo.osv import expression
 from odoo.addons.project_management.utils.search_parser import get_search_request
@@ -201,6 +202,10 @@ class JiraProject(models.Model):
         source = values.get('source', 'Internal')
         log_ids = self.env['jira.time.log']
         change_records = self.env['jira.ticket']
+        start_date = values.get('start_date', False)
+        if start_date:
+            start_date = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S%z").astimezone(pytz.utc)
+            start_date = start_date.replace(tzinfo=None)
         for ticket in self:
             record = ticket._get_suitable_log()
             log_ids |= record.env['jira.time.log'].create({
@@ -209,7 +214,8 @@ class JiraProject(models.Model):
                 'user_id': self.env.user.id,
                 'source': source,
                 'ticket_id': record.id,
-                'state': 'done'
+                'state': 'done',
+                'start_date': start_date
             })
             change_records |= record
             record.last_start = False
