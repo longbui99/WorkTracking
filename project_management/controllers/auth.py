@@ -34,5 +34,5 @@ class Auth(http.Controller):
             response = jwt.encode({"uid": uid, "token": token}, request.env.cr.dbname + "longlml", algorithm="HS256")
             if not (isinstance(response, str)):
                 response = response.decode('utf-8')
-            res = {'data': response, "name": request.env.user.name}
+            res = {'data': response, "name": request.env.user.sudo().browse(uid).name}
         return http.Response(json.dumps(res), content_type='application/json', status=200)
