@@ -35,6 +35,16 @@ class JIRAMigration(models.Model):
         }
         return headers
 
+    def _get_single_project(self):
+        headers = self.__get_request_headers()
+        result = requests.get(f"{self.jira_server_url}/project", headers=headers)
+        record = json.loads(result.text)
+        return self.env['jira.project'].create({
+            'project_name': record['name'],
+            'project_key': record['key'],
+            'jira_migration_id': self.id
+        }).id
+
     def load_projects(self):
         headers = self.__get_request_headers()
         result = requests.get(f"{self.jira_server_url}/project", headers=headers)
@@ -113,6 +123,9 @@ class JIRAMigration(models.Model):
                     'create_date': ticket_fields['created']
                 }
                 if local['project_key_dict'].get(project, False):
+                    res['project_id'] = local['project_key_dict'][project]
+                else:
+                    local['project_key_dict'][project] = self._get_single_project(project)
                     res['project_id'] = local['project_key_dict'][project]
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]

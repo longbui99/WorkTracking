@@ -15,3 +15,4 @@ class JiraProject(models.Model):
                 'jira_private_key')
             if any(access_token):
                 project.jira_migration_id.with_context().update_project(project, access_token[0])
+
