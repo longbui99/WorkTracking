@@ -35,9 +35,9 @@ class JIRAMigration(models.Model):
         }
         return headers
 
-    def _get_single_project(self):
+    def _get_single_project(self, project_key):
         headers = self.__get_request_headers()
-        result = requests.get(f"{self.jira_server_url}/project", headers=headers)
+        result = requests.get(f"{self.jira_server_url}/project/{project_key}", headers=headers)
         record = json.loads(result.text)
         return self.env['jira.project'].create({
             'project_name': record['name'],
