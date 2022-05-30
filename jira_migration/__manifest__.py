@@ -9,7 +9,7 @@
     "website": "https://www.drakebui.ml/",
     "depends": ['project_management', 'queue_job'],
     "data": [
-        'data/queue_job_function.xml',
+        # 'data/queue_job_function.xml',
         'security/ir.model.access.csv',
 
         'views/hr_employee_views.xml',
