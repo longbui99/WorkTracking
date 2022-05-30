@@ -10,7 +10,6 @@
     "depends": ['hr'],
     "data": [
         'data/project_data.xml',
-        'data/queue_job_function.xml',
 
         'security/jira_security.xml',
         'security/ir.model.access.csv',
