@@ -12,7 +12,7 @@ class JiraProject(models.Model):
     def export_time_log_to_jira(self):
         for record in self:
             record.jira_migration_id.export_time_log(record)
-        self.last_export = datetime.datetime.now()
+            record.last_export = datetime.datetime.now()
 
     def import_ticket_jira(self):
         for record in self:
@@ -22,14 +22,18 @@ class JiraProject(models.Model):
         res = super().action_done_work_log(values)
         if any(res.env['hr.employee'].search([('user_id', '=', self.env.user.id)]).mapped('auto_export_work_log')):
             res.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
+        res.write({'last_export': datetime.datetime.now()})
         return res
 
     def action_manual_work_log(self, values={}):
+        pivot_datetime = datetime.datetime.now()
         self.ensure_one()
         res = super().action_manual_work_log(values)
         if any(res.env['hr.employee'].search([('user_id', '=', res.env.user.id)]).mapped('auto_export_work_log')):
             if res.jira_migration_id.auto_export_work_log:
-                res.jira_migration_id.export_time_log(res)
+                res.jira_migration_id.add_time_logs(res,
+                                                    res.time_log_ids.filtered(lambda r: r.create_date > pivot_datetime))
+                res.last_export = datetime.datetime.now()
         return res
 
     @api.model
