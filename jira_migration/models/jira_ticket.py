@@ -28,11 +28,10 @@ class JiraProject(models.Model):
     def action_manual_work_log(self, values={}):
         pivot_datetime = datetime.datetime.now()
         self.ensure_one()
-        res = super().action_manual_work_log(values)
+        res, time_log_ids = super().action_manual_work_log(values)
         if any(res.env['hr.employee'].search([('user_id', '=', res.env.user.id)]).mapped('auto_export_work_log')):
             if res.jira_migration_id.auto_export_work_log:
-                res.jira_migration_id.add_time_logs(res,
-                                                    res.time_log_ids.filtered(lambda r: r.create_date > pivot_datetime))
+                res.jira_migration_id.add_time_logs(res, time_log_ids)
                 res.last_export = datetime.datetime.now()
         return res
 

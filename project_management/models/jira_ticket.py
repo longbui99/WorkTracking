@@ -219,7 +219,7 @@ class JiraProject(models.Model):
             })
             change_records |= record
             record.last_start = False
-        return change_records
+        return change_records, log_ids
 
     def _get_result_management(self):
         return self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], order='last_activity desc', limit=1)
