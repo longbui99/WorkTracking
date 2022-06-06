@@ -33,7 +33,7 @@ class JiraProject(models.Model):
             if res.jira_migration_id.auto_export_work_log:
                 res.jira_migration_id.add_time_logs(res,
                                                     res.time_log_ids.filtered(lambda r: r.create_date > pivot_datetime))
-                res.last_export = datetime.datetime.now()
+
         return res
 
     @api.model

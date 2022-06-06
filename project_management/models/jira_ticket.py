@@ -30,7 +30,7 @@ class JiraProject(models.Model):
     work_log_ids = fields.One2many('jira.work.log', 'ticket_id', string='Work Log Statuses')
     active_duration = fields.Integer("Active Duration", compute='_compute_active_duration')
     my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration")
-    last_start = fields.Datetime("Last Start")
+    last_start = fields.Datetime("Last Start", compute="_compute_last_start")
     ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
     start_date = fields.Datetime("Start Date")
     parent_ticket_id = fields.Many2one("jira.ticket", string="Parent")
@@ -46,6 +46,17 @@ class JiraProject(models.Model):
             return self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
         return super(JiraProject, self)._name_search(name=name, args=args, operator=operator, limit=limit,
                                                      name_get_uid=name_get_uid)
+
+    def _compute_last_start(self):
+        user_id = self.env.user.id
+        for record in self:
+            if record.work_log_ids:
+                suitable_record = record.work_log_ids.filtered(
+                    lambda r: r.user_id.id == user_id and r.state == 'progress')
+                if suitable_record:
+                    record.last_start = suitable_record.start
+                    continue
+            record.last_start = False
 
     def name_get(self):
         # Prefetch the fields used by the `name_get`, so `browse` doesn't fetch other fields
@@ -129,23 +140,25 @@ class JiraProject(models.Model):
     def generate_progress_work_log(self, values={}):
         source = values.get('source', 'Internal')
         self.action_pause_work_log(values)
+        user_id = self.env.user.id
         for record in self:
             if not record.progress_cluster_id:
                 record.progress_cluster_id = self.env['jira.work.log.cluster'].create({
                     'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
                 })
-            if not record.time_log_ids.filtered(lambda r: r.cluster_id == record.progress_cluster_id):
+            if not record.time_log_ids.filtered(
+                    lambda r: r.cluster_id == record.progress_cluster_id and r.user_id.id == user_id):
                 record.time_log_ids = [fields.Command.create({
                     'description': values.get('description', ''),
                     'cluster_id': record.progress_cluster_id.id,
-                    'user_id': self.env.user.id,
+                    'user_id': user_id,
                     'duration': 0,
                     'source': source,
                 })]
             record.work_log_ids = [fields.Command.create({
                 'start': datetime.datetime.now(),
                 'cluster_id': record.progress_cluster_id.id,
-                'user_id': self.env.user.id,
+                'user_id': user_id,
                 'source': source,
                 'description': values.get('description', '')
             })]

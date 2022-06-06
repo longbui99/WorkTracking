@@ -39,8 +39,7 @@ class AuthInherited(Auth):
     @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
     def auth_login_encrypt(self):
         res = super().auth_login_encrypt()
-        employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', request.env.user.id)],
-                                                               order='last_activity desc', limit=1)
+        employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', request.env.user.id)], limit=1)
         if employee_id and employee_id.auto_remove_access:
             request.env['user.access.code'].sudo().search([('uid', '=', request.env.user.id)],
                                                           order='create_date desc',
