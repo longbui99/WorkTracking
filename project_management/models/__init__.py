@@ -6,3 +6,4 @@ from . import jira_work_log
 from . import ir_http
 from . import hr_employee
 from . import access_code
+from . import one_time_link

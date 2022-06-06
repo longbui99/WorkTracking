@@ -5,6 +5,8 @@ from odoo import api, fields, models, _
 from odoo.osv import expression
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format
+from Crypto.Cipher import AES
+import base64
 
 
 class JiraProject(models.Model):
@@ -37,6 +39,7 @@ class JiraProject(models.Model):
     log_to_parent = fields.Boolean("Log to Parent?")
     children_ticket_ids = fields.One2many("jira.ticket", "parent_ticket_id", store=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
+    encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
 
     @api.model
     def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
@@ -275,3 +278,18 @@ class JiraProject(models.Model):
                 [('project_id', 'in', project_ids), ('ticket_name', 'ilike', params[1])] + extra_domain,
                 order=employee.order_style, limit=employee.maximum_search_result)
         return ticket_ids
+
+    def _compute_encode_string(self):
+        cipher = AES.new(b'Bui Phi Long LML', AES.MODE_EAX)
+        nonce = base64.decodebytes(cipher.nonce)
+        one_time_link_env = self.env['one.time.link'].sudo()
+        for record in self:
+            ciphertext, tag = cipher.encrypt_and_digest(json.dumps({
+                "record_id": record.id,
+                "uid": record.user_id.id
+            }))
+            record.encode_string = base64.decodebytes(ciphertext)
+            one_time_link_env.create({
+                'key': record.encode_string,
+                'value': nonce
+            })

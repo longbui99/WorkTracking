@@ -1,6 +1,9 @@
 from datetime import datetime
 from odoo import api, fields, models, _
 from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second
+from Crypto.Cipher import AES
+import base64
+import json
 
 
 class JiraTimeLog(models.Model):
@@ -18,6 +21,7 @@ class JiraTimeLog(models.Model):
     source = fields.Char(string='Source')
     user_id = fields.Many2one('res.users', string='User')
     start_date = fields.Datetime("Start Date")
+    encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
 
     @api.depends('duration')
     def _compute_time_data(self):
@@ -39,3 +43,18 @@ class JiraTimeLog(models.Model):
         if 'start_date' not in values:
             values['start_date'] = datetime.now()
         return super().create(values)
+
+    def _compute_encode_string(self):
+        cipher = AES.new(b'Bui Phi Long LML', AES.MODE_EAX)
+        nonce = base64.decodebytes(cipher.nonce)
+        one_time_link_env = self.env['one.time.link'].sudo()
+        for record in self:
+            ciphertext, tag = cipher.encrypt_and_digest(json.dumps({
+                "record_id": record.id,
+                "uid": record.user_id.id
+            }))
+            record.encode_string = base64.decodebytes(ciphertext)
+            one_time_link_env.create({
+                'key': record.encode_string,
+                'value': nonce
+            })
