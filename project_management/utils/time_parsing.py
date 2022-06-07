@@ -1,6 +1,19 @@
 from odoo.tools.float_utils import float_is_zero
 
 
+def convert_second_to_time_format(time):
+    data = [{'key': 'hour(s)', 'duration': 3600},
+            {'key': 'minute(s)', 'duration': 60},
+            {'key': 'second(s)', 'duration': 1}]
+    response = ""
+    for segment in data:
+        duration = segment['duration']
+        if time >= duration:
+            response += f"{int(time / duration)} {segment['key']} "
+            time -= (int(time / duration) * duration)
+    return response
+
+
 def convert_second_to_log_format(time):
     data = [{'key': 'w', 'duration': 604800},
             {'key': 'd', 'duration': 86400},

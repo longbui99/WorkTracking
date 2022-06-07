@@ -1,6 +1,6 @@
 from datetime import datetime
 from odoo import api, fields, models, _
-from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format
 from Crypto.Cipher import AES
 import base64
 import json

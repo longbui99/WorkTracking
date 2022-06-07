@@ -7,9 +7,10 @@
     'category': 'Project',
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",
-    "depends": ['hr'],
+    "depends": ['hr', 'digest'],
     "data": [
         'data/project_data.xml',
+        'data/digest_email_template.xml',
 
         'security/jira_security.xml',
         'security/ir.model.access.csv',
@@ -19,6 +20,7 @@
         'views/jira_ticket_views.xml',
         'views/jira_status_views.xml',
         'views/jira_time_logging_views.xml',
+        'views/digest_email_views.xml',
 
         'views/menus.xml',
 
