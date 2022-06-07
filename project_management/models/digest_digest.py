@@ -155,7 +155,7 @@ class Digest(models.Model):
     def _generate_mail_content(self, user, company, formatted_data, heading_data):
         web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         rendered_body = self.env['mail.render.mixin']._render_template(
-            'project_management.project_management_digest_template',
+            'project_management.project_management_digest_email',
             'jira.project',
             self.ids,
             engine='qweb',
@@ -167,7 +167,7 @@ class Digest(models.Model):
             post_process=True
         )[self.id]
         full_mail = self.env['mail.render.mixin']._render_encapsulate(
-            'novobi_dashboard_builder.bi_dashboard_digest_layout',
+            'project_management.project_management_digest_template',
             rendered_body,
             add_context={
                 'company': company,

@@ -92,7 +92,7 @@
                 </div>
             </div>
         </template>
-        <template id="bi_dashboard_digest_email">
+        <template id="project_management_digest_email">
             <div class="main">
                 <div class="heading">
                     <div>
