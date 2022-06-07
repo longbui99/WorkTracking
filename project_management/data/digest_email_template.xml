@@ -29,16 +29,14 @@
                         .main .content .project{
                             margin-left: 10px;
                         }
-                        .main .content .project .name{
-                            display: flex;
-                            flex-flow: row;
-                            align-items: baseline;
-                        }
                         .main .content .project .name div{
                             padding-right: 10px;
+                            display: inline-block;
                         }
                         .main .content .project .ticket{
+                            padding-top: 10px;
                             margin-bottom: 20px;
+                            border-top: solid 1px black;
                         }
                         .main .content .project .ticket .ticket-duration{
                             margin-left: 5px;
@@ -49,6 +47,14 @@
                         }
                         .main .content .project .ticket .work-log div{
                             margin-bottom: 7px;
+                            padding-left: 5px;
+                            border-left: double 3px black;
+                        }
+                        .main .content .project .ticket .work-log .duration{
+                            width: 100px;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                            white-space: no-wrap;
                         }
                     </style>
                 </head>
@@ -58,40 +64,6 @@
             </html>
         </template>
 
-        <!-- DIGEST MAIN TEMPLATE -->
-        <template id="digest_work_log_template">
-            <div t-foreach="work_log" t-as="log">
-                <span><t t-esc="work_log[log]['ticket_key']"/></span> || <span><span><t t-esc="work_log[log]['description']"/></span></span>
-            </div>
-        </template>
-
-        <template id="digest_ticket_template">
-            <div class="ticket" t-foreach="ticket" t-as="issue">
-                <div class="ticket-name">
-                    <span><b><t t-esc="ticket[issue]['ticket_key']"/>:</b> <t t-esc="ticket[issue]['ticket_name'][:20] + ..."/></span>
-                </div>
-                <div class="ticket-duration">Total: <b><em><t t-esc="ticket[issue]['time_duration']"/></em></b></div>
-                <div class="work-log">
-                    <t t-call="project_management.digest_work_log_template" t-set="work_log" t-value="ticket[issue]['log']"/>
-                </div>
-            </div>
-        </template>
-
-        <template id="digest_project_template">
-            <div class="project" t-foreach="payload" t-as="project">
-                <div class="name">
-                    <div>
-                        <h2><t t-esc="payload[project]['project_key']"/>: <t t-esc="payload[project]['project_name']"/></h2>
-                    </div>
-                    <div>
-                        <h3><em><t t-esc="payload[project]['time_duration']"/></em></h3>
-                    </div>
-                </div>
-                <div class="ticket-cluster">
-                    <t t-call="project_management.digest_ticket_template" t-set="ticket" t-value="content[project]['payload']"/>
-                </div>
-            </div>
-        </template>
         <template id="project_management_digest_email">
             <div class="main">
                 <div class="heading">
@@ -104,11 +76,34 @@
                 </div>
                 <div class="content" t-foreach="content" t-as="section">
                     <div class="title">
-                        <h2><t t-esc="content[section]['title']"/></h2>
+                        <h2><t t-esc="section['title']"/></h2>
                     </div>
-
-<!--                    <t t-call="project_management.digest_project_template" t-set="payload" t-value="content[section]['payload']"/>-->
-
+                    <t t-set="payload" t-value="section['payload']"/>
+                    <div class="project" t-foreach="payload" t-as="project" t-key="project">
+                        <div class="name">
+                            <div>
+                                <h2><t t-esc="payload[project]['project_key']"/>: <t t-esc="payload[project]['project_name']"/></h2>
+                            </div>
+                            <div>
+                                <h3><em><t t-esc="payload[project]['time_duration']"/></em></h3>
+                            </div>
+                        </div>
+                        <div class="ticket-cluster">
+                            <t t-set="ticket" t-value="payload[project]['tickets']"/>
+                            <div class="ticket" t-foreach="ticket" t-as="issue">
+                                <div class="ticket-name">
+                                    <span><b><t t-esc="ticket[issue]['ticket_key']"/>:</b> <t t-esc="ticket[issue]['ticket_name']"/></span>
+                                </div>
+                                <div class="ticket-duration">Total: <b><em><t t-esc="ticket[issue]['time_duration']"/></em></b></div>
+                                <div class="work-log">
+                                    <t t-set="work_log" t-value="ticket[issue]['log']"/>
+                                    <div t-foreach="work_log" t-as="log">
+                                        <span class="duration"><t t-esc="log['time']"/></span>: <span><span><t t-esc="log['description']"/></span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </template>

@@ -2,9 +2,9 @@ from odoo.tools.float_utils import float_is_zero
 
 
 def convert_second_to_time_format(time):
-    data = [{'key': 'hour(s)', 'duration': 3600},
-            {'key': 'minute(s)', 'duration': 60},
-            {'key': 'second(s)', 'duration': 1}]
+    data = [{'key': 'hours', 'duration': 3600},
+            {'key': 'minutes', 'duration': 60},
+            {'key': 'seconds', 'duration': 1}]
     response = ""
     for segment in data:
         duration = segment['duration']

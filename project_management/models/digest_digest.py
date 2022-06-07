@@ -99,23 +99,23 @@ class Digest(models.Model):
         payload = record["payload"]
         while len(payload) > 0:
             log = payload[0]
-            if log.ticket_id.project_id not in res["payload"]:
-                res["payload"][log.ticket_id.project_id] = {
+            if log.ticket_id.project_id.id not in res["payload"]:
+                res["payload"][log.ticket_id.project_id.id] = {
                     "project_key": log.ticket_id.project_id.project_key,
                     "project_name": log.ticket_id.project_id.project_name,
                     "total_duration": 0,
                     'time_duration': ''
                 }
-                if res["payload"][log.ticket_id.project_id]:
+                if res["payload"][log.ticket_id.project_id.id]:
                     log_ids = payload.filtered(lambda r: r.ticket_id.project_id == log.ticket_id.project_id)
                     payload -= log_ids
                     if payload._name == "jira.time.log":
-                        res["payload"][log.ticket_id.project_id]["tickets"] = self._formatting_ticket_from_time_log(
+                        res["payload"][log.ticket_id.project_id.id]["tickets"] = self._formatting_ticket_from_time_log(
                             log_ids)
                     elif payload._name == "jira.work.log":
-                        res["payload"][log.ticket_id.project_id]["tickets"] = self._formatting_ticket_from_work_log(
+                        res["payload"][log.ticket_id.project_id.id]["tickets"] = self._formatting_ticket_from_work_log(
                             log_ids)
-                    record = res["payload"][log.ticket_id.project_id]
+                    record = res["payload"][log.ticket_id.project_id.id]
                     total_duration = sum(list([v['total_duration'] for v in record['tickets'].values()]))
                     record['total_duration'] = total_duration
                     record['time_duration'] = convert_second_to_time_format(total_duration)
@@ -154,11 +154,11 @@ class Digest(models.Model):
 
     def _generate_mail_content(self, user, company, formatted_data, heading_data):
         web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        rendered_body = self.env['mail.render.mixin']._render_template(
+        rendered_body = self.env['mail.render.mixin'].with_context(preserve_comments=True)._render_template(
             'project_management.project_management_digest_email',
             'jira.project',
             self.ids,
-            engine='qweb',
+            engine='qweb_view',
             add_context={
                 'content': formatted_data,
                 'heading': heading_data,
@@ -178,7 +178,7 @@ class Digest(models.Model):
 
     def jira_send_main(self, user, company, content, formatted_data, heading_data):
         mail_values = {
-            'subject': '%s: %s' % (self.name, formatted_data['time_duration']),
+            'subject': '%s: %s' % (heading_data['name'], heading_data['time_duration']),
             'email_from': company.partner_id.email_formatted,
             'email_to': user.partner_id.email,
             'body_html': content,
