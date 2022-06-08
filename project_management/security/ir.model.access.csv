@@ -10,3 +10,6 @@ access_jira_time_log_manager,jira.time.log,model_jira_time_log,project_managemen
 access_jira_work_log_user,jira.time.log,model_jira_work_log,project_management.group_jira_user,1,1,1,1
 access_jira_work_log_cluster_user,jira.time.log,model_jira_work_log_cluster,project_management.group_jira_user,1,1,1,1
 access_jira_done_work_log_user,jira.done.work.log,model_jira_done_work_log,project_management.group_jira_user,1,1,1,1
+access_jira_chain_work_base,jira.chain.work.base.model,model_jira_chain_work_base,project_management.group_jira_user,1,1,1,1
+access_jira_chain_work_session,jira.chain.work.session.model,model_jira_chain_work_session,project_management.group_jira_user,1,1,1,1
+access_jira_chain_work_session_line,jira.chain.work.session.line.model,model_jira_chain_work_session_line,project_management.group_jira_user,1,1,1,1

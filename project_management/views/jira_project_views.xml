@@ -41,7 +41,8 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="fetch_user_from_ticket" string="Fetch User" type="object" class="btn-primary"/>
+                    <button name="action_start_kick_off" string="Chain Work" type="object" class="btn-primary"/>
+                    <button name="fetch_user_from_ticket" string="Fetch User" type="object" class="btn-secondary"/>
                 </header>
                 <sheet>
                     <label for="project_name" class="oe_edit_only"/>

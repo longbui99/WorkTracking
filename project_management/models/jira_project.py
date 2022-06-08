@@ -26,3 +26,11 @@ class JiraProject(models.Model):
     @api.model
     def cron_fetch_user_from_ticket(self):
         self.search([]).fetch_user_from_ticket()
+
+    def action_start_kick_off(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("project_management.chain_work_base_action")
+        action["context"] = {
+            'default_project_id': self.id,
+        }
+        return action

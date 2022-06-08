@@ -31,7 +31,7 @@ def get_date_range(self, periodic):
     start_date = (start_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
     end_date = (end_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
     return start_date, end_date
-8
+
 
 class Digest(models.Model):
     _inherit = "digest.digest"

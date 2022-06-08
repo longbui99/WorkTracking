@@ -25,6 +25,7 @@
         'views/menus.xml',
 
         'wizard/jira_logging_time_views.xml',
+        'wizard/kick_off_counting_views.xml',
     ],
     "application": True,
 }

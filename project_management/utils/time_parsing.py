@@ -30,7 +30,7 @@ def convert_second_to_log_format(time):
 
 
 def convert_log_format_to_second(log_data):
-    logs = log_data.split(' ')
+    logs = log_data.strip().split(' ')
     total_time = 0
     data = {'w': 604800, 'd': 86400, 'h': 3600, 'm': 60, 's': 1}
     for log in logs:
