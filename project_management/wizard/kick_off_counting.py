@@ -63,7 +63,7 @@ class KickOffSession(models.TransientModel):
     def reload_chain(self):
         self.ensure_one()
         if self._context.get("mobile"):
-            action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_mobile_form_view")
+            action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_mobile_view")
         else:
             action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_view")
         action["res_id"] = self.id
