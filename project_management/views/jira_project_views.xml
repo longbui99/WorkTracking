@@ -41,6 +41,7 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_start_latest_chain" string="Start Latest Chain" type="object" class="btn-primary"/>
                     <button name="action_start_kick_off" string="Chain Work" type="object" class="btn-primary"/>
                     <button name="fetch_user_from_ticket" string="Fetch User" type="object" class="btn-secondary"/>
                 </header>
@@ -70,6 +71,7 @@
                                 <tree>
                                     <field name="name"/>
                                     <field name="description"/>
+                                    <field name="create_uid"/>
                                 </tree>
                             </field>
                         </page>

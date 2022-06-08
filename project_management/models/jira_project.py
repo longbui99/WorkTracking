@@ -35,3 +35,12 @@ class JiraProject(models.Model):
             'default_project_id': self.id,
         }
         return action
+
+    def action_start_latest_chain(self):
+        self.ensure_one()
+        my_chain_work_ids = self.chain_work_ids.filtered(lambda r: r.create_uid == self.env.user and r.state != "logged")
+        if my_chain_work_ids:
+            action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_mobile_view")
+            action["res_id"] = my_chain_work_ids[0].id
+            action["context"] = {"mobile": True}
+            return action

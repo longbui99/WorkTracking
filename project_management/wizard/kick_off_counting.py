@@ -14,6 +14,7 @@ PARSER = {
 class KickOffSession(models.TransientModel):
     _name = 'jira.chain.work.session'
     _description = 'JIRA Kick Of Session'
+    _order = "create_date desc"
 
     name = fields.Char(string="Name")
     project_id = fields.Many2one('jira.project', string="Project")
@@ -22,7 +23,8 @@ class KickOffSession(models.TransientModel):
     ticket_chain_work_ids = fields.One2many('jira.chain.work.session.line', 'chain_work_id', string="Tickets")
     state = fields.Selection([('draft', 'Draft'),
                               ('progress', 'In Progress'),
-                              ('done', 'Done')],
+                              ('done', 'Done'),
+                              ('logged', "Logged")],
                              compute='_compute_state', store=True
                              )
     description = fields.Char(string="Description")
@@ -60,7 +62,10 @@ class KickOffSession(models.TransientModel):
 
     def reload_chain(self):
         self.ensure_one()
-        action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_view")
+        if self._context.get("mobile"):
+            action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_mobile_form_view")
+        else:
+            action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_view")
         action["res_id"] = self.id
         return action
 
@@ -96,6 +101,7 @@ class KickOffSession(models.TransientModel):
                     "description": ticket.description or '',
                     "time": convert_second_to_log_format(ticket.duration)
                 })
+        self.state = "logged"
         return {'type': 'ir.actions.act_window_close'}
 
     @api.model

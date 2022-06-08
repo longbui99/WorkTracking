@@ -19,13 +19,20 @@
             </form>
         </field>
     </record>
-
     <record id="chain_work_base_action" model="ir.actions.act_window">
         <field name="name">Chain Work</field>
         <field name="res_model">jira.chain.work.base</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_base_form_view"/>
     </record>
+
+    <record id="chain_work_base_mobile_action" model="ir.actions.act_window">
+        <field name="name">Chain Work</field>
+        <field name="res_model">jira.chain.work.base</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="chain_work_base_form_view"/>
+    </record>
+
 
     <record id="chain_work_session_form_view" model="ir.ui.view">
         <field name="name">Chain Work</field>
@@ -36,42 +43,48 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,progress,done"/>
                 </header>
                 <sheet>
-                    <group attrs="{'invisible': [('state','=','done')]}">
-                        <field name="ticket_id" readonly="1" attrs="{'invisible': [('ticket_id','=',False)]}"/>
-                        <field name="start" readonly="1" attrs="{'invisible': [('start','=',False)]}"/>
-                        <field name="description" attrs="{'invisible': [('ticket_id','=',False)]}"/>
-                    </group>
-                    <group colspan="4" attrs="{'invisible': [('state','=','done')]}">
-                        <field name="ticket_chain_work_ids" nolabel="1">
-                            <tree editable="bottom" decoration-muted="state == 'done'"
-                                  decoration-info="state=='progress'">
-                                <field name="sequence" widget="handle"/>
-                                <field name="ticket_id"/>
-                                <field name="time"/>
-                                <field name="state" invisible="1"/>
-                            </tree>
-                        </field>
-                    </group>
-                    <group attrs="{'invisible': [('state','!=', 'done')]}">
-                        <field name="logging_type" widget="radio"/>
-                        <field name="log_to_ticket_id"
-                               attrs="{'required': [('logging_type','=', 'ticket')], 'invisible': [('logging_type','!=', 'ticket')]}"/>
+                    <group attrs="{'invisible': [('state','=','logged')]}">
+
+                        <group attrs="{'invisible': [('state','=','done')]}">
+                            <field name="ticket_id" readonly="1" attrs="{'invisible': [('ticket_id','=',False)]}"/>
+                            <field name="start" readonly="1" attrs="{'invisible': [('start','=',False)]}"/>
+                            <field name="description" attrs="{'invisible': [('ticket_id','=',False)]}"/>
+                        </group>
+                        <group colspan="4" attrs="{'invisible': [('state','=','done')]}">
+                            <field name="ticket_chain_work_ids" nolabel="1">
+                                <tree editable="bottom" decoration-muted="state == 'done'"
+                                      decoration-info="state=='progress'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="ticket_id"/>
+                                    <field name="time"/>
+                                    <field name="state" invisible="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group attrs="{'invisible': [('state','!=', 'done')]}">
+                            <field name="logging_type" widget="radio"/>
+                            <field name="log_to_ticket_id"
+                                   attrs="{'required': [('logging_type','=', 'ticket')], 'invisible': [('logging_type','!=', 'ticket')]}"/>
+                        </group>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_next" string="Start" type="object" class="btn-primary"
-                            attrs="{'invisible': [('state','!=','draft')]}"/>
-                    <button string="Save" special="save" class="btn-secondary" attrs="{'invisible': [('state','!=','draft')]}"/>
-                    <group attrs="{'invisible': [('ticket_chain_work_ids','=',False)]}">
-                        <button name="action_next" string="Next" type="object" class="btn-primary"
-                                attrs="{'invisible': [('state','!=', 'progress')]}"/>
-                        <button name="action_done" string="Done" type="object" class="btn-secondary"
-                                attrs="{'invisible': [('state','!=', 'progress')]}"/>
-                        <button name="action_done" string="Confirm" type="object" class="btn-primary"
-                                attrs="{'invisible': [('state','!=', 'done')]}"/>
-                        <!--                    <button name="action_done" string="Done" type="object" class="btn-primary"/>-->
-                        <!--                    <button name="action_log_separated" string="Log Separated" type="object" class="btn-primary"/>-->
-                        <!--                    <button name="action_log_base" string="Log Base" type="object" class="btn-secondary"/>-->
+                    <group attrs="{'invisible': [('state','=','logged')]}">
+                        <button name="action_next" string="Start" type="object" class="btn-primary"
+                                attrs="{'invisible': [('state','!=','draft')]}"/>
+                        <button string="Save" special="save" class="btn-secondary"
+                                attrs="{'invisible': [('state','!=','draft')]}"/>
+                        <group attrs="{'invisible': [('ticket_chain_work_ids','=',False)]}">
+                            <button name="action_next" string="Next" type="object" class="btn-primary"
+                                    attrs="{'invisible': [('state','!=', 'progress')]}"/>
+                            <button name="action_done" string="Done" type="object" class="btn-secondary"
+                                    attrs="{'invisible': [('state','!=', 'progress')]}"/>
+                            <button name="action_done" string="Confirm" type="object" class="btn-primary"
+                                    attrs="{'invisible': [('state','!=', 'done')]}"/>
+                            <!--                    <button name="action_done" string="Done" type="object" class="btn-primary"/>-->
+                            <!--                    <button name="action_log_separated" string="Log Separated" type="object" class="btn-primary"/>-->
+                            <!--                    <button name="action_log_base" string="Log Base" type="object" class="btn-secondary"/>-->
+                        </group>
                     </group>
                 </footer>
             </form>
@@ -79,6 +92,13 @@
     </record>
 
     <record id="log_work_action_form_view" model="ir.actions.act_window">
+        <field name="name">Chain Work</field>
+        <field name="res_model">jira.chain.work.session</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="chain_work_session_form_view"/>
+    </record>
+
+    <record id="log_work_action_form_mobile_view" model="ir.actions.act_window">
         <field name="name">Chain Work</field>
         <field name="res_model">jira.chain.work.session</field>
         <field name="view_mode">form</field>
