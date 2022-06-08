@@ -42,7 +42,8 @@
                             <field name="ticket_url" widget="url"/>
                             <field name="story_point"/>
                             <field name="project_id"/>
-                            <field name="parent_ticket_id" domain="[('project_id','=',project_id)]" attrs="{'required':[('log_to_parent','=', True)]}"/>
+                            <field name="parent_ticket_id" domain="[('project_id','=',project_id)]"
+                                   attrs="{'required':[('log_to_parent','=', True)]}"/>
                             <field name="log_to_parent" widget="boolean_toggle"/>
                         </group>
                         <group>
@@ -94,6 +95,68 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="jira_ticket_kanban_view" model="ir.ui.view">
+        <field name="name">Jira Tickets</field>
+        <field name="priority">1</field>
+        <field name="model">jira.ticket</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="ticket_name"/>
+                <field name="ticket_key"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_global_click">
+                            <div>
+                                [<field name="ticket_key"/>]:
+                                <field name="ticket_name"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+<!--            <kanban class="o_kanban_mobile">-->
+<!--                <field name="ticket_key"/>-->
+<!--                <field name="ticket_name"/>-->
+<!--                <templates>-->
+<!--                    <t t-name="kanban-box">-->
+<!--                        <div t-attf-class="oe_kanban_content oe_kanban_global_click">-->
+<!--                            <div class="row">-->
+<!--                                <div class="col-12">-->
+<!--                                    [<field name="ticket_key"/>]:-->
+<!--                                    <field name="ticket_name"/>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </t>-->
+<!--                </templates>-->
+<!--            </kanban>-->
+        </field>
+    </record>
+
+    <record id="jira_ticket_kanban_mobile_view" model="ir.ui.view">
+        <field name="name">Jira Tickets</field>
+        <field name="priority">1</field>
+        <field name="model">jira.ticket</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="ticket_key"/>
+                <field name="ticket_name"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                            <div class="row">
+                                <div class="col-12">
+                                    [<field name="ticket_key"/>]:
+                                    <field name="ticket_name"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
