@@ -6,23 +6,54 @@ from odoo import fields, models, _, api
 from odoo.addons.project_management.utils.time_parsing import convert_second_to_time_format
 
 
-def get_date_range(periodic):
+def get_week_start(self):
+    return -(int(self.env['res.lang']._lang_get(self.env.user.lang).week_start) % 7) + 1
+
+
+def get_date_range(self, periodic):
+    today = datetime.now()
     start_date, end_date = datetime.now(), datetime.now()
     if periodic == "daily":
-        start_date = end_date - relativedelta(days=1)
+        end_date = start_date - relativedelta(days=1)
     elif periodic == "weekly":
-        start_date = end_date - relativedelta(days=7)
+        week_start = get_week_start(self)
+        base_date = today + relativedelta(days=week_start)
+        start_date = base_date - relativedelta(days=base_date.weekday() + week_start)
+        end_date = start_date + relativedelta(days=7)
     elif periodic == "monthly":
-        start_date = end_date - relativedelta(months=1)
-    # elif periodic == "quarterly":
-    #     start_date = end_date - relativedelta(months=3)
+        end_date = end_date + relativedelta(months=1, day=1) - relativedelta(days=1)
+        start_date = end_date - relativedelta(day=1)
+    elif periodic == "quarterly":
+        current_quarter = today.month // 3
+        end_date = today + relativedelta(month=current_quarter * 3 + 1, day=1) - relativedelta(days=1)
+        start_date = end_date - relativedelta(months=2, day=1)
+    tz = pytz.timezone(self.env.user.tz or 'UTC')
+    start_date = (start_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
+    end_date = (end_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
     return start_date, end_date
-
+8
 
 class Digest(models.Model):
     _inherit = "digest.digest"
 
     jira_time_management = fields.Boolean('Management')
+
+    def get_next_run_date(self):
+        _, end_date = get_date_range(self, self.periodicity)
+        return end_date
+
+    @api.model
+    def create(self, values):
+        res = super().create(values)
+        if 'periodicity' in values or 'jira_time_management' in values:
+            res.next_run_date = res.get_next_run_date()
+        return res
+
+    def write(self, values):
+        res = super().write(values)
+        if 'periodicity' in values or 'jira_time_management' in values:
+            self.next_run_date = self.get_next_run_date()
+        return res
 
     def action_send(self):
         self.ensure_one()
@@ -39,7 +70,7 @@ class Digest(models.Model):
 
     def get_user_data(self, user_id):
         user_data = []
-        start_date, end_date = get_date_range(self.periodicity)
+        start_date, end_date = get_date_range(self, self.periodicity)
         special_domain = self.get_logged_time_special_addition_domain()
         normal_domain = self.get_logged_time_normal_addition_domain()
 
@@ -135,7 +166,7 @@ class Digest(models.Model):
         for record in formatted_data:
             res['total_duration'] += record['total_duration']
         res['time_duration'] = convert_second_to_time_format(res['total_duration'])
-        start_date, end_date = get_date_range(self.periodicity)
+        start_date, end_date = get_date_range(self, self.periodicity)
         res['tz'] = self.env.user.tz or 'UTC'
         res['start_date'] = start_date.astimezone(pytz.timezone(res['tz'])).strftime("%Y-%d-%m")
         res['end_date'] = end_date.astimezone(pytz.timezone(res['tz'])).strftime("%Y-%d-%m")
