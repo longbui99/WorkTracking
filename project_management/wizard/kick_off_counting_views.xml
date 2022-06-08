@@ -24,6 +24,7 @@
         <field name="res_model">jira.chain.work.base</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_base_form_view"/>
+        <field name="target">new</field>
     </record>
 
     <record id="chain_work_base_mobile_action" model="ir.actions.act_window">
@@ -96,6 +97,7 @@
         <field name="res_model">jira.chain.work.session</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_session_form_view"/>
+        <field name="target">new</field>
     </record>
 
     <record id="log_work_action_form_mobile_view" model="ir.actions.act_window">
