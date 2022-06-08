@@ -15,6 +15,7 @@ class KickOffSession(models.TransientModel):
     _name = 'jira.chain.work.session'
     _description = 'JIRA Kick Of Session'
 
+    name = fields.Char(string="Name")
     project_id = fields.Many2one('jira.project', string="Project")
     ticket_id = fields.Many2one('jira.ticket', string="Ticket")
     start = fields.Datetime(string="Start At")
@@ -80,7 +81,9 @@ class KickOffSession(models.TransientModel):
             return self.reload_chain()
         if self.logging_type == "ticket":
             time = convert_second_to_log_format(sum(self.ticket_chain_work_ids.mapped('duration')))
-            description = "\n".join(self.ticket_chain_work_ids.mapped(lambda r: f"[{r.ticket_id.ticket_key}]: {r.description}"))
+            description = "\n".join(
+                self.ticket_chain_work_ids.mapped(lambda
+                                                      r: f"[{convert_second_to_log_format(r.duration)}][{r.ticket_id.ticket_key}]: {r.description}"))
             self.log_to_ticket_id.action_manual_work_log({
                 "source": "Internal Chain",
                 "description": description,
@@ -99,6 +102,12 @@ class KickOffSession(models.TransientModel):
     def default_get(self, fields):
         result = super(KickOffSession, self).default_get(fields)
         return result
+
+    @api.model
+    def create(self, values):
+        if 'description' not in values:
+            values['description'] = values.get('name')
+        return super().create(values)
 
 
 class KickOffSessionLine(models.TransientModel):
@@ -145,6 +154,7 @@ class KickOffBase(models.TransientModel):
     _name = 'jira.chain.work.base'
     _description = 'JIRA Kick Of base'
 
+    name = fields.Char(string="Name")
     type = fields.Selection([('manual', 'Select manually')], default='manual')
     template = fields.Selection([('kickoff', 'Kick-off'),
                                  ('demo', 'Demo')])
@@ -158,7 +168,8 @@ class KickOffBase(models.TransientModel):
         self.ensure_one()
         res = {
             'project_id': self.project_id.id,
-            'description': PARSER.get(self.template, '')
+            'description': PARSER.get(self.template, ''),
+            "name": self.name
         }
         # if self.type == "current_sprint":
         #     jql = f"jql=project={self.project_id.project_key} AND Sprint in openSprints() AND assignee = {}"

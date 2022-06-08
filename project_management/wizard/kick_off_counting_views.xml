@@ -9,6 +9,7 @@
                     <group>
                         <field name="type" widget="radio"/>
                         <field name="template"/>
+                        <field name="name"/>
                     </group>
                 </sheet>
                 <footer>
@@ -24,7 +25,6 @@
         <field name="res_model">jira.chain.work.base</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_base_form_view"/>
-        <field name="target">new</field>
     </record>
 
     <record id="chain_work_session_form_view" model="ir.ui.view">
@@ -48,17 +48,20 @@
                                 <field name="sequence" widget="handle"/>
                                 <field name="ticket_id"/>
                                 <field name="time"/>
-                                <field name="state"/>
+                                <field name="state" invisible="1"/>
                             </tree>
                         </field>
                     </group>
                     <group attrs="{'invisible': [('state','!=', 'done')]}">
                         <field name="logging_type" widget="radio"/>
-                        <field name="log_to_ticket_id" attrs="{'required': [('logging_type','=', 'ticket')], 'invisible': [('logging_type','!=', 'ticket')]}"/>
+                        <field name="log_to_ticket_id"
+                               attrs="{'required': [('logging_type','=', 'ticket')], 'invisible': [('logging_type','!=', 'ticket')]}"/>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_next" string="Start" type="object" class="btn-primary" attrs="{'invisible': [('ticket_chain_work_ids','!=',False), ('state','!=','draft')]}"/>
+                    <button name="action_next" string="Start" type="object" class="btn-primary"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                    <button string="Save" special="save" class="btn-secondary" attrs="{'invisible': [('state','!=','draft')]}"/>
                     <group attrs="{'invisible': [('ticket_chain_work_ids','=',False)]}">
                         <button name="action_next" string="Next" type="object" class="btn-primary"
                                 attrs="{'invisible': [('state','!=', 'progress')]}"/>
@@ -80,6 +83,5 @@
         <field name="res_model">jira.chain.work.session</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_session_form_view"/>
-        <field name="target">new</field>
     </record>
 </odoo>
