@@ -129,7 +129,7 @@ class KickOffSessionLine(models.TransientModel):
                               ('done', 'Done')], default="draft")
     duration = fields.Integer(string="Duration", compute='_compute_duration', store=True)
     description = fields.Char(string="Description")
-    time = fields.Char(string="Duration in Text", compute="_compute_time", store=True)
+    time = fields.Char(string="Time", compute="_compute_time", store=True)
     start = fields.Datetime(string="Start")
     end = fields.Datetime(string="End")
 
