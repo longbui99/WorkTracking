@@ -51,8 +51,9 @@ class KickOffSession(models.TransientModel):
         else:
             return False
 
-    def update_processing(self):
-        next_line = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'draft')
+    def update_processing(self, next_line=False):
+        if not next_line:
+            next_line = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'draft')
         current_line = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'progress')
         if current_line:
             current_line.action_done()
@@ -69,11 +70,11 @@ class KickOffSession(models.TransientModel):
         action["res_id"] = self.id
         return action
 
-    def action_next(self):
+    def action_next(self, next_line=False):
         self.ensure_one()
         if not self.ticket_chain_work_ids:
             raise UserError('Need at least one ticket')
-        self.ticket_id = self.update_processing()
+        self.ticket_id = self.update_processing(next_line)
         self.start = datetime.now()
         return self.reload_chain()
 
@@ -119,7 +120,7 @@ class KickOffSession(models.TransientModel):
 class KickOffSessionLine(models.TransientModel):
     _name = 'jira.chain.work.session.line'
     _description = 'JIRA Kick Of Session Line'
-    _order = 'sequence asc, create_date asc'
+    _order = 'sequence asc, write_date desc'
 
     sequence = fields.Integer(string="Sequence")
     chain_work_id = fields.Many2one('jira.chain.work.session', string="Kick Off")
@@ -143,6 +144,11 @@ class KickOffSessionLine(models.TransientModel):
     def _compute_time(self):
         for record in self:
             record.time = convert_second_to_time_format(record.duration)
+
+    def action_next_on_line(self):
+        self.ensure_one()
+        self.chain_work_id.action_next(self)
+        return self.chain_work_id.reload_chain()
 
     def action_done(self):
         for record in self:

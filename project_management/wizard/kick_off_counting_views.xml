@@ -53,19 +53,28 @@
                         </group>
                         <group colspan="4" attrs="{'invisible': [('state','=','done')]}">
                             <field name="ticket_chain_work_ids" nolabel="1">
-                                <kanban class="o_kanban_mobile">
+                                <kanban js_class="lunch_kanban" cedit="0" class="o_kanban_mobile" decoration-muted="state == 'done'" decoration-info="state=='progress'">
                                     <field name="ticket_id"/>
                                     <field name="time"/>
                                     <field name="state"/>
                                     <templates>
                                         <t t-name="kanban-box">
-                                            <div t-attf-class="oe_kanban_content oe_kanban_global_click">
-                                                <div class="row" t-attf-class="{{ (state=='done') and 'text-muted' or ((state=='progress') and 'text-info' or '')}}">
-                                                    <div class="col-12">
-                                                        <t t-if="time">
+                                            <div t-attf-class="oe_kanban_content {{ (record.state.raw_value=='done') and 'text-muted' or ((record.state.raw_value=='progress') and 'text-info' or '')}}">
+                                                <div class="row">
+                                                    <div class="col-9">
+                                                        <div>
+                                                            <field name="ticket_id"/>
+                                                        </div>
+                                                        <t t-if="record.time.raw_value">
                                                             [<field name="time"/>]
-                                                        </t> <field name="ticket_id"/>
+                                                        </t>
+                                                        <t t-if="record.state.raw_value">
+                                                            [<field name="state"/>]
+                                                        </t>
                                                     </div>
+                                                    <t t-if="record.state != 'done'">
+                                                        <button class="btn btn-primary col-2" name="action_next_on_line" type="object">Start</button>
+                                                    </t>
                                                 </div>
                                             </div>
                                         </t>
