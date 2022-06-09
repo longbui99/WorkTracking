@@ -53,6 +53,24 @@
                         </group>
                         <group colspan="4" attrs="{'invisible': [('state','=','done')]}">
                             <field name="ticket_chain_work_ids" nolabel="1">
+                                <kanban class="o_kanban_mobile">
+                                    <field name="ticket_id"/>
+                                    <field name="time"/>
+                                    <field name="state"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                                                <div class="row" t-attf-class="{{ (state=='done') and 'text-muted' or ((state=='progress') and 'text-info' or '')}}">
+                                                    <div class="col-12">
+                                                        <t t-if="time">
+                                                            [<field name="time"/>]
+                                                        </t> <field name="ticket_id"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
                                 <tree editable="bottom" decoration-muted="state == 'done'"
                                       decoration-info="state=='progress'">
                                     <field name="sequence" widget="handle"/>
@@ -88,6 +106,20 @@
                         </group>
                     </group>
                 </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="chain_work_session_form_line_view" model="ir.ui.view">
+        <field name="name">Chain Work Line</field>
+        <field name="model">jira.chain.work.session.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="ticket_id"/>
+                    </group>
+                </sheet>
             </form>
         </field>
     </record>
