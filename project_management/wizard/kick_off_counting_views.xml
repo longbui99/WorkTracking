@@ -61,7 +61,7 @@
                                         <t t-name="kanban-box">
                                             <div t-attf-class="oe_kanban_content {{ (record.state.raw_value=='done') and 'text-muted' or ((record.state.raw_value=='progress') and 'text-info' or '')}}">
                                                 <div class="row">
-                                                    <div class="col-9">
+                                                    <div class="col-10">
                                                         <div>
                                                             <field name="ticket_id"/>
                                                         </div>
