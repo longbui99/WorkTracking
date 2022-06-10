@@ -55,7 +55,7 @@ class JIRAMigration(models.Model):
         current_employee_data = self._get_current_employee()
         result = requests.get(f'{self.jira_server_url}/user/search?username="{user_email}"', headers=headers)
         records = json.loads(result.text)
-        if not isinstance(record, list):
+        if not isinstance(records, list):
             records = [records]
         for record in records:
             if record["name"] not in current_employee_data["user_email"]:
