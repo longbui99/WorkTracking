@@ -53,18 +53,18 @@ class JIRAMigration(models.Model):
     def load_all_users(self, user_email=''):
         headers = self.__get_request_headers()
         current_employee_data = self._get_current_employee()
-        result = requests.get(f'{self.jira_server_url}/user/search?username="{user_email}"', headers=headers)
+        result = requests.get(f'{self.jira_server_url}/user/search?startAt=0&maxResults=50000&username="{user_email}"', headers=headers)
         records = json.loads(result.text)
         if not isinstance(records, list):
             records = [records]
+        users = self.env["res.users"].sudo()
         for record in records:
             if record["name"] not in current_employee_data["user_email"]:
-                self.env["res.users"].create({
+                users |= self.env["res.users"].create({
                     "name": record["displayName"],
                     "login": record["name"],
                     'active': False
                 })
-        
 
     def load_projects(self):
         headers = self.__get_request_headers()
@@ -292,11 +292,14 @@ class JIRAMigration(models.Model):
         return self._search_load(type, params, is_my)
 
     # ===========================================  Section for loading work logs ===================================
+    def get_user(self):
+        return {r.partner_id.email or r.login: r.id for r in self.env['res.users'].sudo().search([])}
+
     def get_local_worklog_data(self, ticket_id, domain):
         return {
             'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids if x.id_on_jira},
             'ticket_id': ticket_id,
-            'dict_user': {r.partner_id.email: r.id for r in self.with_context(active_test=False).env['res.users'].sudo().search([])},
+            'dict_user': self.with_context(active_test=False).get_user(),
         }
 
     def update_work_log_data(self, log_id, work_log, data):
@@ -318,6 +321,7 @@ class JIRAMigration(models.Model):
         new_tickets = []
         ticket_id = data['ticket_id']
         affected_jira_ids = set()
+        print(data['dict_user'])
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
             affected_jira_ids.add(log_id)
@@ -333,7 +337,9 @@ class JIRAMigration(models.Model):
                     'start_date': datetime.fromisoformat(work_log['started'][:-5])
                 }
                 logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'key'])
+                print(logging_email)
                 to_create['user_id'] = data['dict_user'].get(logging_email, False)
+                print(to_create)
                 new_tickets.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data)
