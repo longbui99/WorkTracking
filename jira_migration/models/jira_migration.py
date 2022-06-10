@@ -47,7 +47,7 @@ class JIRAMigration(models.Model):
 
     def _get_current_employee(self):
         return {
-            "user_email": {user.partner_id.email for user in self.with_context(active_test=False).env["res.users"].sudo().search([])}
+            "user_email": {user.partner_id.email or user.login for user in self.with_context(active_test=False).env["res.users"].sudo().search([])}
         }
 
     def load_all_users(self, user_email=''):
