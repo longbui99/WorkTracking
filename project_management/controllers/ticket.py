@@ -123,7 +123,7 @@ class JiraTicket(http.Controller):
 
     @http.route(['/management/ticket/work-log/cancel'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
-    def manual_ticket_work_log(self):
+    def cancel_ticket_work_log(self):
         try:
             ticket_id = self.__check_work_log_prerequisite()
             ticket_id.action_cancel_progress(json.loads(request.params.get('payload', "{}")))
