@@ -60,7 +60,7 @@ class JIRAMigration(models.Model):
         for record in records:
             if record["name"] not in current_employee_data["user_email"]:
                 self.env["hr.employee"].create({
-                    "name": record["display_name"],
+                    "name": record["displayName"],
                     "private_email": record["name"]
                 })
         
