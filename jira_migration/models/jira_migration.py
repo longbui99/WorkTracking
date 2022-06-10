@@ -45,6 +45,29 @@ class JIRAMigration(models.Model):
             'jira_migration_id': self.id
         }).id
 
+    def _get_current_employee(self):
+        return {
+            "user_email": {user.private_email for user in self.env["hr.employee"].sudo().search([])}
+        }
+
+    def load_all_users(self, user_email=False):
+        headers = self.__get_request_headers()
+        current_employee_data = self._get_current_employee()
+        if user_email:
+            result = requests.get(f"{self.jira_server_url}/user&username={user_email}", headers=headers)
+        else:
+            result = requests.get(f"{self.jira_server_url}/user/search&username=''", headers=headers)
+        records = json.loads(result.text)
+        if not isinstance(record, list):
+            records = [records]
+        for record in records:
+            if record["name"] not in current_employee_data["user_email"]:
+                self.env["hr.employee"].create({
+                    "name": record["display_name"],
+                    "private_email": record["name"]
+                })
+        
+
     def load_projects(self):
         headers = self.__get_request_headers()
         result = requests.get(f"{self.jira_server_url}/project", headers=headers)

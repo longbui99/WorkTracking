@@ -21,6 +21,7 @@
             <form>
                 <header>
                     <button name="load_projects" type="object" string="Load All Projects" class="btn-primary"/>
+                    <button name="load_all_users" type="object" string="Load Users" class="btn-primary"/>
                     <button name="load_all_tickets" type="object" string="Load All Tickets" class="btn-primary"/>
                     <button name="load_my_tickets" type="object" string="Load My Tickets" class="btn-primary"/>
                     <button name="load_by_links" type="object" string="Load By Keys" class="btn-primary"/>
