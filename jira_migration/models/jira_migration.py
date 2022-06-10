@@ -50,13 +50,10 @@ class JIRAMigration(models.Model):
             "user_email": {user.private_email for user in self.env["hr.employee"].sudo().search([])}
         }
 
-    def load_all_users(self, user_email=False):
+    def load_all_users(self, user_email=''):
         headers = self.__get_request_headers()
         current_employee_data = self._get_current_employee()
-        if user_email:
-            result = requests.get(f"{self.jira_server_url}/user&username={user_email}", headers=headers)
-        else:
-            result = requests.get(f"{self.jira_server_url}/user/search&username=''", headers=headers)
+        result = requests.get(f'{self.jira_server_url}/user/search?username="{user_email}"', headers=headers)
         records = json.loads(result.text)
         if not isinstance(record, list):
             records = [records]
