@@ -47,7 +47,7 @@ class JIRAMigration(models.Model):
 
     def _get_current_employee(self):
         return {
-            "user_email": {user.private_email for user in self.env["hr.employee"].sudo().search([])}
+            "user_email": {user.partner_id.email for user in self.with_context(active_test=False).env["res.users"].sudo().search([])}
         }
 
     def load_all_users(self, user_email=''):
@@ -59,9 +59,10 @@ class JIRAMigration(models.Model):
             records = [records]
         for record in records:
             if record["name"] not in current_employee_data["user_email"]:
-                self.env["hr.employee"].create({
+                self.env["res.users"].create({
                     "name": record["displayName"],
-                    "private_email": record["name"]
+                    "login": record["name"],
+                    'active': False
                 })
         
 
@@ -116,7 +117,7 @@ class JIRAMigration(models.Model):
     def get_local_issue_data(self, domain=[]):
         return {
             'project_key_dict': {r.project_key: r.id for r in self.env['jira.project'].sudo().search([])},
-            'dict_user': {r.partner_id.email: r.id for r in self.env['res.users'].sudo().search([])},
+            'dict_user': {r.partner_id.email: r.id for r in self.with_context(active_test=False).env['res.users'].sudo().search([])},
             'dict_ticket_key': {r.ticket_key: r for r in self.env['jira.ticket'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['jira.status'].sudo().search([])},
         }
@@ -295,7 +296,7 @@ class JIRAMigration(models.Model):
         return {
             'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids if x.id_on_jira},
             'ticket_id': ticket_id,
-            'dict_user': {r.partner_id.email: r.id for r in self.env['res.users'].sudo().search([])},
+            'dict_user': {r.partner_id.email: r.id for r in self.with_context(active_test=False).env['res.users'].sudo().search([])},
         }
 
     def update_work_log_data(self, log_id, work_log, data):
