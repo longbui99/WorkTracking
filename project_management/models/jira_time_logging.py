@@ -31,8 +31,9 @@ class JiraTimeLog(models.Model):
 
     def unlink(self):
         cluster_ids = self.mapped('cluster_id')
-        self.mapped('ticket_id').mapped('work_log_ids').filtered(lambda r: r.cluster_id in cluster_ids).write(
-            {'state': 'cancel'})
+        work_log_ids = self.mapped('ticket_id').mapped('work_log_ids').filtered(lambda r: r.cluster_id in cluster_ids)
+        work_log_ids.write({'state': 'cancel'})
+        work_log_ids.filtered(lambda r: not r.end).write({'end': datetime.now()})
         return super().unlink()
 
     @api.model

@@ -121,6 +121,16 @@ class JiraTicket(http.Controller):
             return http.Response(str(e), content_type='application/json', status=404)
         return http.Response("", content_type='application/json', status=200)
 
+    @http.route(['/management/ticket/work-log/cancel'], type="http", cors="*", methods=['GET', 'POST'],
+                auth='jwt')
+    def manual_ticket_work_log(self):
+        try:
+            ticket_id = self.__check_work_log_prerequisite()
+            ticket_id.action_cancel_progress(json.loads(request.params.get('payload', "{}")))
+        except Exception as e:
+            return http.Response(str(e), content_type='application/json', status=404)
+        return http.Response("", content_type='application/json', status=200)
+
     @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def get_related_active(self):
         try:

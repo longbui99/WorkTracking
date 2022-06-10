@@ -145,22 +145,23 @@ class JiraProject(models.Model):
         self.action_pause_work_log(values)
         user_id = self.env.user.id
         for record in self:
+            cluster = record.progress_cluster_id
             if not record.progress_cluster_id:
-                record.progress_cluster_id = self.env['jira.work.log.cluster'].create({
+                cluster = self.env['jira.work.log.cluster'].create({
                     'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
                 })
             if not record.time_log_ids.filtered(
-                    lambda r: r.cluster_id == record.progress_cluster_id and r.user_id.id == user_id):
+                    lambda r: r.cluster_id == cluster and r.user_id.id == user_id):
                 record.time_log_ids = [fields.Command.create({
                     'description': values.get('description', ''),
-                    'cluster_id': record.progress_cluster_id.id,
+                    'cluster_id': cluster.id,
                     'user_id': user_id,
                     'duration': 0,
                     'source': source,
                 })]
             record.work_log_ids = [fields.Command.create({
                 'start': datetime.datetime.now(),
-                'cluster_id': record.progress_cluster_id.id,
+                'cluster_id': cluster.id,
                 'user_id': user_id,
                 'source': source,
                 'description': values.get('description', '')
@@ -278,6 +279,13 @@ class JiraProject(models.Model):
                 [('project_id', 'in', project_ids), ('ticket_name', 'ilike', params[1])] + extra_domain,
                 order=employee.order_style, limit=employee.maximum_search_result)
         return ticket_ids
+
+    def action_cancel_progress(self, values={}):
+        source = values.get('source', 'Internal')
+        for record in self:
+            time_log = record.time_log_ids.filtered(lambda r: r.user_id == self.env.user and
+                                                              r.source == source and r.state == 'progress')
+            time_log.unlink()
 
     def _compute_encode_string(self):
         cipher = AES.new(b'Bui Phi Long LML', AES.MODE_EAX)
