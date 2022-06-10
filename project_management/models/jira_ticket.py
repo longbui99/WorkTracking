@@ -151,7 +151,8 @@ class JiraProject(models.Model):
                     'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
                 })
             if not record.time_log_ids.filtered(
-                    lambda r: r.cluster_id == cluster and r.user_id.id == user_id):
+                    lambda r: r.cluster_id == cluster and r.user_id.id == user_id and
+                    r.state == 'progress'):
                 record.time_log_ids = [fields.Command.create({
                     'description': values.get('description', ''),
                     'cluster_id': cluster.id,
