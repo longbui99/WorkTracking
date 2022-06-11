@@ -124,11 +124,13 @@ class JIRAMigration(models.Model):
 
     def processing_issue_raw_data(self, local, raw):
         response = []
+        print(raw)
+        print(local)
         for ticket in raw.get('issues', [raw]):
             ticket_fields = ticket['fields']
             status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
             story_point = ticket_fields.get('customfield_10008', 0.0) or 0.0
-            assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'key'])
+            assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'name'])
             project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
             server_url = urlparse(self.jira_server_url).netloc
             map_url = (lambda r: f"https://{server_url}/browse/{r}")
