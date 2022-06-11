@@ -117,7 +117,7 @@ class JIRAMigration(models.Model):
     def get_local_issue_data(self, domain=[]):
         return {
             'project_key_dict': {r.project_key: r.id for r in self.env['jira.project'].sudo().search([])},
-            'dict_user':  self.with_context(active_test=True).get_user(),
+            'dict_user':  self.with_context(active_test=False).get_user(),
             'dict_ticket_key': {r.ticket_key: r for r in self.env['jira.ticket'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['jira.status'].sudo().search([])},
         }
