@@ -14,7 +14,7 @@ class JiraTimeLog(models.Model):
 
     time = fields.Char(string='Time Logging', compute='_compute_time_data', store=True)
     description = fields.Text(string='Description', required=True)
-    ticket_id = fields.Many2one('jira.ticket', string='Ticket')
+    ticket_id = fields.Many2one('jira.ticket', string='Ticket', ondelete="cascade")
     duration = fields.Integer(string='Duration', required=True)
     cluster_id = fields.Many2one('jira.work.log.cluster')
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')
@@ -22,6 +22,7 @@ class JiraTimeLog(models.Model):
     user_id = fields.Many2one('res.users', string='User')
     start_date = fields.Datetime("Start Date")
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
+    project_id = fields.Many2one(string='Project', related="ticket_id.project_id", store=True)
 
     @api.depends('duration')
     def _compute_time_data(self):

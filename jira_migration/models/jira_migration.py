@@ -308,7 +308,7 @@ class JIRAMigration(models.Model):
         if work_log_id.duration != work_log['timeSpentSeconds']:
             to_update['duration'] = work_log['timeSpentSeconds']
             to_update['time'] = work_log['timeSpent']
-        logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'key'])
+        logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
         start_date = self.__load_from_key_paths(work_log, ['created'])
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
@@ -321,7 +321,6 @@ class JIRAMigration(models.Model):
         new_tickets = []
         ticket_id = data['ticket_id']
         affected_jira_ids = set()
-        print(data['dict_user'])
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
             affected_jira_ids.add(log_id)
@@ -336,10 +335,8 @@ class JIRAMigration(models.Model):
                     'id_on_jira': work_log['id'],
                     'start_date': datetime.fromisoformat(work_log['started'][:-5])
                 }
-                logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'key'])
-                print(logging_email)
+                logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
                 to_create['user_id'] = data['dict_user'].get(logging_email, False)
-                print(to_create)
                 new_tickets.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data)
