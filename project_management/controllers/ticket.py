@@ -11,6 +11,7 @@ from odoo.addons.mail.controllers import mail
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.exceptions import AccessError, MissingError, UserError
 from odoo.addons.project_management.utils.search_parser import get_search_request
+from odoo.addons.project_management.utils.error_tracking import handling_exception
 
 
 class MissingParams(Exception):
@@ -48,11 +49,13 @@ class JiraTicket(http.Controller):
             })
         return res
 
+    @handling_exception
     @http.route(['/management/ticket/get/<int:ticket_id>'], type="http", cors="*", methods=['GET'], auth='jwt')
     def get_ticket(self, ticket_id):
         data = self._get_ticket(ticket_id)
         return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
 
+    @handling_exception
     @http.route(['/management/ticket/get-my-all'], type="http", methods=['POST'], auth='jwt')
     def get_all_ticket(self):
         ticket_ids = request.env['jira.ticket'].search([('assignee_id', '=', request.env.user.id)])
@@ -64,17 +67,14 @@ class JiraTicket(http.Controller):
         }
         return res
 
+    @handling_exception
     @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def search_ticket(self, keyword):
-        try:
-            limit = int(request.params.get('limitRecord', 80))
-            ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword)
-            data = self._get_ticket(ticket_ids)
-        except Exception:
-            return http.Response(str(e), content_type='application/json', status=404)
-        else:
-            return http.Response(json.dumps(data), content_type='application/json', status=200)
+        limit = int(request.params.get('limitRecord', 80))
+        ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword)
+        data = self._get_ticket(ticket_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     def __check_work_log_prerequisite(self):
         id = request.params.get('id')
@@ -86,62 +86,47 @@ class JiraTicket(http.Controller):
             raise NotFound("Cannot found ticket")
         return ticket_id
 
+    @handling_exception
     @http.route(['/management/ticket/work-log/add'], type="http", cors="*", methods=['GET', 'POST'], auth='jwt')
     def add_ticket_work_log(self):
-        try:
-            ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.generate_progress_work_log(json.loads(request.params.get('payload', "{}")))
-            data = self._get_ticket(ticket_id)
-        except Exception:
-            return http.Response("", content_type='application/json', status=404)
-        else:
-            return http.Response(json.dumps(data), content_type='application/json', status=200)
+        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id.generate_progress_work_log(json.loads(request.params.get('payload', "{}")))
+        data = self._get_ticket(ticket_id)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
 
+    @handling_exception
     @http.route(['/management/ticket/work-log/pause'], type="http", cors="*", methods=['GET', 'POST'], auth='jwt')
     def pause_ticket_work_log(self):
-        try:
-            ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_pause_work_log(json.loads(request.params.get('payload', "{}")))
-        except Exception:
-            return http.Response("", content_type='application/json', status=404)
+        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id.action_pause_work_log(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
+    @handling_exception
     @http.route(['/management/ticket/work-log/done'], type="http", cors="*", methods=['GET', 'POST'], auth='jwt')
     def done_ticket_work_log(self):
-        try:
-            ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_done_work_log(json.loads(request.params.get('payload', "{}")))
-        except Exception as e:
-            return http.Response(e, content_type='application/json', status=404)
+        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id.action_done_work_log(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
     @http.route(['/management/ticket/work-log/manual'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def manual_ticket_work_log(self):
-        try:
-            ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_manual_work_log(json.loads(request.params.get('payload', "{}")))
-        except Exception as e:
-            return http.Response(str(e), content_type='application/json', status=404)
+        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id.action_manual_work_log(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
+    @handling_exception
     @http.route(['/management/ticket/work-log/cancel'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def cancel_ticket_work_log(self):
-        try:
-            ticket_id = self.__check_work_log_prerequisite()
-            ticket_id.action_cancel_progress(json.loads(request.params.get('payload', "{}")))
-        except Exception as e:
-            return http.Response(str(e), content_type='application/json', status=404)
+        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id.action_cancel_progress(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
+    @handling_exception
     @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def get_related_active(self):
-        try:
-            active_ticket_ids = request.env['jira.ticket'].get_all_active(
-                json.loads(request.params.get("payload", "{}")))
-            data = self._get_ticket(active_ticket_ids)
-        except Exception as e:
-            return http.Response(str(e), content_type='application/json', status=404)
-        else:
-            return http.Response(json.dumps(data), content_type='application/json', status=200)
+        active_ticket_ids = request.env['jira.ticket'].get_all_active(
+            json.loads(request.params.get("payload", "{}")))
+        data = self._get_ticket(active_ticket_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
