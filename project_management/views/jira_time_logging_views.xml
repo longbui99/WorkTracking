@@ -9,7 +9,7 @@
                 <field name="ticket_id"/>
                 <field name="time"/>
                 <field name="description"/>
-                <field name="duration"/>
+                <field name="duration_hrs"/>
                 <field name="state"/>
                 <field name="user_id"/>
                 <field name="create_date" string="Start Date"/>

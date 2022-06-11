@@ -12,7 +12,7 @@
                 <field name="story_point"/>
                 <field name="ticket_url"/>
                 <field name="status_id"/>
-                <field name="duration"/>
+                <field name="duration_hrs"/>
             </tree>
         </field>
     </record>
@@ -88,7 +88,7 @@
                             <field name="children_ticket_ids">
                                 <tree edit="0">
                                     <field name="ticket_key"/>
-                                    <field name="duration"/>
+                                    <field name="duration_hrs"/>
                                 </tree>
                             </field>
                         </page>

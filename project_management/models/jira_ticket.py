@@ -40,6 +40,12 @@ class JiraProject(models.Model):
     children_ticket_ids = fields.One2many("jira.ticket", "parent_ticket_id", store=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
+    duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
+
+    @api.depends("duration")
+    def _compute_duration_hrs(self):
+        for record in self:
+            record.duration_hrs = record.duration/3600
 
     @api.model
     def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):

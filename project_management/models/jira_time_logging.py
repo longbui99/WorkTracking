@@ -23,6 +23,12 @@ class JiraTimeLog(models.Model):
     start_date = fields.Datetime("Start Date")
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     project_id = fields.Many2one(string='Project', related="ticket_id.project_id", store=True)
+    duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
+
+    @api.depends("duration")
+    def _compute_duration_hrs(self):
+        for record in self:
+            record.duration_hrs = record.duration/3600
 
     @api.depends('duration')
     def _compute_time_data(self):
