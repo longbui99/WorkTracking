@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="action_server_jira_project_reset_last_update" model="ir.actions.server">
+        <field name="name">Reset last update</field>
+        <field name="groups_id" eval="[(4, ref('project_management.group_jira_manager'))]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="base.jira_project" />
+        <field name="state">code</field>
+        <field name="code">records.reset_state()</field>
+    </record>
+
+    <record id="action_server_jira_project_fetch_record" model="ir.actions.server">
+        <field name="name">Fetch tickets</field>
+        <field name="groups_id" eval="[(4, ref('project_management.group_jira_manager'))]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="base.jira_project" />
+        <field name="state">code</field>
+        <field name="code">records.cron_fetch_ticket()</field>
+    </record>
+</odoo>

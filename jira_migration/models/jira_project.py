@@ -16,3 +16,6 @@ class JiraProject(models.Model):
             if any(access_token):
                 project.jira_migration_id.with_context().update_project(project, access_token[0])
 
+    def reset_state(self):
+        for record in self:
+            record.last_update = False
