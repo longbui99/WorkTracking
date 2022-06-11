@@ -67,10 +67,14 @@ class JiraTicket(http.Controller):
     @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def search_ticket(self, keyword):
-        limit = int(request.params.get('limitRecord', 80))
-        ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword)
-        data = self._get_ticket(ticket_ids)
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
+        try:
+            limit = int(request.params.get('limitRecord', 80))
+            ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword)
+            data = self._get_ticket(ticket_ids)
+        except Exception:
+            return http.Response(str(e), content_type='application/json', status=404)
+        else:
+            return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     def __check_work_log_prerequisite(self):
         id = request.params.get('id')
