@@ -10,6 +10,7 @@
     "depends": ['project_management', 'queue_job'],
     "data": [
         'data/queue_job_function.xml',
+        'data/cron_job.xml',
         'security/ir.model.access.csv',
 
         'views/hr_employee_views.xml',
