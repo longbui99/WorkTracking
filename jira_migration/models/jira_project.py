@@ -9,6 +9,8 @@ class JiraProject(models.Model):
 
     @api.model
     def cron_fetch_ticket(self, load_create=True):
+        if not self:
+            self = self.search([])
         for project in self.search([]):
             access_token = self.env['hr.employee'].search(
                 [('user_id', 'in', project.allowed_user_ids.ids), ('jira_private_key', '!=', False)]).mapped(
