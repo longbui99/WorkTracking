@@ -34,5 +34,13 @@ class Auth(http.Controller):
             response = jwt.encode({"uid": uid, "token": token}, request.env.cr.dbname + "longlml", algorithm="HS256")
             if not (isinstance(response, str)):
                 response = response.decode('utf-8')
-            res = {'data': response, "name": request.env.user.sudo().browse(uid).name}
+            calendar = request.env["hr.employee"].sudo().search([('user_id','=', uid)]).resource_calendar_id
+            res = {
+                'data': response, 
+                "name":request.env.user.sudo().browse(uid).name,
+                "resource": {
+                    "hrs_per_day": calendar.hours_per_day or 8,
+                    "days_per_week": len(set(calendar.attendance_ids.mapped('dayofweek'))) or 5
+                }
+            }
         return http.Response(json.dumps(res), content_type='application/json', status=200)
