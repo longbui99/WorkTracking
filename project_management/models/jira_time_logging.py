@@ -1,6 +1,7 @@
 from datetime import datetime
 from odoo import api, fields, models, _
-from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second
+from odoo.exceptions import UserError
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second, get_date_range
 from Crypto.Cipher import AES
 import base64
 import json
@@ -24,6 +25,14 @@ class JiraTimeLog(models.Model):
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     project_id = fields.Many2one(string='Project', related="ticket_id.project_id", store=True)
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
+    filter_date = fields.Char(string="Filter", store=False, search='_search_filter_date')
+
+    def _search_filter_date(self, operator, operand):
+        if operator == "=":
+            start_date, end_date = get_date_range(self, operand)
+            ids = self.search([('start_date', '>=', start_date), ('start_date', '<', end_date)])
+            return [('id', 'in', ids.ids)]
+        raise UserError(_("Search operation not supported"))
 
     @api.depends("duration")
     def _compute_duration_hrs(self):

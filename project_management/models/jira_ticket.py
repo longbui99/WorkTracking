@@ -246,7 +246,7 @@ class JiraProject(models.Model):
         return change_records, log_ids
 
     def _get_result_management(self):
-        return self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], order='last_activity desc', limit=1)
+        return self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
 
     @api.model
     def get_all_active(self, values={}):

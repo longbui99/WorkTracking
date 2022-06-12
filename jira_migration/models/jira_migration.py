@@ -124,8 +124,6 @@ class JIRAMigration(models.Model):
 
     def processing_issue_raw_data(self, local, raw):
         response = []
-        print(raw)
-        print(local)
         for ticket in raw.get('issues', [raw]):
             ticket_fields = ticket['fields']
             status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
@@ -311,7 +309,7 @@ class JIRAMigration(models.Model):
             to_update['duration'] = work_log['timeSpentSeconds']
             to_update['time'] = work_log['timeSpent']
         logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
-        start_date = self.__load_from_key_paths(work_log, ['created'])
+        start_date = self.__load_from_key_paths(work_log, ['started'])
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
         if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date[:16]:

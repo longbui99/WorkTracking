@@ -3,35 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
 from odoo import fields, models, _, api
-from odoo.addons.project_management.utils.time_parsing import convert_second_to_time_format
-
-
-def get_week_start(self):
-    return -(int(self.env['res.lang']._lang_get(self.env.user.lang).week_start) % 7) + 1
-
-
-def get_date_range(self, periodic):
-    today = datetime.now()
-    start_date, end_date = datetime.now(), datetime.now()
-    if periodic == "daily":
-        end_date = start_date - relativedelta(days=1)
-    elif periodic == "weekly":
-        week_start = get_week_start(self)
-        base_date = today + relativedelta(days=week_start)
-        start_date = base_date - relativedelta(days=base_date.weekday() + week_start)
-        end_date = start_date + relativedelta(days=7)
-    elif periodic == "monthly":
-        end_date = end_date + relativedelta(months=1, day=1) - relativedelta(days=1)
-        start_date = end_date - relativedelta(day=1)
-    elif periodic == "quarterly":
-        current_quarter = today.month // 3
-        end_date = today + relativedelta(month=current_quarter * 3 + 1, day=1) - relativedelta(days=1)
-        start_date = end_date - relativedelta(months=2, day=1)
-    tz = pytz.timezone(self.env.user.tz or 'UTC')
-    start_date = (start_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
-    end_date = (end_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
-    return start_date, end_date
-
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_time_format, get_date_range
 
 class Digest(models.Model):
     _inherit = "digest.digest"

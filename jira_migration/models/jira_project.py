@@ -1,6 +1,5 @@
 from odoo import api, fields, models, _
 
-
 class JiraProject(models.Model):
     _inherit = "jira.project"
 
