@@ -9,3 +9,4 @@ from . import access_code
 from . import one_time_link
 from . import digest_digest
 from . import general
+from . import jira_type

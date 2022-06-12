@@ -20,5 +20,10 @@
                 sequence="1"
                 name="Statuses"
                 action="project_management.action_jira_status"/>
+        <menuitem
+                id="project_management.menu_type"
+                sequence="1"
+                name="Types"
+                action="project_management.action_jira_type"/>
     </menuitem>
 </odoo>

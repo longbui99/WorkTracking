@@ -19,6 +19,7 @@
         'views/jira_project_views.xml',
         'views/jira_ticket_views.xml',
         'views/jira_status_views.xml',
+        'views/jira_type_views.xml',
         'views/jira_time_logging_views.xml',
         'views/digest_email_views.xml',
 

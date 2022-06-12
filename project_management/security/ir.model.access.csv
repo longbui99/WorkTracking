@@ -5,6 +5,8 @@ access_jira_ticket_user,jira.ticket,model_jira_ticket,project_management.group_j
 access_jira_ticket_manager,jira.ticket,model_jira_ticket,project_management.group_jira_manager,1,1,1,1
 access_jira_status_user,jira.status,model_jira_status,project_management.group_jira_user,1,0,0,0
 access_jira_status_manager,jira.status,model_jira_status,project_management.group_jira_manager,1,1,1,1
+access_jira_type_user,jira.type,model_jira_type,project_management.group_jira_user,1,0,0,0
+access_jira_type_manager,jira.type,model_jira_type,project_management.group_jira_manager,1,1,1,1
 access_jira_time_log_user,jira.time.log,model_jira_time_log,project_management.group_jira_user,1,1,1,1
 access_jira_time_log_manager,jira.time.log,model_jira_time_log,project_management.group_jira_manager,1,1,1,1
 access_jira_work_log_user,jira.time.log,model_jira_work_log,project_management.group_jira_user,1,1,1,1

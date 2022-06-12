@@ -38,6 +38,7 @@
                     </h1>
                     <group>
                         <group>
+                            <field name="ticket_type_id"/>
                             <field name="ticket_key"/>
                             <field name="ticket_url" widget="url"/>
                             <field name="story_point"/>

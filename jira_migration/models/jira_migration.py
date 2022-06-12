@@ -120,6 +120,7 @@ class JIRAMigration(models.Model):
             'dict_user':  self.with_context(active_test=False).get_user(),
             'dict_ticket_key': {r.ticket_key: r for r in self.env['jira.ticket'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['jira.status'].sudo().search([])},
+            'dict_type': {r.key: r.id for r in self.env["jira.type"].sudo().search([])}
         }
 
     def processing_issue_raw_data(self, local, raw):
@@ -130,6 +131,7 @@ class JIRAMigration(models.Model):
             story_point = ticket_fields.get('customfield_10008', 0.0) or 0.0
             assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'name'])
             project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
+            issue_type = self.__load_from_key_paths(ticket_fields, ['issuetype', 'id'])
             server_url = urlparse(self.jira_server_url).netloc
             map_url = (lambda r: f"https://{server_url}/browse/{r}")
             if ticket.get('key', '-') not in local['dict_ticket_key']:
@@ -160,6 +162,18 @@ class JIRAMigration(models.Model):
                         'jira_key': self.__load_from_key_paths(ticket_fields, ['status', 'statusCategory', 'key'])
                     }).id
                     local['dict_status'][status] = status_id
+                    res['status_id'] = local['dict_status'][status]
+                if local["dict_type"].get(issue_type, False):
+                    res['ticket_type_id'] = local['dict_type'][issue_type]
+                else:
+                    new_issue_type = self.__load_from_key_paths(ticket_fields, ['issuetype'])
+                    new_issue_type_id = self.env['jira.type'].create({
+                        'name': new_issue_type['name'],
+                        'img_url': new_issue_type['iconUrl'],
+                        'key': issue_type
+                    }).id
+                    local['dict_type'][issue_type] = new_issue_type_id
+                    res['ticket_type_id'] = local['dict_type'][issue_type]
                 response.append(res)
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
@@ -168,8 +182,9 @@ class JIRAMigration(models.Model):
                 }
                 if existing_record.status_id.id != local['dict_status'][status]:
                     update_dict['status_id'] = local['dict_status'][status]
-                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
-                    assignee]:
+                if existing_record.ticket_type_id.id != local['dict_type'][issue_type]:
+                    update_dict['ticket_type_id'] = local['dict_type'][issue_type]
+                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
                 existing_record.write(update_dict)
                 if response and not isinstance(response[0], dict):
