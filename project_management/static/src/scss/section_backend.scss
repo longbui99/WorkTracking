@@ -1,0 +1,9 @@
+// The goal of this file is to contain CSS hacks related to allowing
+// section on resource calendar.
+tr.o_data_row.o_is_line_section {    
+    font-weight: bold;
+    background-color: #DDDDDD;
+    font-size: 1.1em;
+    border-top: 2px solid #BBB;
+    border-bottom: 2px solid #BBB;
+}

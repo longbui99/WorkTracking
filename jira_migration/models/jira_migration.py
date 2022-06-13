@@ -3,7 +3,7 @@ import json
 import pytz
 from urllib.parse import urlparse
 from odoo.addons.project_management.utils.search_parser import get_search_request
-from odoo.addons.jira_migration.utils.ac_parsing import parsing
+from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.base.models.res_partner import _tz_get
 from datetime import datetime
 
@@ -25,10 +25,6 @@ class JIRAMigration(models.Model):
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
-    ac_rules = {
-        '**': ['<b>', '</b>'],
-        '*': ['<em>', '</em>']
-    }
 
     def convert_server_tz_to_utc(self, timestamp):
         if not isinstance(timestamp, datetime):
@@ -126,7 +122,7 @@ class JIRAMigration(models.Model):
     @api.model 
     def _create_new_acs(self, values=[]):
         return list(map(lambda r: (0,0, {
-            'name': parsing(self.ac_rules, r["name"]),
+            'name': parsing(r["name"]),
             'jira_raw_name': r["name"],
             "checked": r["checked"],
             "key": r["id"],
@@ -136,15 +132,13 @@ class JIRAMigration(models.Model):
 
     def _update_acs(self, ac_ids, values = []):
         value_keys = {str(r['id']): r for r in values}
-        pprint.pprint(value_keys)
         existing_records = ac_ids.filtered(lambda r: r.key not in value_keys)
         ac_ids -= existing_records
         existing_records.unlink()
-        pprint.pprint(existing_records)
         for record in ac_ids:
             r = value_keys[record.key]
             record.write({
-                'name': parsing(self.ac_rules, r["name"]),
+                'name': parsing(r["name"]),
                 'jira_raw_name': r["name"],
                 "checked": r["checked"],
                 "key": r["id"],

@@ -1,6 +1,6 @@
 from datetime import datetime
 from odoo import api, fields, models, _
-from odoo.addons.jira_migration.utils.ac_parsing import parsing
+from odoo.addons.jira_migration.utils.ac_parsing import unparsing
 
 
 class JiraACs(models.Model):

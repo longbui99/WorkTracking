@@ -31,7 +31,7 @@
     "application": True,
     'assets': {
         'web.assets_backend': [
-            'project_management/static/src/js/section.js',
+            'project_management/static/**/*',
         ],
     }
 }

@@ -24,6 +24,12 @@
             <field name="project_id" position="after">
                 <field name="last_export"/>
             </field>
+            <xpath expr="//field[@name='ac_ids']//field[@name='checked']" position="after">
+                <field name="jira_raw_name" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='ac_ids']//field[@name='name']" position="attributes">
+                <attribute name="attrs">{'readonly': [('jira_raw_name','!=',False)]}</attribute>
+            </xpath>
         </field>
     </record>
 </odoo>
