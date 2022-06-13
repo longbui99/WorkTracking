@@ -15,3 +15,4 @@ access_jira_done_work_log_user,jira.done.work.log,model_jira_done_work_log,proje
 access_jira_chain_work_base,jira.chain.work.base.model,model_jira_chain_work_base,project_management.group_jira_user,1,1,1,1
 access_jira_chain_work_session,jira.chain.work.session.model,model_jira_chain_work_session,project_management.group_jira_user,1,1,1,1
 access_jira_chain_work_session_line,jira.chain.work.session.line.model,model_jira_chain_work_session_line,project_management.group_jira_user,1,1,1,1
+access_jira_ac,jira.ac.model,model_jira_ac,project_management.group_jira_user,1,1,1,1

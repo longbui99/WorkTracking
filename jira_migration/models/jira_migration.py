@@ -1,11 +1,15 @@
 import requests
 import json
+import pytz
 from urllib.parse import urlparse
 from odoo.addons.project_management.utils.search_parser import get_search_request
+from odoo.addons.jira_migration.utils.ac_parsing import parsing
+from odoo.addons.base.models.res_partner import _tz_get
 from datetime import datetime
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import pprint
 
 
 class JIRAMigration(models.Model):
@@ -16,9 +20,25 @@ class JIRAMigration(models.Model):
 
     name = fields.Char(string='Name', required=True)
     sequence = fields.Integer(string='Sequence')
+    timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
     jira_server_url = fields.Char(string='JIRA Server URL')
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
+    is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
+    ac_rules = {
+        '**': ['<b>', '</b>'],
+        '*': ['<em>', '</em>']
+    }
+
+    def convert_server_tz_to_utc(self, timestamp):
+        if not isinstance(timestamp, datetime):
+            timestamp = datetime.strptime(timestamp ,"%Y-%m-%dT%H:%M:%S.%f%z")
+        return timestamp.astimezone(pytz.utc).replace(tzinfo=None)
+    
+    def convert_utc_to_usertz(self, timestamp):
+        if not isinstance(timestamp, datetime):
+            timestamp = datetime.strptime(timestamp ,"%Y-%m-%dT%H:%M:%S%z")
+        return timestamp.astimezone(pytz.timezone(self.env.user.tz or 'UTC')).replace(tzinfo=None)
 
     def __get_request_headers(self):
         self.ensure_one()
@@ -103,6 +123,37 @@ class JIRAMigration(models.Model):
         return body
 
     # ===========================================  Section for loading tickets/issues =============================================
+    @api.model 
+    def _create_new_acs(self, values=[]):
+        return list(map(lambda r: (0,0, {
+            'name': parsing(self.ac_rules, r["name"]),
+            'jira_raw_name': r["name"],
+            "checked": r["checked"],
+            "key": r["id"],
+            "sequence": r["rank"],
+            "is_header": r["isHeader"]
+        }), values))
+
+    def _update_acs(self, ac_ids, values = []):
+        value_keys = {str(r['id']): r for r in values}
+        pprint.pprint(value_keys)
+        existing_records = ac_ids.filtered(lambda r: r.key not in value_keys)
+        ac_ids -= existing_records
+        existing_records.unlink()
+        pprint.pprint(existing_records)
+        for record in ac_ids:
+            r = value_keys[record.key]
+            record.write({
+                'name': parsing(self.ac_rules, r["name"]),
+                'jira_raw_name': r["name"],
+                "checked": r["checked"],
+                "key": r["id"],
+                "sequence": r["rank"],
+                "is_header": r["isHeader"]
+            })
+            del value_keys[record.key]
+        res = self._create_new_acs(list(value_keys.values()))
+        return res
 
     @api.model
     def __load_from_key_paths(self, object, paths):
@@ -125,6 +176,7 @@ class JIRAMigration(models.Model):
 
     def processing_issue_raw_data(self, local, raw):
         response = []
+        load_ac = self.is_load_acs
         for ticket in raw.get('issues', [raw]):
             ticket_fields = ticket['fields']
             status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
@@ -174,6 +226,8 @@ class JIRAMigration(models.Model):
                     }).id
                     local['dict_type'][issue_type] = new_issue_type_id
                     res['ticket_type_id'] = local['dict_type'][issue_type]
+                if load_ac:
+                    res["ac_ids"] = self._create_new_acs(self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
                 response.append(res)
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
@@ -186,7 +240,12 @@ class JIRAMigration(models.Model):
                     update_dict['ticket_type_id'] = local['dict_type'][issue_type]
                 if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
+                if load_ac:
+                    res = self._update_acs(existing_record.ac_ids, self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
+                    if res:
+                        update_dict['ac_ids'] = res
                 existing_record.write(update_dict)
+
                 if response and not isinstance(response[0], dict):
                     response[0] |= existing_record
                 else:
@@ -324,7 +383,7 @@ class JIRAMigration(models.Model):
             to_update['duration'] = work_log['timeSpentSeconds']
             to_update['time'] = work_log['timeSpent']
         logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
-        start_date = self.__load_from_key_paths(work_log, ['started'])
+        start_date = self.convert_server_tz_to_utc(self.__load_from_key_paths(work_log, ['started']))
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
         if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date[:16]:
@@ -348,7 +407,7 @@ class JIRAMigration(models.Model):
                     'source': 'sync',
                     'ticket_id': ticket_id.id,
                     'id_on_jira': work_log['id'],
-                    'start_date': datetime.fromisoformat(work_log['started'][:-5])
+                    'start_date': self.convert_server_tz_to_utc(work_log['started'])
                 }
                 logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
                 to_create['user_id'] = data['dict_user'].get(logging_email, False)
@@ -441,8 +500,8 @@ class JIRAMigration(models.Model):
         self = self.with_context(access_token=access_token)
         updated_date = '0001-01-01'
         if project_id.last_update:
-            updated_date = project_id.last_update.strftime('%Y-%m-%d %H:%m')
-        params = f"""jql=project="{project_id.project_key}" AND updatedDate >= '{updated_date}'"""
+            updated_date = self.convert_utc_to_usertz(project_id.last_update).strftime('%Y-%m-%d %H:%M')
+        params = f"""jql=project="{project_id.project_key}" AND updated >= '{updated_date}'"""
         request_data = {'endpoint': f"{self.jira_server_url}/search", "params": [params]}
         ticket_ids = self.do_request(request_data, load_all=True)
         self.load_work_logs(ticket_ids)
