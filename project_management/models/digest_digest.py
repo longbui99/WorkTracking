@@ -40,9 +40,34 @@ class Digest(models.Model):
     def get_logged_time_normal_addition_domain(self):
         return []
 
+    def get_week_start(self):
+        return -(int(self.env['res.lang']._lang_get(self.env.user.lang).week_start) % 7) + 1
+
+    def get_date_range(self, periodic):
+        today = datetime.now()
+        start_date, end_date = datetime.now(), datetime.now()
+        if periodic == "daily":
+            end_date = start_date - relativedelta(days=1)
+        elif periodic == "weekly":
+            week_start = self.get_week_start(self)
+            base_date = today + relativedelta(days=week_start)
+            start_date = base_date - relativedelta(days=base_date.weekday() + week_start)
+            end_date = start_date + relativedelta(days=7)
+        elif periodic == "monthly":
+            end_date = end_date + relativedelta(months=1, day=1) - relativedelta(days=1)
+            start_date = end_date - relativedelta(day=1)
+        elif periodic == "quarterly":
+            current_quarter = today.month // 3
+            end_date = today + relativedelta(month=current_quarter * 3 + 1, day=1) - relativedelta(days=1)
+            start_date = end_date - relativedelta(months=2, day=1)
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_date = (start_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
+        end_date = (end_date + relativedelta(hour=0, minute=0, second=0)).replace(tzinfo=tz).astimezone(pytz.utc)
+        return start_date, end_date
+
     def get_user_data(self, user_id):
         user_data = []
-        start_date, end_date = get_date_range(self, self.periodicity)
+        start_date, end_date = self.get_date_range(self, self.periodicity)
         special_domain = self.get_logged_time_special_addition_domain()
         normal_domain = self.get_logged_time_normal_addition_domain()
 
@@ -70,7 +95,24 @@ class Digest(models.Model):
         return user_data
 
     def _formatting_ticket_from_work_log(self, work_log_ids):
-        return {}
+        res = {}
+        for log in work_log_ids:
+            if log.ticket_id not in res:
+                res[log.ticket_id] = {
+                    'ticket_key': log.ticket_id.ticket_key,
+                    'ticket_name': log.ticket_id.ticket_name,
+                    'log': [],
+                    'total_duration': 0,
+                    'time_duration': ''
+                }
+            res[log.ticket_id]['log'].append({
+                'time': log.time,
+                'description': log.description
+            })
+            res[log.ticket_id]['total_duration'] += log.duration
+        for key in res:
+            res[key]['time_duration'] = convert_second_to_time_format(res[key]['total_duration'])
+        return res
 
     @api.model
     def _formatting_ticket_from_time_log(self, time_log_ids):
