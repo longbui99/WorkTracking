@@ -381,7 +381,7 @@ class JIRAMigration(models.Model):
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
         if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date.isoformat()[:16]:
-            to_update['start_date'] = datetime.fromisoformat(start_date)
+            to_update['start_date'] = start_date
         if to_update:
             work_log_id.write(to_update)
 
