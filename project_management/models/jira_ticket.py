@@ -310,3 +310,15 @@ class JiraProject(models.Model):
                 'key': record.encode_string,
                 'value': nonce
             })
+
+    def get_acceptance_criteria(self, values={}):
+        res = []
+        for record in self.ac_ids:
+            res.append({
+                'id': record.id,
+                'content': record.name,
+                'is_header': record.is_header,
+                'checked': record.checked,
+                'sequence': record.sequence
+            })
+        return res

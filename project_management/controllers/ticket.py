@@ -132,3 +132,10 @@ class JiraTicket(http.Controller):
             json.loads(request.params.get("payload", "{}")))
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
+
+    @handling_exception
+    @http.route(['/management/ticket/ac'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
+    def get_acceptance_criteria(self):
+        ticket_id = self.__check_work_log_prerequisite()
+        data = ticket_id.get_acceptance_criteria(json.loads(request.params.get('payload', "{}")))
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
