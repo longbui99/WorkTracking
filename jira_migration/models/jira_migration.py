@@ -380,8 +380,8 @@ class JIRAMigration(models.Model):
         start_date = self.convert_server_tz_to_utc(self.__load_from_key_paths(work_log, ['started']))
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
-        if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date[:16]:
-            to_update['start_date'] = datetime.fromisoformat(start_date[:-5])
+        if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date.isoformat()[:16]:
+            to_update['start_date'] = datetime.fromisoformat(start_date)
         if to_update:
             work_log_id.write(to_update)
 
