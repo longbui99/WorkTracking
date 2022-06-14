@@ -40,9 +40,20 @@ def parsing(text):
                     pivot = index+1
                     break
         index += 1 
+    if pivot != index:
+        final.append(text[pivot:index])
     return "".join(final)
     
 def unparsing(text):
     for syntax in ac_unparsing_rules:
         text = re.sub(syntax['pattern'], syntax['value'], text)
     return text
+
+# text = []
+# text.append("After reloading pos session then pos square payment still keep the status and layout")
+# text.append('Add field **Reason** with message: "Cannot process Payment"')
+# text.append('Add the button "OK"')
+# for txt in text:
+#     print(txt)
+#     print(parsing(txt))
+#     print('-------------------------------------')
