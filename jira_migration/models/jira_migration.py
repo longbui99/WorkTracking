@@ -132,7 +132,9 @@ class JIRAMigration(models.Model):
             "is_header": r["isHeader"]
         }), values))
 
-    def _update_acs(self, ac_ids, values = []):
+    def _update_acs(self, ac_ids, values=[]):
+        if not values:
+            return False
         value_keys = {str(r['id']): r for r in values}
         existing_records = ac_ids.filtered(lambda r: r.key not in value_keys)
         ac_ids -= existing_records
