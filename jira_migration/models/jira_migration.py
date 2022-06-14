@@ -121,6 +121,8 @@ class JIRAMigration(models.Model):
     # ===========================================  Section for loading tickets/issues =============================================
     @api.model 
     def _create_new_acs(self, values=[]):
+        if not values:
+            return []
         return list(map(lambda r: (0,0, {
             'name': parsing(r["name"]),
             'jira_raw_name': r["name"],
