@@ -29,4 +29,9 @@
         'wizard/kick_off_counting_views.xml',
     ],
     "application": True,
+    'assets': {
+        'web.assets_backend': [
+            'project_management/static/**/*',
+        ],
+    }
 }

@@ -72,6 +72,22 @@
                                 </tree>
                             </field>
                         </page>
+                        <page string="Acceptance Criteria">
+                            <field name="ac_ids" widget="section_and_note_one2many_html">
+                                <tree editable="bottom">
+                                    <control>
+                                        <create name="create" string="Add a AC"/>
+                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" widget="section_and_note_html" />
+                                    <field name="checked" widget="boolean_toggle"/>
+                                    <field name="display_type" invisible="1"/>
+                                    <field name="is_header" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
                         <page string="Work Log Breakdowns">
                             <field name="work_log_ids">
                                 <tree editable="bottom" decoration-muted="state == 'cancel'">

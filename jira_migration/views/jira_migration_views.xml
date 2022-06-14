@@ -34,6 +34,7 @@
                     <group>
                         <group>
                             <field name="jira_server_url"/>
+                            <field name="timezone"/>
                         </group>
                     </group>
                     <notebook>
@@ -41,6 +42,7 @@
                             <group>
                                 <group>
                                     <field name="import_work_log" widget="boolean_toggle"/>
+                                    <field name="is_load_acs" widget="boolean_toggle"/>
                                 </group>
                                 <group>
                                     <field name="auto_export_work_log" widget="boolean_toggle"/>
