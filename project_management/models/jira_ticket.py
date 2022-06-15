@@ -153,13 +153,12 @@ class JiraProject(models.Model):
         self.action_pause_work_log(values)
         user_id = self.env.user.id
         for record in self:
-            cluster = record.progress_cluster_id
-            if not record.progress_cluster_id:
+            time_log_ids = record.time_log_ids.filtered(
+                    lambda r: r.user_id.id == user_id and r.state == 'progress' and source == source)
+            if not time_log_ids:
                 cluster = self.env['jira.work.log.cluster'].create({
                     'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
                 })
-            if not record.time_log_ids.filtered(
-                    lambda r: r.user_id.id == user_id and r.state == 'progress' and source == source):
                 record.time_log_ids = [fields.Command.create({
                     'description': values.get('description', ''),
                     'cluster_id': cluster.id,
@@ -167,6 +166,8 @@ class JiraProject(models.Model):
                     'duration': 0,
                     'source': source,
                 })]
+            else:
+                cluster = time_log_ids[0].cluster_id
             record.work_log_ids = [fields.Command.create({
                 'start': datetime.datetime.now(),
                 'cluster_id': cluster.id,
