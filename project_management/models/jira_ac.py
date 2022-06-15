@@ -25,3 +25,9 @@ class JiraACs(models.Model):
         if values.get('is_header', False):
             values['display_type'] = 'line_section'
         return super().write(values)
+
+    def update_ac(self, values):
+        updated_values = dict()
+        if 'checked' in values:
+            updated_values['checked'] = values['checked']
+        self.write(updated_values)

@@ -133,9 +133,25 @@ class JiraTicket(http.Controller):
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
+    def __check_ac_prequisite(self):
+        id = request.params.get('id')
+        if not id:
+            raise MissingParams("Ticket's ID must be specific!")
+        ac_id = request.env['jira.ac'].browse(int(id))
+        if not ac_id.exists():
+            raise NotFound("Cannot found AC on server")
+        return ac_id
+
     @handling_exception
     @http.route(['/management/ticket/ac'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def get_acceptance_criteria(self):
         ticket_id = self.__check_work_log_prerequisite()
         data = ticket_id.get_acceptance_criteria(json.loads(request.params.get('payload', "{}")))
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+        
+    @handling_exception
+    @http.route(['/management/ac'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
+    def update_acceptance_criteria(self):
+        ac_id = self.__check_ac_prequisite()
+        data = ac_id.update_ac(json.loads(request.params.get('payload', "{}")))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
