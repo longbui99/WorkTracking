@@ -144,7 +144,7 @@ class JIRAMigration(models.Model):
             record.write({
                 'name': parsing(r["name"]),
                 'jira_raw_name': r["name"],
-                "checked": r["checked"],
+                "checked": r["checked"] or record.checked,
                 "key": r["id"],
                 "sequence": r["rank"],
                 "is_header": r["isHeader"]

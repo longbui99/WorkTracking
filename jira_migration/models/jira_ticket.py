@@ -40,3 +40,16 @@ class JiraProject(models.Model):
         res = super().create(values)
         res.last_export = datetime.datetime.now()
         return res
+    
+    def get_acceptance_criteria(self, values={}):
+        res = []
+        for record in self.ac_ids:
+            res.append({
+                'id': record.id,
+                'content': record.jira_raw_name,
+                'is_header': record.is_header,
+                'checked': record.checked,
+                'sequence': record.sequence,
+                'need_compile': True
+            })
+        return res
