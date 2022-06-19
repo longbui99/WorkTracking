@@ -13,6 +13,10 @@ class JiraProject(models.Model):
         for record in self:
             record.jira_migration_id.export_time_log(record)
             record.last_export = datetime.datetime.now()
+    
+    def export_ac_to_jira(self):
+        for record in self:
+            record.jira_migration_id.export_acceptance_criteria(record)
 
     def import_ticket_jira(self):
         for record in self:
@@ -53,3 +57,9 @@ class JiraProject(models.Model):
                 'need_compile': True
             })
         return res
+
+    def export_ticket_to_server(self, values={}):
+        if values.get('worklog', {}).get('ac', False):
+            self.export_time_log_to_jira()
+        if values.get('mode', {}).get('ac', False):
+            self.export_ac_to_jira()

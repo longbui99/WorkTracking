@@ -78,7 +78,7 @@ class JiraTicket(http.Controller):
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
-    def __check_work_log_prerequisite(self):
+    def check_work_log_prerequisite(self):
         id = request.params.get('id')
         key = request.params.get('key')
         if not key and not id:
@@ -91,7 +91,7 @@ class JiraTicket(http.Controller):
     @handling_exception
     @http.route(['/management/ticket/work-log/add'], type="http", cors="*", methods=['GET', 'POST'], auth='jwt')
     def add_ticket_work_log(self):
-        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id = self.check_work_log_prerequisite()
         ticket_id.generate_progress_work_log(json.loads(request.params.get('payload', "{}")))
         data = self._get_ticket(ticket_id)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
@@ -99,21 +99,21 @@ class JiraTicket(http.Controller):
     @handling_exception
     @http.route(['/management/ticket/work-log/pause'], type="http", cors="*", methods=['GET', 'POST'], auth='jwt')
     def pause_ticket_work_log(self):
-        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_pause_work_log(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
     @handling_exception
     @http.route(['/management/ticket/work-log/done'], type="http", cors="*", methods=['GET', 'POST'], auth='jwt')
     def done_ticket_work_log(self):
-        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_done_work_log(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
     @http.route(['/management/ticket/work-log/manual'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def manual_ticket_work_log(self):
-        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_manual_work_log(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
@@ -121,7 +121,7 @@ class JiraTicket(http.Controller):
     @http.route(['/management/ticket/work-log/cancel'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def cancel_ticket_work_log(self):
-        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_cancel_progress(json.loads(request.params.get('payload', "{}")))
         return http.Response("", content_type='application/json', status=200)
 
@@ -145,7 +145,7 @@ class JiraTicket(http.Controller):
     @handling_exception
     @http.route(['/management/ticket/ac'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def get_acceptance_criteria(self):
-        ticket_id = self.__check_work_log_prerequisite()
+        ticket_id = self.check_work_log_prerequisite()
         data = ticket_id.get_acceptance_criteria(json.loads(request.params.get('payload', "{}")))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
         

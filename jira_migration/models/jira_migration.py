@@ -507,3 +507,7 @@ class JIRAMigration(models.Model):
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
+
+    def export_acceptance_criteria(self, ticket_id):
+        current_user_id = self.env.user.id 
+        
