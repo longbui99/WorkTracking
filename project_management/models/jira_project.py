@@ -22,7 +22,8 @@ class JiraProject(models.Model):
             user_ids = self.env['jira.ticket'] \
                 .search([('project_id', '=', record.id)]) \
                 .mapped('time_log_ids').mapped('user_id')
-            record.allowed_user_ids = [user_ids.mapped(lambda r: (4, r.id, False))]
+            create_new_users = user_ids.filtered(lambda r: r.id not in self.allowed_user_ids.ids)
+            record.allowed_user_ids = create_new_users.mapped(lambda r: (4, r.id, False))
 
     @api.model
     def cron_fetch_user_from_ticket(self):
