@@ -22,7 +22,7 @@ class JiraProject(models.Model):
             user_ids = self.env['jira.ticket'] \
                 .search([('project_id', '=', record.id)]) \
                 .mapped('time_log_ids').mapped('user_id')
-            record.allowed_user_ids = [fields.Command.set(user_ids.ids)]
+            record.allowed_user_ids = [fields.Command.link(user_ids.ids)]
 
     @api.model
     def cron_fetch_user_from_ticket(self):
