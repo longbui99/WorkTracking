@@ -19,15 +19,22 @@ class JiraACs(models.Model):
     def create(self, values):
         if values.get('is_header', False):
             values['display_type'] = 'line_section'
+        else:
+            values['display_type'] = ''
         return super().create(values)
 
     def write(self, values):
+        print(values)
         if values.get('is_header', False):
             values['display_type'] = 'line_section'
+        else:
+            values['display_type'] = ''
         return super().write(values)
 
     def update_ac(self, values):
-        updated_values = dict()
-        if 'checked' in values:
-            updated_values['checked'] = values['checked']
-        self.write(updated_values)
+        if self.exists():
+            self.write(values)
+            return self.id
+        else:
+            res = self.create(values)
+            return res.id

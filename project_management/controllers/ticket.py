@@ -138,8 +138,6 @@ class JiraTicket(http.Controller):
         if not id:
             raise MissingParams("Ticket's ID must be specific!")
         ac_id = request.env['jira.ac'].browse(int(id))
-        if not ac_id.exists():
-            raise NotFound("Cannot found AC on server")
         return ac_id
 
     @handling_exception
@@ -153,5 +151,13 @@ class JiraTicket(http.Controller):
     @http.route(['/management/ac'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def update_acceptance_criteria(self):
         ac_id = self.__check_ac_prequisite()
-        data = ac_id.update_ac(json.loads(request.params.get('payload', "{}")))
+        id_ac = ac_id.update_ac(json.loads(request.params.get('payload', "{}")))
+        data = {'id': id_ac}
+        return http.Response(json.dumps(id_ac), content_type='application/json', status=200)
+        
+    @handling_exception
+    @http.route(['/management/ac/delete/<int:ac_id>'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
+    def delete_acceptance_criteria(self, ac_id):
+        request.env['jira.ac'].browse(ac_id).unlink()
+        data = {'status': 'ok'}
         return http.Response(json.dumps(data), content_type='application/json', status=200)

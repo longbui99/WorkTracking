@@ -12,11 +12,11 @@ replace_rule = {
 
 ac_unparsing_rules = [
     {'pattern': '<b>(.*)</b>', 'value': '**\\1**'},
-    {'pattern': '<b style=".+">(.*)</b>', 'value': '**\\1**'},
+    {'pattern': '<b>(.*)</b>', 'value': '**\\1**'},
     {'pattern': "</em>", 'value': '*'},
-    {'pattern': "<em.+>", 'value': '*'},
-    {'pattern': '<span style=".+">( )</span>', 'value': ' '},
-    {'pattern': '<span style=".+">(.*)</span>', 'value': '\\1'},
+    {'pattern': "<em>", 'value': '*'},
+    {'pattern': "</i>", 'value': '*'},
+    {'pattern': "<i>", 'value': '*'}
 ]
 
 def parsing(text):
