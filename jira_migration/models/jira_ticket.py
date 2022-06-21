@@ -83,7 +83,7 @@ class JiraProject(models.Model):
         self.write({'last_export': pivot_time})
         self.export_time_log_to_jira()
 
-    def render_batch_update_wizard():
+    def render_batch_update_wizard(self):
         action = self.env.ref("jira_migration.export_work_log_action_form").read()[0]
         action["context"] = {'default_ticket_ids': self.ids}
         return action
