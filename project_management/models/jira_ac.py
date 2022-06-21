@@ -24,7 +24,6 @@ class JiraACs(models.Model):
         return super().create(values)
 
     def write(self, values):
-        print(values)
         if values.get('is_header', False):
             values['display_type'] = 'line_section'
         else:

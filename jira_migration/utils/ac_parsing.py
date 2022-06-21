@@ -16,6 +16,7 @@ ac_unparsing_rules = [
     {'pattern': '</i>', 'value': '*'},
     {'pattern': "<i>", 'value': '*'},
     {'pattern': "&nbsp;", 'value': ' '},
+    {'pattern': "<br>", 'value': '\n'},
 ]
 
 
@@ -23,7 +24,7 @@ def parsing(text):
     for rule in replace_rule.keys():
         text = text.replace(rule, replace_rule[rule])
     pivot, index, final, final_key = 0, 0, [''], 0
-    length, pasring_length = len(text), len(ac_rules)
+    length, parsing_length = len(text), len(ac_rules)
     while index < length:
         for key in ac_rules.keys():
             if index + len(key) <= length:
