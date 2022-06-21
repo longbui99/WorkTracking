@@ -113,6 +113,8 @@ class JIRAMigration(models.Model):
             headers.update({'Content-Type': 'application/json'})
         method = getattr(requests, request_data.get('method', 'get'))
         result = method(url=endpoint, headers=headers, data=body)
+        if result.text == "":
+            return ""
         body = result.json()
         if body.get('errorMessages', False):
             raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
@@ -507,3 +509,32 @@ class JIRAMigration(models.Model):
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
+
+    def get_ac_payload(self, ticket_id):
+        res = ticket_id.ac_ids.mapped(
+            lambda r: {
+                "name": r.jira_raw_name,
+                "checked": r.checked,
+                "rank": r.sequence,
+                "isHeader": r.is_header,
+                "id": int(r.key)
+            }
+        )
+        res = {
+            "fields": {
+                "customfield_10206": res
+            }
+        }
+        return res
+
+    def export_acceptance_criteria(self, ticket_id):
+        current_user_id = self.env.user.id 
+        headers = self.__get_request_headers()
+        request_data = {
+            'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}",
+            'method': 'put',
+        }
+        payload = self.get_ac_payload(ticket_id)
+        request_data['body'] = payload
+        res = self.make_request(request_data, headers)
+        return res

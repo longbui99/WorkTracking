@@ -24,7 +24,6 @@ class JiraTicketMigration(JiraTicket):
         except Exception as e:
             return http.Response(str(e), content_type='application/json', status=400)
         return res
-
     
     @handling_exception
     @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET", "POST"],
@@ -35,7 +34,13 @@ class JiraTicketMigration(JiraTicket):
         ticket_id = request.env['jira.ticket'].browse(ticket_id)
         ticket_id.jira_migration_id._search_load('ticket', [ticket_id.ticket_key])
         return http.Response("", content_type='application/json', status=200)
-
+        
+    @handling_exception
+    @http.route(['/management/ticket/export'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
+    def export_ticket_to_server(self):
+        ticket_id = super().check_work_log_prerequisite()
+        data = ticket_id.export_ticket_to_server(json.loads(request.params.get('payload', "{}")))
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
 
 class AuthInherited(Auth):
 

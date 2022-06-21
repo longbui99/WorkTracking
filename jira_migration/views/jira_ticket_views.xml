@@ -18,8 +18,9 @@
         <field name="inherit_id" ref="project_management.jira_ticket_form_view"/>
         <field name="arch" type="xml">
             <button name="action_done_work" position="after">
-                <button name="export_time_log_to_jira" string="Export Work Log" type="object" class="btn-secondary"/>
                 <button name="import_ticket_jira" string="Import Ticket" type="object" class="btn-secondary"/>
+                <button name="export_time_log_to_jira" string="Export Work Log" type="object" class="btn-secondary"/>
+                <button name="export_ac_to_jira" string="Export Acceptance Criteria" type="object" class="btn-secondary"/>
             </button>
             <field name="project_id" position="after">
                 <field name="last_export"/>

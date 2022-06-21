@@ -12,7 +12,8 @@ class JiraProject(models.Model):
             self = self.search([])
         for project in self:
             access_token = self.env['hr.employee'].search(
-                [('user_id', 'in', project.allowed_user_ids.ids), ('jira_private_key', '!=', False)]).mapped(
+                [('user_id', 'in', project.allowed_user_ids.ids), 
+                ('jira_private_key', '!=', False)], order='is_jira_admin desc').mapped(
                 'jira_private_key')
             if any(access_token):
                 project.jira_migration_id.with_context().update_project(project, access_token[0])
