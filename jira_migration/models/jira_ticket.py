@@ -11,6 +11,7 @@ class JiraProject(models.Model):
     jira_migration_id = fields.Many2one('jira.migration', string='Jira Migration')
     status_value = fields.Char(related='status_id.jira_key', store=True)
     last_export = fields.Datetime("Last Export Time")
+    auto_export_success = fields.Boolean(string="Export Successful?", default=True)
 
     def export_time_log_to_jira(self):
         for record in self:
@@ -27,19 +28,31 @@ class JiraProject(models.Model):
 
     def action_done_work_log(self, values={}):
         res = super().action_done_work_log(values)
-        if any(res.env['hr.employee'].search([('user_id', '=', self.env.user.id)]).mapped('auto_export_work_log')):
-            res.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
-        res.write({'last_export': datetime.datetime.now()})
+        try:
+            if any(res.env['hr.employee'].search([('user_id', '=', self.env.user.id)]).mapped('auto_export_work_log')):
+                res.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
+            res.write({'last_export': datetime.datetime.now()})
+        except Exception as e:
+            _logger.warning(e)
+            res.write({'auto_export_success': False})
         return res
 
     def action_manual_work_log(self, values={}):
         self.ensure_one()
         res, time_log_ids = super().action_manual_work_log(values)
-        if any(res.env['hr.employee'].search([('user_id', '=', res.env.user.id)]).mapped('auto_export_work_log')):
-            if res.jira_migration_id.auto_export_work_log:
-                res.jira_migration_id.add_time_logs(res, time_log_ids)
-                res.last_export = datetime.datetime.now()
+        try:
+            if any(res.env['hr.employee'].search([('user_id', '=', res.env.user.id)]).mapped('auto_export_work_log')):
+                if res.jira_migration_id.auto_export_work_log:
+                    res.jira_migration_id.add_time_logs(res, time_log_ids)
+                    res.last_export = datetime.datetime.now()
+        except Exception as e:
+            _logger.warning(e)
+            res.write({'auto_export_success': False})
         return res
+
+    @api.model
+    def re_export_work_log(self):
+        self.search([('auto_export_success', '=', False)]).action_done_work_log({})
 
     @api.model
     def create(self, values):
