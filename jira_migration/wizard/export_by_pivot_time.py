@@ -12,7 +12,5 @@ class LoadByLinkTransient(models.TransientModel):
 
     def export(self):
         self.ensure_one()
-        pivot_time = self.from_datetimereplace(tzinfo=pytz.utc).astimezone(
-            pytz.timezone(self.env.user.tz or 'UTC')).replace(tzinfo=None)
-        self.time_log_ids.batch_export(pivot_time)
-        self.ticket_ids.batch_export(pivot_time)
+        self.time_log_ids.batch_export(self.from_datetime)
+        self.ticket_ids.batch_export(self.from_datetime)
