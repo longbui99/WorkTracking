@@ -58,9 +58,9 @@ def unparsing(text):
         text = re.sub(syntax['pattern'], syntax['value'], text)
     index, pivot, length = 0, 0, len(text)
     while index < length:
-        if text[index] in ("<", '&') :
+        if text[index] in ("<", '&'):
             pivot = index
-        elif text[index] in (">", ';') :
+        elif text[index] in (">", ';'):
             text = text[:pivot] + text[index+1:]
             length -= (index-pivot + 1)
             index -= (index-pivot + 1)
