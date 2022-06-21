@@ -73,7 +73,7 @@ class JiraProject(models.Model):
         return res
 
     def export_ticket_to_server(self, values={}):
-        if values.get('worklog', {}).get('ac', False):
+        if values.get('mode', {}).get('worklog', False):
             self.export_time_log_to_jira()
         if values.get('mode', {}).get('ac', False):
             self.export_ac_to_jira()
