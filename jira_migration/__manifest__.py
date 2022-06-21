@@ -21,6 +21,7 @@
         'views/menus.xml',
 
         'wizard/load_by_link_views.xml',
+        'wizard/export_by_pivot_time_views.xml',
 
     ],
     "application": False,

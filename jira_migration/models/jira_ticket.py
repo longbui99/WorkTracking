@@ -78,3 +78,7 @@ class JiraProject(models.Model):
             self.export_time_log_to_jira()
         if values.get('mode', {}).get('ac', False):
             self.export_ac_to_jira()
+
+    def batch_export(self, pivot_time):
+        self.write({'last_export': pivot_time})
+        self.export_time_log_to_jira()
