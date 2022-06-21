@@ -18,3 +18,8 @@ class JiraTimeLog(models.Model):
         ticket_ids = self.mapped('ticket_id')
         ticket_ids.write({'last_export': pivot_time})
         ticket_ids.export_time_log_to_jira()
+
+    def render_batch_update_wizard():
+        action = self.env.ref("jira_migration.export_work_log_action_form").read()[0]
+        action["context"] = {'default_time_log_ids': self.ids}
+        return action
