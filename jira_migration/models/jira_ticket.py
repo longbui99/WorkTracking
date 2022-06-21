@@ -34,7 +34,7 @@ class JiraProject(models.Model):
             res.write({'last_export': datetime.datetime.now()})
         except Exception as e:
             _logger.warning(e)
-            res.write({'auto_export_success': False})
+            self.write({'auto_export_success': False})
         return res
 
     def action_manual_work_log(self, values={}):
@@ -47,7 +47,7 @@ class JiraProject(models.Model):
                     res.last_export = datetime.datetime.now()
         except Exception as e:
             _logger.warning(e)
-            res.write({'auto_export_success': False})
+            self.write({'auto_export_success': False})
         return res
 
     @api.model
