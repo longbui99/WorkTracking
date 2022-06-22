@@ -32,6 +32,7 @@ class JiraProject(models.Model):
             if any(res.env['hr.employee'].search([('user_id', '=', self.env.user.id)]).mapped('auto_export_work_log')):
                 res.filtered(lambda r: r.jira_migration_id.auto_export_work_log).export_time_log_to_jira()
             res.write({'last_export': datetime.datetime.now()})
+            self.write({'auto_export_success': True})
         except Exception as e:
             _logger.warning(e)
             self.write({'auto_export_success': False})
@@ -45,6 +46,7 @@ class JiraProject(models.Model):
                 if res.jira_migration_id.auto_export_work_log:
                     res.jira_migration_id.add_time_logs(res, time_log_ids)
                     res.last_export = datetime.datetime.now()
+            self.write({'auto_export_success': True})
         except Exception as e:
             _logger.warning(e)
             self.write({'auto_export_success': False})
