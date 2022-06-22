@@ -10,12 +10,12 @@ class JiraACs(models.Model):
 
     @api.model
     def create(self, values):
-        if 'name' in values:
+        if 'name' in values and 'jira_raw_name' not in values:
             values['jira_raw_name'] = unparsing(values['name'])
         return super().create(values)
 
     def write(self, values):
-        if 'name' in values:
+        if 'name' in values and 'jira_raw_name' not in values:
             values['jira_raw_name'] = unparsing(values['name'])
         return super().write(values)
 

@@ -56,14 +56,15 @@ def parsing(text):
 def unparsing(text):
     for syntax in ac_unparsing_rules:
         text = re.sub(syntax['pattern'], syntax['value'], text)
-    index, pivot, length = 0, 0, len(text)
+    index, pivot, length = 0, -1, len(text)
     while index < length:
         if text[index] in ("<", '&'):
             pivot = index
-        elif text[index] in (">", ';'):
+        elif text[index] in (">", ';') and pivot != -1:
             text = text[:pivot] + text[index+1:]
             length -= (index-pivot + 1)
             index -= (index-pivot + 1)
+            pivot = -1
         index += 1
 
     return text
