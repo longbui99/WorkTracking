@@ -14,20 +14,22 @@ class JiraACs(models.Model):
     checked = fields.Boolean(string="Checked?")
     is_header = fields.Boolean(string="Header?")
     ticket_id = fields.Many2one("jira.ticket", string="Ticket")
-    
+
     @api.model
     def create(self, values):
-        if values.get('is_header', False):
-            values['display_type'] = 'line_section'
-        else:
-            values['display_type'] = ''
+        if 'is_header' in values:
+            if values['is_header']:
+                values['display_type'] = 'line_section'
+            else:
+                values['display_type'] = ''
         return super().create(values)
 
     def write(self, values):
-        if values.get('is_header', False):
-            values['display_type'] = 'line_section'
-        else:
-            values['display_type'] = ''
+        if 'is_header' in values:
+            if values['is_header']:
+                values['display_type'] = 'line_section'
+            else:
+                values['display_type'] = ''
         return super().write(values)
 
     def update_ac(self, values):
