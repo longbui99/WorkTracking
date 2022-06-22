@@ -33,4 +33,22 @@
             </xpath>
         </field>
     </record>
+    
+    <record id="action_server_jira_ticket_batch_update" model="ir.actions.server">
+        <field name="name">Export Work Log</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_jira_ticket" />
+        <field name="binding_model_id" ref="model_jira_ticket" />
+        <field name="state">code</field>
+        <field name="code">action = records.render_batch_update_wizard()</field>
+    </record>
+    
+    <record id="action_server_jira_time_log_batch_update" model="ir.actions.server">
+        <field name="name">Export Work Log</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_jira_time_log" />
+        <field name="binding_model_id" ref="model_jira_time_log" />
+        <field name="state">code</field>
+        <field name="code">action = records.render_batch_update_wizard()</field>
+    </record>
 </odoo>
