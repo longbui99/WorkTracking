@@ -2,7 +2,7 @@ import re
 
 ac_rules = {
     '**': ['<b>', '</b>'],
-    '*': ['<em>', '</em>'],
+    '*': ['<i>', '</i>'],
 }
 
 replace_rule = {

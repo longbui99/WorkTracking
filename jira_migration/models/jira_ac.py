@@ -27,3 +27,13 @@ class JiraACs(models.Model):
                 ac.sequence = index
 
         return res_id
+
+
+class JiraACParsing(models.Model):
+    _name = "jira.ac.parsing"
+    _description = "Parser for AC"
+    _order = "sequence, id desc"
+
+    start_tag = fields.Char("Start Tag", required=True)
+    end_tag = fields.Char("End Tag")
+    parser = fields.Char("Parser")
