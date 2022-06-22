@@ -5,9 +5,10 @@ from odoo import api, fields, models, _
 class JiraACs(models.Model):
     _name = "jira.ac"
     _description = "JIRA Acceptance Criteria"
-    _order = 'sequence asc, id asc'
+    _order = 'sequence, float_sequence, id'
 
     sequence = fields.Integer(string="Sequence")
+    float_sequence = fields.Float(string="Float Sequence")
     name = fields.Html(string='Name', required=True, default="")
     display_type = fields.Char(string="Display Type")
     key = fields.Char(string="Key")
