@@ -25,6 +25,7 @@ class JiraACs(models.Model):
         if ticket_id.exists():
             for index, ac in enumerate(ticket_id.ac_ids):
                 ac.sequence = index
+                ac.float_sequence = 0
 
         return res_id
 
