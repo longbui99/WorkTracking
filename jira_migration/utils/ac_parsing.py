@@ -6,8 +6,9 @@ ac_rules = {
 }
 
 replace_rule = {
-    '\n\n': '<br>',
-    '\n': '<br>'
+    '\r\n': '<br>',
+    '\n': '<br>',
+    '\r': '<br>'
 }
 
 ac_unparsing_rules = [
@@ -16,7 +17,7 @@ ac_unparsing_rules = [
     {'pattern': '</i>', 'value': '*'},
     {'pattern': "<i>", 'value': '*'},
     {'pattern': "&nbsp;", 'value': ' '},
-    {'pattern': "<br>", 'value': '\\n'},
+    {'pattern': "<br>", 'value': '\r\n'},
 ]
 
 
@@ -68,3 +69,6 @@ def unparsing(text):
         index += 1
 
     return text
+
+data = "Ad-hoc cycle count popup<br><span>Add domain</span><br><span>Add domain</span>"
+print(unparsing(data))
