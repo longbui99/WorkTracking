@@ -16,7 +16,7 @@ ac_unparsing_rules = [
     {'pattern': '</i>', 'value': '*'},
     {'pattern': "<i>", 'value': '*'},
     {'pattern': "&nbsp;", 'value': ' '},
-    {'pattern': "<br>", 'value': '\n'},
+    {'pattern': "<br>", 'value': '\\n'},
 ]
 
 
