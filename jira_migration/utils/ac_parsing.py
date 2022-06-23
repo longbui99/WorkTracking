@@ -17,7 +17,7 @@ ac_unparsing_rules = [
     {'pattern': '</i>', 'value': '*'},
     {'pattern': "<i>", 'value': '*'},
     {'pattern': "&nbsp;", 'value': ' '},
-    {'pattern': "<br>", 'value': '\r\n'},
+    {'pattern': "<br>", 'value': '\\r\\n'},
 ]
 
 
@@ -69,6 +69,3 @@ def unparsing(text):
         index += 1
 
     return text
-
-data = "Ad-hoc cycle count popup<br><span>Add domain</span><br><span>Add domain</span>"
-print(unparsing(data))
