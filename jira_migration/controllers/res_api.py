@@ -3,12 +3,12 @@ from odoo import http, _
 from odoo.http import request
 from odoo.addons.project_management.controllers.ticket import JiraTicket
 from odoo.addons.project_management.controllers.auth import Auth
-from odoo.addons.project_management.utils.error_tracking import handling_exception
+from odoo.addons.project_management.utils.error_tracking import handling_req_res
 
 
 class JiraTicketMigration(JiraTicket):
 
-    @handling_exception
+    @handling_req_res
     @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET', 'POST'],
                 auth='jwt')
     def search_ticket(self, keyword):
@@ -25,7 +25,7 @@ class JiraTicketMigration(JiraTicket):
             return http.Response(str(e), content_type='application/json', status=400)
         return res
     
-    @handling_exception
+    @handling_req_res
     @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET", "POST"],
                 auth="jwt")
     def fetch_ticket_from_server(self, ticket_id):
@@ -35,7 +35,7 @@ class JiraTicketMigration(JiraTicket):
         ticket_id.jira_migration_id._search_load('ticket', [ticket_id.ticket_key])
         return http.Response("", content_type='application/json', status=200)
         
-    @handling_exception
+    @handling_req_res
     @http.route(['/management/ticket/export'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
     def export_ticket_to_server(self):
         ticket_id = super().check_work_log_prerequisite()
