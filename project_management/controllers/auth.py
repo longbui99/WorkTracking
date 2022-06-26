@@ -53,7 +53,8 @@ class Auth(http.Controller):
     def fetch_new_code(self):
         res = {}
         token = generate_idempotency_key()
-        jwt = generate_jwt(request.env.user.id, token)        
+        jwt = generate_jwt(request.env.user.id, token)
+        code = request.env['user.access.code'].sudo().search_count([('key', '=', payload.get('token', False))])     
         code.write({'key': token})
         res['jwt'] = jwt
         return http.Response(json.dumps(res), content_type='application/json', status=200)
