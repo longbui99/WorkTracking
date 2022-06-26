@@ -129,8 +129,7 @@ class JiraTicket(http.Controller):
     @handling_req_res
     @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_related_active(self, **kwargs):
-        active_ticket_ids = request.env['jira.ticket'].get_all_active(
-            request.params.get("payload", {}))
+        active_ticket_ids = request.env['jira.ticket'].get_all_active(json.loads(request.params.get("payload", '{}')))
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
