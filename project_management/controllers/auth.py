@@ -16,6 +16,14 @@ def generate_idempotency_key():
     characters = string.ascii_uppercase + string.digits
     return ''.join([random.choice(characters) for _ in range(IDEMPOTENCY_LENGTH)])
 
+def generate_jwt(uid, token=False):
+    if not token:
+        token = generate_idempotency_key()
+    response = jwt.encode({"uid": uid, "token": token}, request.env.cr.dbname + "longlml", algorithm="HS256")
+    if not (isinstance(response, str)):
+        response = response.decode('utf-8')
+    return response
+
 
 class Auth(http.Controller):
     @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
@@ -29,11 +37,7 @@ class Auth(http.Controller):
         except exceptions.AccessDenied as e:
             return http.Response(str(e), content_type='text/http', status=404)
         if uid:
-            token = generate_idempotency_key()
-            request.env['user.access.code'].sudo().create({'key': token, 'uid': uid})
-            response = jwt.encode({"uid": uid, "token": token}, request.env.cr.dbname + "longlml", algorithm="HS256")
-            if not (isinstance(response, str)):
-                response = response.decode('utf-8')
+            response = generate_jwt(uid)
             calendar = request.env["hr.employee"].sudo().search([('user_id','=', uid)]).resource_calendar_id
             res = {
                 'data': response, 
@@ -44,3 +48,13 @@ class Auth(http.Controller):
                 }
             }
         return http.Response(json.dumps(res), content_type='application/json', status=200)
+
+    @http.route(['/web/login/jwt/new-code'], methods=['GET', 'POST'], cors="*", type="http", auth="jwt", csrf=False)
+    def fetch_new_code(self):
+        res = {}
+        token = generate_idempotency_key()
+        response = jwt.encode({"uid": request.env.user.id, "token": generate_jwt(request.env.user.id,  token)}, request.env.cr.dbname + "longlml", algorithm="HS256")
+        code.write({'key': token})
+        res['jwt'] = token
+        return http.Response(json.dumps(res), content_type='application/json', status=200)
+
