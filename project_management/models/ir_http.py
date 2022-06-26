@@ -1,5 +1,5 @@
 import jwt
-
+import json
 from odoo import api, http, models, exceptions
 from odoo.http import request, content_disposition, Response
 
@@ -10,6 +10,8 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _auth_method_jwt(cls):
         try:
+            if len(request.params) == 0:
+                request.params = json.loads(request.httprequest.data)
             if not request.params.get('jwt'):
                 raise exceptions.AccessDenied("The JWT uid is required")
             else:

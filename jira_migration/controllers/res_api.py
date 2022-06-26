@@ -9,11 +9,11 @@ from odoo.addons.project_management.utils.error_tracking import handling_req_res
 class JiraTicketMigration(JiraTicket):
 
     @handling_req_res
-    @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET', 'POST'],
+    @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
                 auth='jwt')
-    def search_ticket(self, keyword):
+    def search_ticket(self, keyword, **kwargs):
         try:
-            res = super().search_ticket(keyword)
+            res = super().search_ticket(keyword, **kwargs)
             if res.data == b'[]':
                 ticket_ids = request.env['jira.ticket']
                 for migrate in request.env['jira.migration'].sudo().search([]):
@@ -24,23 +24,24 @@ class JiraTicketMigration(JiraTicket):
         except Exception as e:
             return http.Response(str(e), content_type='application/json', status=400)
         return res
-    
+
     @handling_req_res
-    @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET", "POST"],
+    @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET"],
                 auth="jwt")
-    def fetch_ticket_from_server(self, ticket_id):
+    def fetch_ticket_from_server(self, ticket_id, **kwargs):
         if not ticket_id:
             return Exception("Need to provide ticket id")
         ticket_id = request.env['jira.ticket'].browse(ticket_id)
         ticket_id.jira_migration_id._search_load('ticket', [ticket_id.ticket_key])
         return http.Response("", content_type='application/json', status=200)
-        
+
     @handling_req_res
-    @http.route(['/management/ticket/export'], type="http", cors="*", methods=["GET", "POST"], auth="jwt")
-    def export_ticket_to_server(self):
+    @http.route(['/management/ticket/export'], type="http", cors="*", methods=["POST"], auth="jwt")
+    def export_ticket_to_server(self, **kwargs):
         ticket_id = super().check_work_log_prerequisite()
         data = ticket_id.export_ticket_to_server(json.loads(request.params.get('payload', "{}")))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
+
 
 class AuthInherited(Auth):
 

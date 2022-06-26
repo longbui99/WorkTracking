@@ -1,6 +1,5 @@
 import functools
 import logging
-import json
 from odoo.http import request, Response
 _logger = logging.getLogger(__name__)
 
