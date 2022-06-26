@@ -2,11 +2,13 @@ import jwt
 
 from odoo import api, http, models, exceptions
 from odoo.http import request, content_disposition, Response
+from odoo.addons.project_management.utils.error_tracking import handling_exception
 
 
 class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
 
+    @handling_exception
     @classmethod
     def _auth_method_jwt(cls):
         try:
