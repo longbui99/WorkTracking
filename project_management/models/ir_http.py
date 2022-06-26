@@ -9,7 +9,6 @@ class IrHttp(models.AbstractModel):
     _inherit = 'ir.http'
 
     @handling_exception
-    @classmethod
     def _auth_method_jwt(cls):
         try:
             if not request.params.get('jwt'):
