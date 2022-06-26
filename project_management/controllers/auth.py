@@ -8,6 +8,7 @@ import random
 
 from odoo import http, _, exceptions
 from odoo.http import request
+from odoo.addons.project_management.utils.error_tracking import handling_exception
 
 IDEMPOTENCY_LENGTH = 10
 
@@ -49,6 +50,7 @@ class Auth(http.Controller):
             }
         return http.Response(json.dumps(res), content_type='application/json', status=200)
 
+    @handling_exception
     @http.route(['/web/login/jwt/new-code'], methods=['GET', 'POST'], cors="*", type="http", auth="jwt", csrf=False)
     def fetch_new_code(self):
         res = {}

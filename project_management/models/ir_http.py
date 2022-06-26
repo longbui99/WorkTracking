@@ -17,7 +17,7 @@ class IrHttp(models.AbstractModel):
                 if not payload.get('uid'):
                     raise exceptions.AccessDenied("The JWT uid is required")
                 if not request.env['user.access.code'].sudo().search_count([('key', '=', payload.get('token', False))]):
-                    return request.redirect("/home")
+                    raise exceptions.AccessDenied("The JWT is incorrect")
                 request.uid = payload['uid']
         except Exception as e:
             return http.Response(str(e), content_type='text/http', status=404)
