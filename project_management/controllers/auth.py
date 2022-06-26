@@ -56,9 +56,8 @@ class Auth(http.Controller):
         res = {}
         token = generate_idempotency_key()
         payload = jwt.decode(request.params['jwt'], request.env.cr.dbname + "longlml", algorithms=["HS256"])
-        jwt = generate_jwt(request.env.user.id, token)
         code = request.env['user.access.code'].sudo().search_count([('key', '=', payload.get('token', False))])     
         code.write({'key': token})
-        res['jwt'] = jwt
+        res['jwt'] = generate_jwt(request.env.user.id, token)
         return http.Response(json.dumps(res), content_type='application/json', status=200)
 
