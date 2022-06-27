@@ -134,9 +134,8 @@ class JiraTicket(http.Controller):
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
-        print(request.params)
         id = request.params.get('id')
-        if not id:
+        if not isinstance(id, int):
             raise MissingParams("Ticket's ID must be specific!")
         ac_id = request.env['jira.ac'].browse(int(id))
         return ac_id
