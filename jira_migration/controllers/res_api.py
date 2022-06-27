@@ -39,7 +39,7 @@ class JiraTicketMigration(JiraTicket):
     @http.route(['/management/ticket/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_ticket_to_server(self, **kwargs):
         ticket_id = super().check_work_log_prerequisite()
-        data = ticket_id.export_ticket_to_server(json.loads(request.params.get('payload', "{}")))
+        data = ticket_id.export_ticket_to_server(request.params.get('payload', {}))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
 
