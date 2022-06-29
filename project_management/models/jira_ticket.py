@@ -287,7 +287,7 @@ class JiraProject(models.Model):
             domain = expression.AND([domain, ['|',
                                               ('assignee_id.login', 'ilike', res['name'])
                                               ('assignee_id.name', 'ilike', res['name'])]])
-        if 'chain' in res:
+        if 'sprint' in res:
             domain = []
         return domain
 

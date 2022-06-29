@@ -24,7 +24,7 @@ class JiraProject(models.Model):
 
     def import_ticket_jira(self):
         res = {'ticket': self.mapped('ticket_key')}
-        record.jira_migration_id._search_load(res)
+        self.jira_migration_id._search_load(res)
 
     def action_done_work_log(self, values={}):
         res = super().action_done_work_log(values)
@@ -91,7 +91,7 @@ class JiraProject(models.Model):
         return action
 
     def get_search_ticket_domain(self, res, employee):
-        if 'jql' in res or 'active' in res:
+        if 'jql' in res or 'sprint' in res:
             return []
         else:
             return super().get_search_ticket_domain(res, employee)

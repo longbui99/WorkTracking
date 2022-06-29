@@ -331,6 +331,11 @@ class JIRAMigration(models.Model):
                 params.append(f"""text~"{res['text']}""")
             if "jql" in res:
                 params = [res["jql"]]
+            if "sprint" in res:
+                if "sprint+" == res['sprint']:
+                    params.append("sprint in futureSprints()")
+                else:
+                    params.append("sprint in openSprints()")
             query = f"""jql={' AND '.join(params)}"""
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",

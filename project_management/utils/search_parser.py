@@ -1,22 +1,24 @@
-import re 
+import re
 import time
 import json
 
+
 def minify_response(res):
     return True
+
 
 def get_search_request(string):
     res = {}
     parser = {
         'jql=': ('jql', -1, False),
         'chain': ('chain', 0, -1),
-        'active': ('active', 0, -1),
+        'sprint': ('sprint', 0, -1),
         'mine': ('mine', 0, -1),
         '<[a-zA-Z0-9 ]+>': ('project', 1, -1),
         '<[a-zA-Z0-9- ]+>': ('ticket', 1, -1),
         ',[a-zA-Z0-9@-_\.]+\.': ('name', 1, -1)
     }
-    interator = re.finditer('(<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|active\+?)\.?|,[a-zA-Z0-9]+\.|jql=)', string)
+    interator = re.finditer('(<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|,[a-zA-Z0-9]+\.|jql=)', string)
     for_delete = []
     for match in interator:
         action = match.group()
@@ -30,8 +32,7 @@ def get_search_request(string):
                 break
     margin_left = 0
     for start, end in for_delete:
-        span = match.span()
-        string = string[:start-margin_left] + string[end-margin_left:]
+        string = string[:start - margin_left] + string[end - margin_left:]
         margin_left += end - start
     trimmed_string = string.strip()
     if len(trimmed_string):
