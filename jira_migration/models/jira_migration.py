@@ -310,6 +310,7 @@ class JIRAMigration(models.Model):
         return self.search_load(keyword)
 
     def _search_load(self, res, delay=False):
+        print(res)
         ticket_ids = self.env['jira.ticket']
         if 'ticket' in res:
             if not isinstance(res['ticket'], (list, tuple)):
