@@ -47,7 +47,7 @@ class JiraProject(models.Model):
     @api.depends("duration")
     def _compute_duration_hrs(self):
         for record in self:
-            record.duration_hrs = record.duration/3600
+            record.duration_hrs = record.duration / 3600
 
     @api.model
     def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
@@ -154,7 +154,7 @@ class JiraProject(models.Model):
         user_id = self.env.user.id
         for record in self:
             time_log_ids = record.time_log_ids.filtered(
-                    lambda r: r.user_id.id == user_id and r.state == 'progress' and source == source)
+                lambda r: r.user_id.id == user_id and r.state == 'progress' and source == source)
             if not time_log_ids:
                 cluster = self.env['jira.work.log.cluster'].create({
                     'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
@@ -266,23 +266,27 @@ class JiraProject(models.Model):
         if values.get('limit', False):
             active_ticket_ids = active_ticket_ids[:values['limit']]
         return active_ticket_ids
-    
+
     def generate_special_search(self, res, employee):
         if 'chain' in res:
             pass
-    
+
     def get_search_ticket_domain(self, res, employee):
         domain = []
         if 'ticket' in res:
             domain = expression.AND([domain, [('ticket_key', 'ilike', res['ticket'])]])
         if 'project' in res:
-            domain = expression.AND([domain, ['|', 
-                ('project_id.project_key', 'ilike', res['project']),
-                ('project_id.project_name', 'ilike', res['project'])]])
+            domain = expression.AND([domain, ['|',
+                                              ('project_id.project_key', 'ilike', res['project']),
+                                              ('project_id.project_name', 'ilike', res['project'])]])
         if 'mine' in res:
-            domain = expression.AND([domain, [('assignee_id','=', employee.user_id.id)]])
+            domain = expression.AND([domain, [('assignee_id', '=', employee.user_id.id)]])
         if 'text' in res:
             domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
+        if 'name' in res:
+            domain = expression.AND([domain, ['|',
+                                              ('user_id.login', 'ilike', res['name'])
+                                              ('user_id.name', 'ilike', res['name'])]])
         if 'chain' in res:
             domain = []
         return domain
