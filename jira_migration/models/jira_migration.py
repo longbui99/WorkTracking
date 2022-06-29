@@ -310,7 +310,6 @@ class JIRAMigration(models.Model):
         return self.search_load(keyword)
 
     def _search_load(self, res, delay=False):
-        print(res)
         ticket_ids = self.env['jira.ticket']
         if 'ticket' in res:
             if not isinstance(res['ticket'], (list, tuple)):
@@ -327,7 +326,7 @@ class JIRAMigration(models.Model):
                     res['project'] = [res['project']]
                 params.append(' OR '.join(list(map(lambda x: f'project="{x}"', res['project']))))
             if "mine" in res:
-                params.append(f'AND assignee="{self.env.user.partner_id.email}"')
+                params.append(f'assignee="{self.env.user.partner_id.email}"')
             if "text" in res:
                 params.append(f"""text~"{res['text']}""")
             if "jql" in res:
@@ -342,7 +341,6 @@ class JIRAMigration(models.Model):
                 'endpoint': f"{self.jira_server_url}/search",
                 "params": [query]
             }
-            print(json.dumps(request_data, indent=4))
             ticket_ids |= self.do_request(request_data, load_all=True)
         if delay:
             self.with_delay().load_work_logs(ticket_ids)
