@@ -285,8 +285,8 @@ class JiraProject(models.Model):
             domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
         if 'name' in res:
             domain = expression.AND([domain, ['|',
-                                              ('user_id.login', 'ilike', res['name'])
-                                              ('user_id.name', 'ilike', res['name'])]])
+                                              ('assignee_id.login', 'ilike', res['name'])
+                                              ('assignee_id.name', 'ilike', res['name'])]])
         if 'chain' in res:
             domain = []
         return domain
