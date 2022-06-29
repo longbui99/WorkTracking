@@ -91,7 +91,7 @@ class JiraProject(models.Model):
         return action
 
     def get_search_ticket_domain(self, res, employee):
-        if 'jql' in res:
+        if 'jql' in res or 'active' in res:
             return []
         else:
             return super().get_search_ticket_domain(res, employee)

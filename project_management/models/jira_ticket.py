@@ -267,6 +267,10 @@ class JiraProject(models.Model):
             active_ticket_ids = active_ticket_ids[:values['limit']]
         return active_ticket_ids
     
+    def generate_special_search(self, res, employee):
+        if 'chain' in res:
+            pass
+    
     def get_search_ticket_domain(self, res, employee):
         domain = []
         if 'ticket' in res:
@@ -279,6 +283,8 @@ class JiraProject(models.Model):
             domain = expression.AND([domain, [('assignee_id','=', employee.user_id.id)]])
         if 'text' in res:
             domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
+        if 'chain' in res:
+            domain = []
         return domain
 
     def search_ticket_by_criteria(self, payload):
