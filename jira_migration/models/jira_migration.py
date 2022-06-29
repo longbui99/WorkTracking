@@ -341,6 +341,7 @@ class JIRAMigration(models.Model):
                 'endpoint': f"{self.jira_server_url}/search",
                 "params": [query]
             }
+            print(json.dumps(request_data, indent=4))
             ticket_ids |= self.do_request(request_data, load_all=True)
         if delay:
             self.with_delay().load_work_logs(ticket_ids)
