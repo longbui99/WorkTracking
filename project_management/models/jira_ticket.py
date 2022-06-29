@@ -266,28 +266,28 @@ class JiraProject(models.Model):
         if values.get('limit', False):
             active_ticket_ids = active_ticket_ids[:values['limit']]
         return active_ticket_ids
+    
+    def get_search_ticket_domain(self, res, employee):
+        domain = []
+        if 'ticket' in res:
+            domain = expression.AND([domain, [('ticket_key', 'ilike', res['ticket'])]])
+        if 'project' in res:
+            domain = expression.AND([domain, ['|', 
+                ('project_id.project_key', 'ilike', res['project']),
+                ('project_id.project_name', 'ilike', res['project'])]])
+        if 'mine' in res:
+            domain = expression.AND([domain, [('assignee_id','=', employee.user_id.id)]])
+        if 'text' in res:
+            domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
+        return domain
 
     def search_ticket_by_criteria(self, payload):
         employee = self._get_result_management()
-        extra_domain = []
-        if payload.startswith("my-"):
-            extra_domain = [('assignee_id', '=', self.env.user.id)]
-            payload = payload[3:]
-        load_type, params = get_search_request(payload)
-        if isinstance(params, (list, tuple)):
-            params = list(map(lambda r: r.upper(), params))
-        ticket_ids = self.env['jira.ticket']
-        if load_type == 'ticket' or load_type == "text":
-            return self.search(expression.AND(
-                [extra_domain, ['|', ('ticket_name', 'ilike', params), ('ticket_key', 'ilike', params)]]),
-                order=employee.order_style, limit=employee.maximum_search_result)
-        elif load_type == "project_text":
-            project_ids = self.env['jira.project'].search(
-                ['|', ('project_key', 'ilike', params[0]), ('project_name', '=', params[0])]).ids
-            return self.search(
-                [('project_id', 'in', project_ids), ('ticket_name', 'ilike', params[1])] + extra_domain,
-                order=employee.order_style, limit=employee.maximum_search_result)
-        return ticket_ids
+        res = get_search_request(payload)
+        domain = self.get_search_ticket_domain(res, employee)
+        if len(domain):
+            return self.search(domain, order=employee.order_style, limit=employee.maximum_search_result)
+        return self.env['jira.ticket']
 
     def action_cancel_progress(self, values={}):
         source = values.get('source', 'Internal')

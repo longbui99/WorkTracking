@@ -23,8 +23,8 @@ class JiraProject(models.Model):
             record.jira_migration_id.export_acceptance_criteria(record)
 
     def import_ticket_jira(self):
-        for record in self:
-            record.jira_migration_id._search_load('ticket', [record.ticket_key])
+        res = {'ticket': self.mapped('ticket_key')}
+        record.jira_migration_id._search_load(res)
 
     def action_done_work_log(self, values={}):
         res = super().action_done_work_log(values)
@@ -89,3 +89,9 @@ class JiraProject(models.Model):
         action = self.env.ref("jira_migration.export_work_log_action_form").read()[0]
         action["context"] = {'default_ticket_ids': self.ids}
         return action
+
+    def get_search_ticket_domain(self, res, employee):
+        if 'jql' in res:
+            return []
+        else:
+            return super().get_search_ticket_domain(res, employee)

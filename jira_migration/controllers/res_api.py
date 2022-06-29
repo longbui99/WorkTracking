@@ -32,7 +32,8 @@ class JiraTicketMigration(JiraTicket):
         if not ticket_id:
             return Exception("Need to provide ticket id")
         ticket_id = request.env['jira.ticket'].browse(ticket_id)
-        ticket_id.jira_migration_id._search_load('ticket', [ticket_id.ticket_key])
+        res = {'ticket': [ticket_id.ticket_key]}
+        ticket_id.jira_migration_id._search_load(res)
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res

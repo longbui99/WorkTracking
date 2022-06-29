@@ -309,61 +309,44 @@ class JIRAMigration(models.Model):
     def search_ticket(self, keyword):
         return self.search_load(keyword)
 
-    def _search_load(self, type, params, is_my=False):
+    def _search_load(self, res, delay=False):
         ticket_ids = self.env['jira.ticket']
-        if type == 'ticket':
-            if not isinstance(params, (list, tuple)):
-                params = [params]
-            for key in params:
+        if 'ticket' in res:
+            if not isinstance(res['ticket'], (list, tuple)):
+                res['ticket'] = [res['ticket']]
+            for key in res['ticket']:
                 request_data = {
                     'endpoint': f"{self.jira_server_url}/issue/{key.upper()}",
                 }
-                ticket_ids |= self.do_request(request_data, [('ticket_key', 'in', params)])
-            self.load_work_logs(ticket_ids)
-        elif type == 'project':
+                ticket_ids |= self.do_request(request_data, [('ticket_key', 'in', res['ticket'])])
+        else:
+            params = []
+            if 'project' in res:
+                if not isinstance(res['project'], (list, tuple)):
+                    res['project'] = [res['project']]
+                params.append(' OR '.join(list(map(lambda x: f'project="{x}"', res['project']))))
+            if "mine" in res:
+                params.append(f'AND assignee="{self.env.user.partner_id.email}"')
+            if "text" in res:
+                params.append(f"""text~"{res['text']}""")
+            if "jql" in res:
+                params = [res["jql"]]
+            query = f"""jql={' AND '.join(params)}"""
             request_data = {
                 'endpoint': f"{self.jira_server_url}/search",
-                "params": [
-                    f"""jql={' OR '.join(list(map(lambda x: f'project="{x}"', params)))} ORDER BY createdDate ASC"""
-                ]
+                "params": [query]
             }
             ticket_ids |= self.do_request(request_data, load_all=True)
-            if ticket_ids and self.import_work_log:
-                for ticket_id in ticket_ids:
-                    self.with_delay().load_work_logs(ticket_id)
-        elif type == "text":
-            request_data = {
-                'endpoint': f"{self.jira_server_url}/search",
-                "params": [
-                    f"""jql=text~"{params}" {is_my and f' AND assignee="{self.env.user.partner_id.email}"' or ""} ORDER BY createdDate DESC"""
-                ]
-            }
-            ticket_ids |= self.do_request(request_data, load_all=True)
+        if delay:
+            self.with_delay().load_work_logs(ticket_ids)
+        else:
             self.load_work_logs(ticket_ids)
-        elif type == "project_text":
-            request_data = {
-                'endpoint': f"{self.jira_server_url}/search",
-                "params": [
-                    f"""jql=project="{params[0]}" AND text~"{params[1]}" {is_my and f'AND assignee="{self.env.user.partner_id.email}"' or ""} ORDER BY createdDate ASC"""
-                ]
-            }
-            ticket_ids |= self.do_request(request_data, load_all=True)
-            self.load_work_logs(ticket_ids)
-        elif type == "jql":
-            request_data = {
-                'endpoint': f"{self.jira_server_url}/search",
-                "params": [params]
-            }
-            ticket_ids |= self.do_request(request_data, load_all=True)
-            self.load_work_logs(ticket_ids)
+
         return ticket_ids
 
     def search_load(self, payload):
-        is_my = payload.startswith("my-")
-        if is_my:
-            payload = payload[3:]
-        type, params = get_search_request(payload)
-        return self._search_load(type, params, is_my)
+        res = get_search_request(payload)
+        return self._search_load(res)
 
     # ===========================================  Section for loading work logs ===================================
     def get_user(self):
