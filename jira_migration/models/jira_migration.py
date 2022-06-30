@@ -566,7 +566,7 @@ class JIRAMigration(models.Model):
         if not self.jira_agile_url:
             return
         if not board_ids:
-            board_ids = self.env['board.board'].search([('allowed_user_ids', '!=', False)])
+            board_ids = self.env['board.board'].search([('project_id.allowed_user_ids', '!=', False)])
         headers = self.__get_request_headers()
         for board in board_ids:
             if not board.id_on_jira and not board.type == 'scrum':
