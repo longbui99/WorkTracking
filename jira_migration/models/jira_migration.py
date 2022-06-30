@@ -550,14 +550,17 @@ class JIRAMigration(models.Model):
             }
             current_boards = set(project.board_ids.mapped('id_on_jira'))
             data = self.make_request(request_data, headers)
-            for board in data['values']:
-                if board['id'] not in current_boards:
-                    self.env["board.board"].create({
-                        'id_on_jira': board['id'],
-                        'name': board['name'],
-                        'type': board['type'],
-                        'project_id': project.id
-                    })
+            try:
+                for board in data['values']:
+                    if board['id'] not in current_boards:
+                        self.env["board.board"].create({
+                            'id_on_jira': board['id'],
+                            'name': board['name'],
+                            'type': board['type'],
+                            'project_id': project.id
+                        })
+            except Exception as e:
+                _logger.warning(f"Loading sprint on board {board.name} failed: " + str(e))
 
     def load_sprints(self, board_ids=False):
         if not self.jira_agile_url:
