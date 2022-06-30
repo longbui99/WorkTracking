@@ -549,8 +549,8 @@ class JIRAMigration(models.Model):
                 'method': 'get',
             }
             current_boards = set(project.board_ids.mapped('id_on_jira'))
-            data = self.make_request(request_data, headers)
             try:
+                data = self.make_request(request_data, headers)
                 for board in data['values']:
                     if board['id'] not in current_boards:
                         self.env["board.board"].create({
