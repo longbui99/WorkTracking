@@ -560,7 +560,7 @@ class JIRAMigration(models.Model):
                             'project_id': project.id
                         })
             except Exception as e:
-                _logger.warning(f"Loading sprint on board {board.name} failed: " + str(e))
+                _logger.warning(f"Loading board on project {project.project_name} failed: " + str(e))
 
     def load_sprints(self, board_ids=False):
         if not self.jira_agile_url:
