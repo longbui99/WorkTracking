@@ -2,9 +2,14 @@
 <odoo>
     <menuitem id="project_management.menu_application"
               name="JIRA"
-              action="project_management.action_jira_project"
+              action="project_management.action_board_board"
               sequence="10"
               web_icon="project_management,static/description/icon.png">
+        <menuitem
+                id="project_management.menu_jira_project"
+                name="Project"
+                action="project_management.action_jira_project"
+                sequence="0"/>
         <menuitem
                 id="project_management.menu_jira_ticket"
                 sequence="1"

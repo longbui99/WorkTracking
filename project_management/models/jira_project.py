@@ -16,6 +16,8 @@ class JiraProject(models.Model):
     ticket_ids = fields.One2many('jira.ticket', 'project_id', string='Tickets')
     jira_migration_id = fields.Many2one("jira.migration", string="Jira Migration Credentials")
     chain_work_ids = fields.One2many("jira.chain.work.session", "project_id", "Chain Works")
+    board_ids = fields.One2many('board.board', 'project_id', string="Boards")
+    sprint_ids = fields.One2many('agile.sprint', 'project_id', string="Sprints")
 
     def fetch_user_from_ticket(self):
         for record in self:
@@ -39,9 +41,16 @@ class JiraProject(models.Model):
 
     def action_start_latest_chain(self):
         self.ensure_one()
-        my_chain_work_ids = self.chain_work_ids.filtered(lambda r: r.create_uid == self.env.user and r.state != "logged")
+        my_chain_work_ids = self.chain_work_ids.filtered(
+            lambda r: r.create_uid == self.env.user and r.state != "logged")
         if my_chain_work_ids:
             action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_mobile_view")
             action["res_id"] = my_chain_work_ids[0].id
             action["context"] = {"mobile": True}
             return action
+
+    def action_open_sprint(self):
+        self.ensure_one()
+        action = self.env['ir.actions.actions']._for_xml_id("project_management.action_jira_active_sprint")
+        action["domain"] = [('project_id', '=', self.id)]
+        return action

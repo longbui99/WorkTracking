@@ -11,3 +11,5 @@ from . import digest_digest
 from . import general
 from . import jira_type
 from . import jira_ac
+from . import board
+from . import agile_sprint

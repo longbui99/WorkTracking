@@ -15,6 +15,7 @@
         'security/jira_security.xml',
         'security/ir.model.access.csv',
 
+        'views/board_board_views.xml',
         'views/hr_employee_views.xml',
         'views/jira_project_views.xml',
         'views/jira_ticket_views.xml',

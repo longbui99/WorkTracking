@@ -16,3 +16,8 @@ access_jira_chain_work_base,jira.chain.work.base.model,model_jira_chain_work_bas
 access_jira_chain_work_session,jira.chain.work.session.model,model_jira_chain_work_session,project_management.group_jira_user,1,1,1,1
 access_jira_chain_work_session_line,jira.chain.work.session.line.model,model_jira_chain_work_session_line,project_management.group_jira_user,1,1,1,1
 access_jira_ac,jira.ac.model,model_jira_ac,project_management.group_jira_user,1,1,1,1
+access_board_board_user,board_board_user.model,model_board_board,project_management.group_jira_user,1,0,0,0
+access_board_board_manager,board_board_manager.model,model_board_board,project_management.group_jira_manager,1,1,1,1
+access_agile_sprint_user,agile_sprint_user.model,model_agile_sprint,project_management.group_jira_user,1,0,0,0
+access_agile_sprint_manager,agile_sprint_manager.model,model_agile_sprint,project_management.group_jira_manager,1,1,1,1
+

@@ -77,11 +77,13 @@
                                 <tree editable="bottom">
                                     <control>
                                         <create name="create" string="Add a AC"/>
-                                        <create name="add_section_control" string="Add a section" context="{'default_display_type': 'line_section'}"/>
-                                        <create name="add_note_control" string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        <create name="add_section_control" string="Add a section"
+                                                context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note"
+                                                context="{'default_display_type': 'line_note'}"/>
                                     </control>
                                     <field name="sequence" widget="handle"/>
-                                    <field name="name" widget="section_and_note_html" />
+                                    <field name="name" widget="section_and_note_html"/>
                                     <field name="checked" widget="boolean_toggle"/>
                                     <field name="display_type" invisible="1"/>
                                     <field name="is_header" invisible="1"/>
@@ -134,22 +136,6 @@
                     </t>
                 </templates>
             </kanban>
-<!--            <kanban class="o_kanban_mobile">-->
-<!--                <field name="ticket_key"/>-->
-<!--                <field name="ticket_name"/>-->
-<!--                <templates>-->
-<!--                    <t t-name="kanban-box">-->
-<!--                        <div t-attf-class="oe_kanban_content oe_kanban_global_click">-->
-<!--                            <div class="row">-->
-<!--                                <div class="col-12">-->
-<!--                                    [<field name="ticket_key"/>]:-->
-<!--                                    <field name="ticket_name"/>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </t>-->
-<!--                </templates>-->
-<!--            </kanban>-->
         </field>
     </record>
 
@@ -189,8 +175,18 @@
                 <filter string="In Progress" name="filter_in_progress" domain="[('status_value','=', 'new')]"/>
                 <separator/>
                 <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
+                <filter string="Status" name="group_by_status" context="{'group_by':'status_id'}"/>
             </search>
         </field>
+    </record>
+
+    <record id="action_jira_active_sprint" model="ir.actions.act_window">
+        <field name="name">Sprints</field>
+        <field name="res_model">jira.ticket</field>
+        <field name="view_mode">kanban</field>
+        <field name="context">{'search_default_group_by_status': True}</field>
+        <field name="view_id" ref="jira_ticket_tree_view"/>
+        <field name="search_view_id" ref="project_management.jira_ticket_search_view"/>
     </record>
 
     <record id="action_jira_ticket" model="ir.actions.act_window">

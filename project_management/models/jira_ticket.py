@@ -43,6 +43,7 @@ class JiraProject(models.Model):
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
+    sprint_id = fields.Many2one("agile.sprint", string="Sprint")
 
     @api.depends("duration")
     def _compute_duration_hrs(self):
@@ -279,6 +280,14 @@ class JiraProject(models.Model):
             domain = expression.AND([domain, ['|',
                                               ('project_id.project_key', 'ilike', res['project']),
                                               ('project_id.project_name', 'ilike', res['project'])]])
+            if 'sprint' in res:
+                project_id = self.env["jira.project"].search([('project_key', '=', res['project'])], limit=1)
+                if project_id:
+                    if 'sprint+' == res['sprint']:
+                        sprint_id = project_id.sprint_ids.filtered(lambda r: r.state == 'future')
+                    else:
+                        sprint_id = project_id.sprint_ids.filtered(lambda r: r.state == 'active')
+                    domain = expression.AND([domain, [('sprint_id', 'in', sprint_id.ids)]])
         if 'mine' in res:
             domain = expression.AND([domain, [('assignee_id', '=', employee.user_id.id)]])
         if 'text' in res:
@@ -287,8 +296,6 @@ class JiraProject(models.Model):
             domain = expression.AND([domain, ['|',
                                               ('assignee_id.login', 'ilike', res['name'])
                                               ('assignee_id.name', 'ilike', res['name'])]])
-        if 'sprint' in res:
-            domain = []
         return domain
 
     def search_ticket_by_criteria(self, payload):

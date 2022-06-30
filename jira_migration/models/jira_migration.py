@@ -1,6 +1,7 @@
 import requests
 import json
 import pytz
+import logging
 from urllib.parse import urlparse
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
@@ -9,7 +10,8 @@ from datetime import datetime
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-import pprint
+
+_logger = logging.getLogger(__name__)
 
 
 class JIRAMigration(models.Model):
@@ -25,15 +27,16 @@ class JIRAMigration(models.Model):
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
+    jira_agile_url = fields.Char(string="JIRA Agile URL")
 
     def convert_server_tz_to_utc(self, timestamp):
         if not isinstance(timestamp, datetime):
-            timestamp = datetime.strptime(timestamp ,"%Y-%m-%dT%H:%M:%S.%f%z")
+            timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f%z")
         return timestamp.astimezone(pytz.utc).replace(tzinfo=None)
-    
+
     def convert_utc_to_usertz(self, timestamp):
         if not isinstance(timestamp, datetime):
-            timestamp = datetime.strptime(timestamp ,"%Y-%m-%dT%H:%M:%S%z")
+            timestamp = datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S%z")
         return timestamp.astimezone(pytz.timezone(self.env.user.tz or 'UTC')).replace(tzinfo=None)
 
     def __get_request_headers(self):
@@ -63,13 +66,15 @@ class JIRAMigration(models.Model):
 
     def _get_current_employee(self):
         return {
-            "user_email": {user.partner_id.email or user.login for user in self.with_context(active_test=False).env["res.users"].sudo().search([])}
+            "user_email": {user.partner_id.email or user.login for user in
+                           self.with_context(active_test=False).env["res.users"].sudo().search([])}
         }
 
     def load_all_users(self, user_email=''):
         headers = self.__get_request_headers()
         current_employee_data = self._get_current_employee()
-        result = requests.get(f'{self.jira_server_url}/user/search?startAt=0&maxResults=50000&username="{user_email}"', headers=headers)
+        result = requests.get(f'{self.jira_server_url}/user/search?startAt=0&maxResults=50000&username="{user_email}"',
+                              headers=headers)
         records = json.loads(result.text)
         if not isinstance(records, list):
             records = [records]
@@ -121,11 +126,11 @@ class JIRAMigration(models.Model):
         return body
 
     # ===========================================  Section for loading tickets/issues =============================================
-    @api.model 
+    @api.model
     def _create_new_acs(self, values=[]):
         if not values:
             return []
-        return list(map(lambda r: (0,0, {
+        return list(map(lambda r: (0, 0, {
             'name': parsing(r["name"]),
             'jira_raw_name': r["name"],
             "checked": r["checked"],
@@ -168,7 +173,7 @@ class JIRAMigration(models.Model):
     def get_local_issue_data(self, domain=[]):
         return {
             'project_key_dict': {r.project_key: r.id for r in self.env['jira.project'].sudo().search([])},
-            'dict_user':  self.with_context(active_test=False).get_user(),
+            'dict_user': self.with_context(active_test=False).get_user(),
             'dict_ticket_key': {r.ticket_key: r for r in self.env['jira.ticket'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['jira.status'].sudo().search([])},
             'dict_type': {r.key: r.id for r in self.env["jira.type"].sudo().search([])}
@@ -227,7 +232,8 @@ class JIRAMigration(models.Model):
                     local['dict_type'][issue_type] = new_issue_type_id
                     res['ticket_type_id'] = local['dict_type'][issue_type]
                 if load_ac:
-                    res["ac_ids"] = self._create_new_acs(self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
+                    res["ac_ids"] = self._create_new_acs(
+                        self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
                 response.append(res)
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
@@ -238,10 +244,12 @@ class JIRAMigration(models.Model):
                     update_dict['status_id'] = local['dict_status'][status]
                 if existing_record.ticket_type_id.id != local['dict_type'][issue_type]:
                     update_dict['ticket_type_id'] = local['dict_type'][issue_type]
-                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][assignee]:
+                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
+                    assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
                 if load_ac:
-                    res = self._update_acs(existing_record.ac_ids, self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
+                    res = self._update_acs(existing_record.ac_ids,
+                                           self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
                     if res:
                         update_dict['ac_ids'] = res
                 existing_record.write(update_dict)
@@ -517,7 +525,7 @@ class JIRAMigration(models.Model):
         return res
 
     def export_acceptance_criteria(self, ticket_id):
-        current_user_id = self.env.user.id 
+        current_user_id = self.env.user.id
         headers = self.__get_request_headers()
         request_data = {
             'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}",
@@ -527,3 +535,82 @@ class JIRAMigration(models.Model):
         request_data['body'] = payload
         res = self.make_request(request_data, headers)
         return res
+
+    # Agile Connection
+    def load_boards(self, project_ids=False):
+        if not self.jira_agile_url:
+            return
+        if not project_ids:
+            project_ids = self.env["jira.project"].search([])
+        headers = self.__get_request_headers()
+        for project in project_ids:
+            request_data = {
+                'endpoint': f"""{self.jira_agile_url}/board?projectKeyOrId={project.project_key}""",
+                'method': 'get',
+            }
+            current_boards = set(project.board_ids.mapped('id_on_jira'))
+            data = self.make_request(request_data, headers)
+            for board in data['values']:
+                if board['id'] not in current_boards:
+                    self.env["board.board"].create({
+                        'id_on_jira': board['id'],
+                        'name': board['name'],
+                        'type': board['type'],
+                        'project_id': project.id
+                    })
+
+    def load_sprints(self, board_ids=False):
+        if not self.jira_agile_url:
+            return
+        if not board_ids:
+            board_ids = self.env['board.board'].search([('allowed_user_ids', '!=', False)])
+        headers = self.__get_request_headers()
+        for board in board_ids:
+            if not board.id_on_jira and not board.type == 'scrum':
+                continue
+            request_data = {
+                'endpoint': f"""{self.jira_agile_url}/board/{board.id_on_jira}/sprint?maxResults=200""",
+                'method': 'get',
+            }
+            current_sprints = {x.id_on_jira: x for x in board.sprint_ids}
+            try:
+                data = self.make_request(request_data, headers)
+                for sprint in data['values']:
+                    if sprint['id'] not in current_sprints:
+                        self.env["agile.sprint"].create({
+                            'id_on_jira': sprint['id'],
+                            'name': sprint['name'],
+                            'state': sprint['state'],
+                            'project_id': board.project_id.id,
+                            'board_id': board.id,
+                            'updated': True
+                        })
+                    elif sprint['state'] != current_sprints[sprint['id']].state:
+                        current_sprints[sprint['id']].write({
+                            'state': sprint['state'],
+                            'updated': True
+                        })
+            except Exception as e:
+                _logger.warning(f"Loading sprint on board {board.name} failed: " + str(e))
+        self.update_issue_for_sprints()
+
+    def update_issue_for_sprints(self, sprint_ids=False):
+        if not sprint_ids:
+            sprint_ids = self.env["agile.sprint"].search([('state', 'in', ('active', 'future'))])
+        headers = self.__get_request_headers()
+        for sprint in sprint_ids:
+            if not sprint.id_on_jira or not sprint.updated:
+                continue
+            request_data = {
+                'endpoint': f"""{self.jira_agile_url}/sprint/{sprint.id_on_jira}/issue?maxResults=200""",
+                'method': 'get',
+            }
+            try:
+                data = self.make_request(request_data, headers)
+                current_tickets = {x.ticket_key: x for x in sprint.project_id.ticket_ids}
+                for issue in data['issues']:
+                    if issue['key'] in current_tickets:
+                        current_tickets[issue['key']].sprint_id = sprint.id
+                sprint.write({'updated': False})
+            except Exception as e:
+                _logger.warning(f"Loading issue of sprint {sprint.name} failed: " + str(e))

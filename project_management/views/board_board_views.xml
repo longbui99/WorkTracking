@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="board_board_kanban_view" model="ir.ui.view">
+        <field name="name">Boards</field>
+        <field name="priority">1</field>
+        <field name="model">board.board</field>
+        <field name="arch" type="xml">
+            <kanban string="Boards" sample="1" create="0" edit="0">
+                <field name="name"/>
+                <field name="project_id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="d-flex flex-row justify-content-between">
+                                <div>
+                                    <h3>
+                                         <field name="name"/>
+                                    </h3>
+                                    <div>
+                                        <field name="project_id"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button name="open_board_sprint" type="object" class="btn btn-primary">Open</button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="board_board_search_view" model="ir.ui.view">
+        <field name="name">Boards</field>
+        <field name="model">board.board</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="project_id"/>
+                <field name="name"/>
+                <filter name="my_project" string="My Projects" domain="[('project_id.allowed_user_ids','=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_board_board" model="ir.actions.act_window">
+        <field name="name">Boards</field>
+        <field name="res_model">board.board</field>
+        <field name="view_mode">kanban</field>
+        <field name="context">{'search_default_my_project': 1}</field>
+    </record>
+</odoo>
