@@ -128,7 +128,7 @@
                 <field name="ticket_key"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div t-attf-class="oe_kanban_global_click">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click">
                             <div>
                                 [<field name="ticket_key"/>]:
                                 <field name="ticket_name"/>
