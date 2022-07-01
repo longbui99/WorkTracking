@@ -293,9 +293,9 @@ class JiraProject(models.Model):
         if 'text' in res:
             domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
         if 'name' in res:
-            domain = expression.AND([domain, ['|',
-                                              ('assignee_id.login', 'ilike', res['name'])
-                                              ('assignee_id.name', 'ilike', res['name'])]])
+            user_ids = self.env['res.users'].with_context(active_test=False).sudo().search(
+                [('login', 'ilike', res['name'])])
+            domain = expression.AND([domain, [('assignee_id', 'in', user_ids.ids)]])
         return domain
 
     def search_ticket_by_criteria(self, payload):

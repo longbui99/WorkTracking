@@ -25,7 +25,6 @@ def get_search_request(string):
         for_delete.append(match.span())
         for key in parser.keys():
             result = re.match(key, action)
-            print(key, action)
             if result:
                 detect = parser[key]
                 res[detect[0]] = detect[1] != -1 and action[detect[1]: detect[2]] or string[match.span()[1]:]
