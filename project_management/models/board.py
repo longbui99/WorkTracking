@@ -4,7 +4,7 @@ from odoo import models, api, fields, _
 class Board(models.Model):
     _name = "board.board"
     _description = "Project Management Board"
-    _order = 'is_favorite, id desc'
+    _order = 'is_favorite desc, id desc'
 
     name = fields.Char(string="Name", required=1)
     project_id = fields.Many2one("jira.project", string="Project")
