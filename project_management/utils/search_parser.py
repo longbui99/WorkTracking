@@ -18,7 +18,7 @@ def get_search_request(string):
         '<[a-zA-Z0-9- ]+>': ('ticket', 1, -1),
         '~[a-zA-Z0-9@-_\.]+\.': ('name', 1, -1)
     }
-    interator = re.finditer('(<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|~[a-zA-Z0-9]+\.|jql=)', string)
+    interator = re.finditer('(<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|~[a-zA-Z0-9]+\.?|jql=)', string)
     for_delete = []
     for match in interator:
         action = match.group()
