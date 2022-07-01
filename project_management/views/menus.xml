@@ -7,27 +7,27 @@
               web_icon="project_management,static/description/icon.png">
         <menuitem
                 id="project_management.menu_jira_project"
-                name="Project"
+                name="Projects"
                 action="project_management.action_jira_project"
-                sequence="0"/>
+                sequence="1"/>
         <menuitem
                 id="project_management.menu_jira_ticket"
-                sequence="1"
+                sequence="2"
                 name="Tickets"
                 action="project_management.action_jira_ticket"/>
         <menuitem
                 id="project_management.menu_work_log"
-                sequence="1"
+                sequence="3"
                 name="Work Logs"
                 action="project_management.action_jira_time_log"/>
         <menuitem
                 id="project_management.menu_status"
-                sequence="1"
+                sequence="4"
                 name="Statuses"
                 action="project_management.action_jira_status"/>
         <menuitem
                 id="project_management.menu_type"
-                sequence="1"
+                sequence="5"
                 name="Types"
                 action="project_management.action_jira_type"/>
     </menuitem>
