@@ -22,7 +22,12 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <button name="open_board_sprint" type="object" class="btn btn-primary">Open</button>
+                                    <div>
+                                        <button name="open_board_sprint" type="object" class="btn btn-primary">Open</button>
+                                    </div>
+                                    <div>
+                                        <field name="is_favorite" widget="boolean_favorite" nolabel="1"/> Favorite
+                                    </div>
                                 </div>
                             </div>
                         </div>

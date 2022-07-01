@@ -9,6 +9,7 @@ class Board(models.Model):
     project_id = fields.Many2one("jira.project", string="Project")
     type = fields.Selection([('kanban', 'Kanban'), ('scrum', 'Scrum')])
     sprint_ids = fields.One2many("agile.sprint", 'board_id', string="Sprints")
+    is_favorite = fields.Boolean("Favorite")
 
     def open_board_sprint(self):
         self.ensure_one()
