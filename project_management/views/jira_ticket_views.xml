@@ -122,7 +122,8 @@
         <field name="priority">1</field>
         <field name="model">jira.ticket</field>
         <field name="arch" type="xml">
-            <kanban>
+            <kanban default_group_by="status_id">
+                <field name="status_id" options="{'group_by_tooltip': {'name': 'Description'}}"/>
                 <field name="ticket_name"/>
                 <field name="ticket_key"/>
                 <templates>
