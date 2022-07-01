@@ -11,7 +11,7 @@
                 <field name="project_id"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click">
+                        <div class="oe_kanban_global_click" style="min-height: 75px">
                             <div class="d-flex flex-row justify-content-between">
                                 <div class="d-flex flex-column justify-content-between">
                                     <h3>
