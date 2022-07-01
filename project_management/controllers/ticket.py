@@ -47,7 +47,8 @@ class JiraTicket(http.Controller):
                 "last_start": ticket_id.last_start and ticket_id.last_start.isoformat() or False,
                 "url": ticket_id.ticket_url,
                 'type_url': ticket_id.ticket_type_id.img_url,
-                'type_name': ticket_id.ticket_type_id.name
+                'type_name': ticket_id.ticket_type_id.name,
+                'sprint': ticket_id.sprint_id.name
             })
         return res
 
