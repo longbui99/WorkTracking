@@ -25,7 +25,7 @@
             <field name="project_id" position="after">
                 <field name="last_export"/>
             </field>
-            <field name="sprint_key" position="before">
+            <field name="ticket_type_id" position="before">
                 <field name="sprint_id"/>
             </field>
             <xpath expr="//field[@name='ac_ids']//field[@name='checked']" position="after">
