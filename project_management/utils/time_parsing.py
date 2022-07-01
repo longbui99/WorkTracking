@@ -61,8 +61,8 @@ def get_date_range(self, periodic):
         last = int(periodic[5])
         periodic = periodic[7:]
     if periodic in ['day', 'dai']:
+        end_date += relativedelta(days=1-last)
         start_date = end_date - relativedelta(days=1 + last)
-        end_date += relativedelta(days=-last)
     elif periodic == "week":
         week_start = get_week_start(self)
         base_date = today + relativedelta(days=week_start)
@@ -75,6 +75,6 @@ def get_date_range(self, periodic):
         current_quarter = today.month // 3
         end_date = today + relativedelta(month=(current_quarter - last) * 3 + 1, day=1) - relativedelta(days=1)
         start_date = end_date - relativedelta(months=2, day=1)
-    start_date = (start_date + relativedelta(days=1, hour=0, minute=0, second=0)).astimezone(pytz.utc)
-    end_date = (end_date + relativedelta(days=1, hour=0, minute=0, second=0)).astimezone(pytz.utc)
+    start_date = (start_date + relativedelta(hour=0, minute=0, second=0)).astimezone(pytz.utc)
+    end_date = (end_date + relativedelta(hour=0, minute=0, second=0)).astimezone(pytz.utc)
     return start_date, end_date
