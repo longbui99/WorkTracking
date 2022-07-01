@@ -32,7 +32,10 @@ class Digest(models.Model):
         if not self.jira_time_management:
             return super(Digest, self).action_send()
         else:
-            return self.mail_create_and_send()
+            res = self.mail_create_and_send()
+            for record in self:
+                record.next_run_date = record._get_next_run_date()
+            return res
 
     def get_logged_time_special_addition_domain(self):
         return []
