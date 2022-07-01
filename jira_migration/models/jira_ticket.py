@@ -12,6 +12,7 @@ class JiraProject(models.Model):
     status_value = fields.Char(related='status_id.jira_key', store=True)
     last_export = fields.Datetime("Last Export Time")
     auto_export_success = fields.Boolean(string="Export Successful?", default=True)
+    sprint_key = fields.Char(related='sprint_id.id_on_jira', store=True)
 
     def export_time_log_to_jira(self):
         for record in self:
