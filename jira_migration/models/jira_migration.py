@@ -601,6 +601,7 @@ class JIRAMigration(models.Model):
         if not sprint_ids:
             sprint_ids = self.env["agile.sprint"].search([('state', 'in', ('active', 'future'))])
         headers = self.__get_request_headers()
+        current_tickets = {x.ticket_key: x for x in self.env["jira.ticket"].search([])}
         for sprint in sprint_ids:
             if not sprint.id_on_jira or not sprint.updated:
                 continue
@@ -610,7 +611,6 @@ class JIRAMigration(models.Model):
             }
             try:
                 data = self.make_request(request_data, headers)
-                current_tickets = {x.ticket_key: x for x in sprint.project_id.ticket_ids}
                 for issue in data['issues']:
                     if issue['key'] in current_tickets:
                         current_tickets[issue['key']].sprint_id = sprint.id
