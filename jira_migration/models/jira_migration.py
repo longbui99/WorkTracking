@@ -607,7 +607,7 @@ class JIRAMigration(models.Model):
             [('create_date', '>', datetime.now() - relativedelta(months=2))])}
         force = self.env.context.get('force', False)
         for sprint in sprint_ids:
-            if not sprint.id_on_jira:
+            if not sprint.id_on_jira or not sprint.updated:
                 continue
             request_data = {
                 'endpoint': f"""{self.jira_agile_url}/sprint/{sprint.id_on_jira}/issue?maxResults=200""",
