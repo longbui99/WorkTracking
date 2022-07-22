@@ -9,6 +9,7 @@ def minify_response(res):
 
 def get_search_request(string):
     res = {}
+    truncate_regex = '[:]'
     parser = {
         'jql=': ('jql', -1, False),
         'chain': ('chain', 0, -1),
@@ -20,10 +21,10 @@ def get_search_request(string):
         '<[a-zA-Z0-9]+>': ('project', 1, -1),
         '~[a-zA-Z0-9@-_\.]+\.': ('name', 1, -1),
     }
-    interator = re.finditer('(([A-Z]+-[0-9]+)|[A-Z]{3}|<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|jql=)', string)
+    interator = re.finditer('(([A-Z]+-[0-9]+:?)|[A-Z]{3}:?|<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|jql=)', string)
     for_delete = []
     for match in interator:
-        action = match.group()
+        action = re.sub(truncate_regex, '', match.group())
         for_delete.append(match.span())
         for key in parser.keys():
             result = re.match(key, action)
