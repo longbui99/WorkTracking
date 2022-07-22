@@ -9,19 +9,19 @@ def minify_response(res):
 
 def get_search_request(string):
     res = {}
-    truncate_regex = '[:]'
+    truncate_regex = '[:. ]'
     parser = {
         'jql=': ('jql', -1, False),
-        'chain': ('chain', 0, -1),
-        'sprint': ('sprint', 0, -1),
-        'mine': ('mine', 0, -1),
+        'chain': ('chain', 0, True),
+        'sprint': ('sprint', 0, True),
+        'mine': ('mine', 0, True),
         '[A-Z]+-[0-9]+': ('ticket', 0, True),
         '[A-Z]{2}': ('project', 0, True),
         '<[a-zA-Z0-9]+-[a-zA-Z0-9]+>': ('ticket', 1, -1),
         '<[a-zA-Z0-9]+>': ('project', 1, -1),
-        '~[a-zA-Z0-9@-_\.]+\.': ('name', 1, -1),
+        '>[a-zA-Z0-9@]+\.?': ('name', 1, True),
     }
-    interator = re.finditer('(([A-Z]+-[0-9]+:?)|[A-Z]{3}:?|<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|jql=)', string)
+    interator = re.finditer('(([A-Z]+-[0-9]+:?)|[A-Z]{3}:?|<[a-zA-Z0-9-]*>|>[a-zA-Z0-9@]+[ \.]?|[ \.]?(chain|mine|sprint\+?)[ \.]?|jql=)', string)
     for_delete = []
     for match in interator:
         action = re.sub(truncate_regex, '', match.group())
@@ -30,11 +30,10 @@ def get_search_request(string):
             result = re.match(key, action)
             if result:
                 detect = parser[key]
-                print(key, '-', result, '-', detect)
                 if detect[2] == -1:
                     res[detect[0]] = action[detect[1]: detect[2]]
                 elif detect[2]:
-                    res[detect[0]] = action
+                    res[detect[0]] = action[detect[1]: ]
                 else:
                     res[detect[0]] = string[match.span()[1]:]
                 break
@@ -48,5 +47,3 @@ def get_search_request(string):
 
     return res
 
-string = "mine sprint <ZIP>"
-print(get_search_request(string))
