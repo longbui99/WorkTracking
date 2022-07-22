@@ -28,15 +28,15 @@ def get_search_request(string):
         for_delete.append(match.span())
         for key in parser.keys():
             result = re.match(key, action)
-            print(key, '-', result)
             if result:
                 detect = parser[key]
+                print(key, '-', result, '-', detect)
                 if detect[2] == -1:
-                    res[detect[0]] = string[match.span()[1]:]
-                if detect[2]:
+                    res[detect[0]] = action[detect[1]: detect[2]]
+                elif detect[2]:
                     res[detect[0]] = action
                 else:
-                    res[detect[0]] = action[detect[1]: detect[2]]
+                    res[detect[0]] = string[match.span()[1]:]
                 break
     margin_left = 0
     for start, end in for_delete:
@@ -47,3 +47,6 @@ def get_search_request(string):
         res['text'] = trimmed_string
 
     return res
+
+string = "mine sprint <ZIP>"
+print(get_search_request(string))
