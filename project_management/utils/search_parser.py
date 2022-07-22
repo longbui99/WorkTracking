@@ -41,9 +41,8 @@ def get_search_request(string):
     for start, end in for_delete:
         string = string[:start - margin_left] + string[end - margin_left:]
         margin_left += end - start
-    trimmed_string = string.strip()
+    trimmed_string = string.strip().replace('.', '')
     if len(trimmed_string):
         res['text'] = trimmed_string
 
     return res
-
