@@ -14,20 +14,28 @@ def get_search_request(string):
         'chain': ('chain', 0, -1),
         'sprint': ('sprint', 0, -1),
         'mine': ('mine', 0, -1),
-        '<[a-zA-Z0-9 ]+>': ('project', 1, -1),
-        '<[a-zA-Z0-9- ]+>': ('ticket', 1, -1),
-        '~[a-zA-Z0-9@-_\.]+\.': ('name', 1, -1)
+        '[A-Z]+-[0-9]+': ('ticket', 0, True),
+        '[A-Z]{2}': ('project', 0, True),
+        '<[a-zA-Z0-9]+-[a-zA-Z0-9]+>': ('ticket', 1, -1),
+        '<[a-zA-Z0-9]+>': ('project', 1, -1),
+        '~[a-zA-Z0-9@-_\.]+\.': ('name', 1, -1),
     }
-    interator = re.finditer('(<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|~[a-zA-Z0-9]+\.?|jql=)', string)
+    interator = re.finditer('(([A-Z]+-[0-9]+)|[A-Z]{3}|<[a-zA-Z0-9-]*>|~.*~|\.?(chain|mine|sprint\+?)\.?|jql=)', string)
     for_delete = []
     for match in interator:
         action = match.group()
         for_delete.append(match.span())
         for key in parser.keys():
             result = re.match(key, action)
+            print(key, '-', result)
             if result:
                 detect = parser[key]
-                res[detect[0]] = detect[1] != -1 and action[detect[1]: detect[2]] or string[match.span()[1]:]
+                if detect[2] == -1:
+                    res[detect[0]] = string[match.span()[1]:]
+                if detect[2]:
+                    res[detect[0]] = action
+                else:
+                    res[detect[0]] = action[detect[1]: detect[2]]
                 break
     margin_left = 0
     for start, end in for_delete:
