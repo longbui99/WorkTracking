@@ -7,6 +7,7 @@ from odoo.addons.project_management.utils.search_parser import get_search_reques
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.base.models.res_partner import _tz_get
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -503,6 +504,8 @@ class JIRAMigration(models.Model):
         ticket_ids = self.do_request(request_data, load_all=True)
         self.load_work_logs(ticket_ids)
         project_id.last_update = datetime.now()
+        self.load_sprints(project_id.board_ids)
+        self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
@@ -595,14 +598,16 @@ class JIRAMigration(models.Model):
                         })
             except Exception as e:
                 _logger.warning(f"Loading sprint on board {board.name} failed: " + str(e))
-        self.update_issue_for_sprints()
 
     def update_issue_for_sprints(self, sprint_ids=False):
         if not sprint_ids:
             sprint_ids = self.env["agile.sprint"].search([('state', 'in', ('active', 'future'))])
         headers = self.__get_request_headers()
+        current_tickets = {x.ticket_key: x for x in self.env["jira.ticket"].search(
+            [('create_date', '>', datetime.now() - relativedelta(months=2))])}
+        force = self.env.context.get('force', False)
         for sprint in sprint_ids:
-            if not sprint.id_on_jira or not sprint.updated:
+            if not sprint.id_on_jira:
                 continue
             request_data = {
                 'endpoint': f"""{self.jira_agile_url}/sprint/{sprint.id_on_jira}/issue?maxResults=200""",
@@ -610,7 +615,6 @@ class JIRAMigration(models.Model):
             }
             try:
                 data = self.make_request(request_data, headers)
-                current_tickets = {x.ticket_key: x for x in sprint.project_id.ticket_ids}
                 for issue in data['issues']:
                     if issue['key'] in current_tickets:
                         current_tickets[issue['key']].sprint_id = sprint.id
