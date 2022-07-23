@@ -138,6 +138,7 @@ class JiraTicket(http.Controller):
     @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_favorite_tickets(self, **kwargs):
         ticket_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
+        print(ticket_ids)
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
