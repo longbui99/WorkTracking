@@ -150,7 +150,7 @@ class JiraTicket(http.Controller):
 
     @handling_req_res
     @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
-    def get_acceptance_criteria(self, **kwargs):
+    def get_favorite_tickets(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
         data = ticket_id.get_acceptance_criteria(request.params.get('payload', {}))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
