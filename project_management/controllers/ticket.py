@@ -134,6 +134,13 @@ class JiraTicket(http.Controller):
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
+    @handling_req_res
+    @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    def get_favorite_tickets(self, **kwargs):
+        ticket_ids = self.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
+        data = self._get_ticket(ticket_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+
     def __check_ac_prequisite(self, **kwargs):
         id = request.params.get('id')
         if not isinstance(id, int):
@@ -147,20 +154,13 @@ class JiraTicket(http.Controller):
         ticket_id = self.check_work_log_prerequisite()
         data = ticket_id.get_acceptance_criteria(request.params.get('payload', {}))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
-
-    @handling_req_res
-    @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
-    def get_favorite_tickets(self, **kwargs):
-        ticket_id = self.check_work_log_prerequisite()
-        data = ticket_id.get_acceptance_criteria(request.params.get('payload', {}))
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
         
     @handling_req_res
     @http.route(['/management/ac'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
-    def get_favorite_tickets(self, **kwargs):
-        favorite_ticket_ids = self.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
-        data = self._get_ticket(favorite_ticket_ids)
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
+    def update_acceptance_criteria(self, **kwargs):
+        ac_id = self.__check_ac_prequisite()
+        id_ac = ac_id.update_ac(request.params.get('payload', {}))
+        return http.Response(json.dumps(id_ac), content_type='application/json', status=200)
         
     @handling_req_res
     @http.route(['/management/ac/delete'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
