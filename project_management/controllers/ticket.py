@@ -28,7 +28,7 @@ class JiraTicket(http.Controller):
         if ticket_ids and isinstance(ticket_ids, list) or isinstance(ticket_ids, int):
             ticket_ids = request.env['jira.ticket'].browse(ticket_ids)
             if not ticket_ids.exists():
-                return MissingError("Cannot found ticket in our system!")
+                return str(MissingError("Cannot found ticket in our system!"))
         res = []
         for ticket_id in ticket_ids:
             res.append({
@@ -139,7 +139,11 @@ class JiraTicket(http.Controller):
     def get_favorite_tickets(self, **kwargs):
         ticket_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
         print(ticket_ids)
-        data = self._get_ticket(ticket_ids)
+        print("------------------------------------------")
+        if ticket_ids:
+            data = self._get_ticket(ticket_ids)
+        else:
+            data = []
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
