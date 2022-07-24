@@ -3,7 +3,7 @@
 
 import json
 
-from odoo import http, _
+from odoo import http, fields, _
 from odoo.http import request
 from odoo.osv import expression
 from odoo.tools import consteq, plaintext2html
@@ -28,7 +28,7 @@ class JiraTicket(http.Controller):
         if ticket_ids and isinstance(ticket_ids, list) or isinstance(ticket_ids, int):
             ticket_ids = request.env['jira.ticket'].browse(ticket_ids)
             if not ticket_ids.exists():
-                return MissingError("Cannot found ticket in our system!")
+                return str(MissingError("Cannot found ticket in our system!"))
         res = []
         for ticket_id in ticket_ids:
             res.append({
@@ -133,6 +133,29 @@ class JiraTicket(http.Controller):
         active_ticket_ids = request.env['jira.ticket'].get_all_active(json.loads(request.params.get("payload", '{}')))
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
+
+    @handling_req_res
+    @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    def get_favorite_tickets(self, **kwargs):
+        ticket_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
+        data = self._get_ticket(ticket_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+
+    @handling_req_res
+    @http.route(['/management/ticket/favorite/add'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
+    def add_favorite_ticket(self, **kwargs):
+        ticket_id = self.check_work_log_prerequisite()
+        employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
+        employee_id.favorite_ticket_ids = [fields.Command.link(ticket_id.id)]
+        return http.Response("", content_type='application/json', status=200)
+
+    @handling_req_res
+    @http.route(['/management/ticket/favorite/delete'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
+    def remove_favorite_ticket(self, **kwargs):
+        ticket_id = self.check_work_log_prerequisite()
+        employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
+        employee_id.favorite_ticket_ids = [fields.Command.unlink(ticket_id.id)]
+        return http.Response("", content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
         id = request.params.get('id')
