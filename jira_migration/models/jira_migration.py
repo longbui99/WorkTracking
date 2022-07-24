@@ -1,3 +1,4 @@
+from cgi import test
 import requests
 import json
 import pytz
@@ -188,6 +189,7 @@ class JIRAMigration(models.Model):
             status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
             story_point = ticket_fields.get('customfield_10008', 0.0) or 0.0
             assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'name'])
+            tester = self.__load_from_key_paths(ticket_fields, ['customfield_11101', 'name'])
             project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
             issue_type = self.__load_from_key_paths(ticket_fields, ['issuetype', 'id'])
             server_url = urlparse(self.jira_server_url).netloc
@@ -210,6 +212,8 @@ class JIRAMigration(models.Model):
                     res['project_id'] = local['project_key_dict'][project]
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
+                if local['dict_user'].get(tester, False):
+                    res['tester_id'] = local['dict_user'][tester]
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
@@ -241,6 +245,8 @@ class JIRAMigration(models.Model):
                 update_dict = {
                     'story_point': story_point,
                 }
+                if existing_record.ticket_name != ticket_fields['summary']:
+                    update_dict['ticket_name'] = ticket_fields['summary']
                 if existing_record.status_id.id != local['dict_status'][status]:
                     update_dict['status_id'] = local['dict_status'][status]
                 if existing_record.ticket_type_id.id != local['dict_type'][issue_type]:
@@ -248,6 +254,8 @@ class JIRAMigration(models.Model):
                 if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
                     assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
+                if tester and tester in local['dict_user'] and existing_record.tester_id.id != local['dict_user'][tester]:
+                    update_dict['tester_id'] = local['dict_user'][tester]
                 if load_ac:
                     res = self._update_acs(existing_record.ac_ids,
                                            self.__load_from_key_paths(ticket_fields, ['customfield_10206']))

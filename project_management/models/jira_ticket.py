@@ -23,6 +23,7 @@ class JiraProject(models.Model):
     story_point = fields.Integer(string='Story Point')
     project_id = fields.Many2one('jira.project', string='Project', required=True)
     assignee_id = fields.Many2one('res.users', string='Assignee')
+    tester_id = fields.Many2one("res.users", string="Tester")
     ticket_type_id = fields.Many2one("jira.type", string="Type")
     ac_ids = fields.One2many("jira.ac", "ticket_id", string="Acceptance Criteria")
     suitable_assignee = fields.Many2many('res.users', store=False, compute='_compute_suitable_assignee',
