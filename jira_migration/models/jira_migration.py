@@ -247,8 +247,10 @@ class JIRAMigration(models.Model):
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
                 update_dict = {
-                    'story_point': story_point,
+                    'story_point': story_point and story_point or estimate_hour,
                 }
+                if estimate_hour:
+                    update_dict['story_point_unit'] = 'hrs'
                 if existing_record.ticket_name != ticket_fields['summary']:
                     update_dict['ticket_name'] = ticket_fields['summary']
                 if existing_record.status_id.id != local['dict_status'][status]:
