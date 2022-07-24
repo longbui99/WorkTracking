@@ -40,6 +40,7 @@ class JiraTicket(http.Controller):
                 "projectKey": ticket_id.project_id.project_key,
                 "assignee": ticket_id.assignee_id.partner_id.name,
                 "assigneeEmail": ticket_id.assignee_id.partner_id.email,
+                "tester": ticket_id.tester_id.partner_id.name,
                 "status": ticket_id.status_id.name,
                 "total_duration": ticket_id.duration,
                 "my_total_duration": ticket_id.my_total_duration,
