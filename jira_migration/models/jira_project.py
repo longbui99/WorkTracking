@@ -15,7 +15,7 @@ class JiraProject(models.Model):
             if project.jira_migration_id:
                 user_ids = project.jira_migration_id.admin_user_ids.ids
             if len(user_ids) == 0:
-                user_ids = project.project.allowed_user_ids.ids
+                user_ids = project.allowed_user_ids.ids
             access_token = self.env['hr.employee'].search(
                 [('user_id', 'in', user_ids), 
                 ('jira_private_key', '!=', False)], order='is_jira_admin desc').mapped(
