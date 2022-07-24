@@ -188,7 +188,8 @@ class JIRAMigration(models.Model):
         for ticket in raw.get('issues', [raw]):
             ticket_fields = ticket['fields']
             status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
-            story_point = ticket_fields.get('customfield_10008', 0.0) or ticket_fields.get('customfield_11102', 0.0)
+            story_point = ticket_fields.get('customfield_10008', 0.0) or 0.0
+            estimate_hour = ticket_fields.get('customfield_11102', 0.0) or 0.0
             assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'name'])
             tester = self.__load_from_key_paths(ticket_fields, ['customfield_11101', 'name'])
             project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
@@ -202,10 +203,12 @@ class JIRAMigration(models.Model):
                     'ticket_name': ticket_fields['summary'],
                     'ticket_key': ticket['key'],
                     'ticket_url': map_url(ticket['key']),
-                    'story_point': story_point,
+                    'story_point': story_point or estimate_hour,
                     'jira_migration_id': self.id,
                     'create_date': ticket_fields['created']
                 }
+                if estimate_hour:
+                    res['story_point_unit'] = 'hrs'
                 if local['project_key_dict'].get(project, False):
                     res['project_id'] = local['project_key_dict'][project]
                 else:
