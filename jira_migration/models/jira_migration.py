@@ -203,7 +203,7 @@ class JIRAMigration(models.Model):
                     'ticket_name': ticket_fields['summary'],
                     'ticket_key': ticket['key'],
                     'ticket_url': map_url(ticket['key']),
-                    'story_point': story_point or estimate_hour,
+                    'story_point': story_point > 0 and story_point or estimate_hour,
                     'jira_migration_id': self.id,
                     'create_date': ticket_fields['created']
                 }
