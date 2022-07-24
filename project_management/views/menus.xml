@@ -25,9 +25,9 @@
                 sequence="5"
                 name="Types"
                 action="project_management.action_jira_type"/>
-        <!-- <menuitem id="project_manamgement.settings"
-                sequence="9999"
+        <menuitem
+                id="project_manamgement.settings"
                 name="Settings"
-        /> -->
+                sequence="999"/>
     </menuitem>
 </odoo>
