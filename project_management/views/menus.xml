@@ -20,22 +20,14 @@
                 sequence="3"
                 name="Work Logs"
                 action="project_management.action_jira_time_log"/>
-        <menuitem id="project_manamgement.settings"
-                sequence="9999"
-                name="Settings"/>
-        <!-- <menuitem
-                id="project_management.menu_status"
-                sequence="4"
-                name="Statuses"
-                action="project_management.action_jira_status"
-                parent="project_manamgement.settings"
-                />
         <menuitem
                 id="project_management.menu_type"
                 sequence="5"
                 name="Types"
-                action="project_management.action_jira_type"
-                parent="project_manamgement.settings"
-                /> -->
+                action="project_management.action_jira_type"/>
+        <menuitem id="project_manamgement.settings"
+                sequence="9999"
+                name="Settings"
+        />
     </menuitem>
 </odoo>
