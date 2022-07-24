@@ -28,11 +28,13 @@
                 id="project_management.menu_status"
                 sequence="4"
                 name="Statuses"
-                action="project_management.action_jira_status"/>
+                action="project_management.action_jira_status"
+                parent="project_management.settings"/>
         <menuitem
                 id="project_management.menu_type"
                 sequence="5"
                 name="Types"
-                action="project_management.action_jira_type"/>
+                action="project_management.action_jira_type"
+                parent="project_management.settings"/>
     </menuitem>
 </odoo>
