@@ -21,6 +21,10 @@
                 name="Work Logs"
                 action="project_management.action_jira_time_log"/>
         <menuitem
+                id="project_management.settings"
+                sequence="9999"
+                name="Settings"/>
+        <menuitem
                 id="project_management.menu_status"
                 sequence="4"
                 name="Statuses"
