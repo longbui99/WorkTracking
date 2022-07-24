@@ -52,6 +52,7 @@
                             <field name="progress_cluster_id"/>
                             <field name="suitable_assignee" invisible="1"/>
                             <field name="assignee_id" domain="[('id','in', suitable_assignee)]"/>
+                            <field name="tester_id" domain="[('id','in', suitable_assignee)]"/>
                             <field name="last_start" groups="base.group_no_one"/>
                             <field name="active_duration" groups="base.group_no_one"/>
                         </group>
