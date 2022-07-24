@@ -23,7 +23,7 @@
         <menuitem id="project_manamgement.settings"
                 sequence="9999"
                 name="Settings"/>
-        <menuitem
+        <!-- <menuitem
                 id="project_management.menu_status"
                 sequence="4"
                 name="Statuses"
@@ -36,6 +36,6 @@
                 name="Types"
                 action="project_management.action_jira_type"
                 parent="project_manamgement.settings"
-                />
+                /> -->
     </menuitem>
 </odoo>
