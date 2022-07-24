@@ -20,7 +20,7 @@ class JiraProject(models.Model):
     ticket_key = fields.Char(string='Ticket Key', required=True)
     ticket_url = fields.Char(string='JIRA Ticket')
     time_log_ids = fields.One2many('jira.time.log', 'ticket_id', string='Log Times')
-    story_point = fields.Integer(string='Story Point')
+    story_point = fields.Integer(string='Estimate')
     project_id = fields.Many2one('jira.project', string='Project', required=True)
     assignee_id = fields.Many2one('res.users', string='Assignee')
     tester_id = fields.Many2one("res.users", string="Tester")

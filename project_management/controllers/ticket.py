@@ -35,7 +35,7 @@ class JiraTicket(http.Controller):
                 "id": ticket_id.id,
                 "name": ticket_id.ticket_name,
                 "key": ticket_id.ticket_key,
-                "point": ticket_id.story_point,
+                "point": ticket_id.story_point or ticket_id.hour_point,
                 "project": ticket_id.project_id.project_name,
                 "projectKey": ticket_id.project_id.project_key,
                 "assignee": ticket_id.assignee_id.partner_id.name,
