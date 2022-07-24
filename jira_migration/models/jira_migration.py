@@ -30,6 +30,7 @@ class JIRAMigration(models.Model):
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
     jira_agile_url = fields.Char(string="JIRA Agile URL")
+    admin_user_ids = fields.Many2many("res.users", string="Admins")
 
     def convert_server_tz_to_utc(self, timestamp):
         if not isinstance(timestamp, datetime):

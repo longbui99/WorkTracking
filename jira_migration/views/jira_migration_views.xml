@@ -39,6 +39,7 @@
                             <field name="jira_server_url"/>
                             <field name="jira_agile_url"/>
                             <field name="timezone"/>
+                            <field name="admin_user_ids" widget="many2many_tags"/>
                         </group>
                     </group>
                     <notebook>
