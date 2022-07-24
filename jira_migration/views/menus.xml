@@ -4,6 +4,5 @@
               name="Migrations"
               action="jira_migration.action_jira_migration"
               sequence="1"
-              parent="project_manamgement.settings">
-    </menuitem>
+              parent="project_manamgement.settings"/>
 </odoo>
