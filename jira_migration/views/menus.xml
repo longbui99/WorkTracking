@@ -3,7 +3,7 @@
     <menuitem id="jira_migration.migration_dashboard"
               name="Migration"
               action="jira_migration.action_jira_migration"
-              sequence="1999"
-              parent="project_management.menu_application">
+              sequence="1"
+              parent="project_management.settings">
     </menuitem>
 </odoo>

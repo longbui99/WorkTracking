@@ -42,6 +42,7 @@
                             <field name="ticket_key"/>
                             <field name="ticket_url" widget="url"/>
                             <field name="story_point"/>
+                            <field name="story_point_unit"/>
                             <field name="project_id"/>
                             <field name="parent_ticket_id" domain="[('project_id','=',project_id)]"
                                    attrs="{'required':[('log_to_parent','=', True)]}"/>
