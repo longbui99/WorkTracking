@@ -46,6 +46,3 @@ def get_search_request(string):
         res['text'] = trimmed_string
 
     return res
-
-string = "GT internal"
-print(get_search_request(string))
