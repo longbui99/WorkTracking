@@ -47,11 +47,11 @@
                 <separator/>
                 <group expand="0"  string="Date Range">
                     <filter string="Last Week" name="last_week" domain="[('filter_date', '=', 'last_1_week')]"/>
-                    <filter string="Current Week" name="current_week" domain="[('filter_date', '=', 'week')]"/>
+                    <filter string="This Week" name="current_week" domain="[('filter_date', '=', 'week')]"/>
                     <filter string="Last Month" name="last_month" domain="[('filter_date', '=', 'last_1_month')]"/>
-                    <filter string="Current Month" name="current_month" domain="[('filter_date', '=', 'month')]"/>
+                    <filter string="This Month" name="current_month" domain="[('filter_date', '=', 'month')]"/>
                     <filter string="Last Quarter" name="last_quarter" domain="[('filter_date', '=', 'last_1_quarter')]"/>
-                    <filter string="Current Quarter" name="current_quarter" domain="[('filter_date', '=', 'quarter')]"/>
+                    <filter string="This Quarter" name="current_quarter" domain="[('filter_date', '=', 'quarter')]"/>
                 </group>
                 <separator/>
                 <filter string="Project" name="group_by_project_id" context="{'group_by':'project_id'}"/>
