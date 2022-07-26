@@ -233,7 +233,7 @@ class JIRAMigration(models.Model):
                     res['assignee_id'] = local['dict_user'][assignee]
                 elif assignee:
                     res['assignee_id'] = self.env['res.users'].create({
-                        'name': self.__load_from_key_paths(ticket_fields.assignee_name),
+                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
                         'login': assignee,
                         'active': False
                     }).id
@@ -241,7 +241,7 @@ class JIRAMigration(models.Model):
                     res['tester_id'] = local['dict_user'][tester]
                 elif tester:
                     res['tester_id'] = self.env['res.users'].create({
-                        'name': self.__load_from_key_paths(ticket_fields.tester_name),
+                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.tester_name),
                         'login': tester,
                         'active': False
                     }).id
