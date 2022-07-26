@@ -635,6 +635,7 @@ class JIRAMigration(models.Model):
             current_sprints = {x.id_on_jira: x for x in board.sprint_ids}
             try:
                 data = self.make_request(request_data, headers)
+                _logger.info(json.dumps(data, indent=4))
                 for sprint in data['values']:
                     if sprint['id'] not in current_sprints:
                         self.env["agile.sprint"].create({
