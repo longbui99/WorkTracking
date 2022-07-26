@@ -3,6 +3,7 @@ import requests
 import json
 import pytz
 import logging
+import base64
 from urllib.parse import urlparse
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
@@ -26,6 +27,7 @@ class JIRAMigration(models.Model):
     sequence = fields.Integer(string='Sequence')
     timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
     jira_server_url = fields.Char(string='JIRA Server URL')
+    auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type", default="basic")
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
@@ -52,6 +54,9 @@ class JIRAMigration(models.Model):
             if not employee_id.jira_private_key:
                 raise UserError(_("Missing the Access token in the related Employee"))
             jira_private_key = employee_id.jira_private_key
+            if self.auth_type == 'api_token':
+                jira_private_key = str(base64.encode(f"{self.env.user.partner_id.email}:{jira_private_key}"))
+
         headers = {
             'Authorization': "Bearer " + jira_private_key
         }
