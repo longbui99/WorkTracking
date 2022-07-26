@@ -50,7 +50,8 @@ class JIRAMigration(models.Model):
         self.ensure_one()
         jira_private_key = self._context.get('access_token')
         if not jira_private_key:
-            employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
+            user = self.admin_user_ids and self.admin_user_ids[0] or self.env.user
+            employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
             if not employee_id:
                 raise UserError(_("Don't have any related Employee, please set up on Employee Application"))
             if not employee_id.jira_private_key:
@@ -339,7 +340,10 @@ class JIRAMigration(models.Model):
         return self.do_request(request_data, domain=domain, load_all=load_all)
 
     def load_all_tickets(self):
-        return self.load_tickets(load_all=True)
+        ticket_ids = self.load_tickets(load_all=True)
+        if ticket_ids and self.import_work_log:
+            for ticket_id in ticket_ids:
+                self.with_delay().load_work_logs(ticket_id)
 
     def load_my_tickets(self):
         extra_jql = f"""jql=assignee='{self.env.user.partner_id.email}' ORDER BY createdDate ASC"""
