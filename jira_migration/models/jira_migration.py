@@ -57,11 +57,13 @@ class JIRAMigration(models.Model):
                 raise UserError(_("Missing the Access token in the related Employee"))
             jira_private_key = employee_id.jira_private_key
             if self.auth_type == 'api_token':
-                jira_private_key = base64.b64encode(
+                jira_private_key = "Basic " + base64.b64encode(
                     f"{self.env.user.partner_id.email}:{jira_private_key}".encode('utf-8')).decode('utf-8')
+            else:
+                jira_private_key = "Bearer " + jira_private_key
 
         headers = {
-            'Authorization': "Basic " + jira_private_key
+            'Authorization': jira_private_key
         }
         return headers
 
