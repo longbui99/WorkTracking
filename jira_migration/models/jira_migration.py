@@ -243,7 +243,7 @@ class JIRAMigration(models.Model):
                     res['tester_id'] = local['dict_user'][tester]
                 elif tester:
                     new_user = self.env['res.users'].create({
-                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
+                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.tester_name),
                         'login': assignee,
                         'active': False
                     })
