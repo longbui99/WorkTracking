@@ -1,12 +1,11 @@
-from cgi import test
 import requests
 import json
 import pytz
 import logging
 import base64
-from urllib.parse import urlparse
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
+from odoo.addons.jira_migration.models.mapping_table import IssueMapping, WorkLogMapping
 from odoo.addons.base.models.res_partner import _tz_get
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -27,7 +26,10 @@ class JIRAMigration(models.Model):
     sequence = fields.Integer(string='Sequence')
     timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
     jira_server_url = fields.Char(string='JIRA Server URL')
-    auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type", default="basic")
+    auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type",
+                                 default="basic")
+    server_type = fields.Selection([('self_hosting', 'Self-Hosted'), ('cloud', 'Cloud')], string="Server Type",
+                                   default="self_hosting")
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
@@ -55,10 +57,11 @@ class JIRAMigration(models.Model):
                 raise UserError(_("Missing the Access token in the related Employee"))
             jira_private_key = employee_id.jira_private_key
             if self.auth_type == 'api_token':
-                jira_private_key = str(base64.encode(f"{self.env.user.partner_id.email}:{jira_private_key}"))
+                jira_private_key = base64.b64encode(
+                    f"{self.env.user.partner_id.email}:{jira_private_key}".encode('utf-8')).decode('utf-8')
 
         headers = {
-            'Authorization': "Bearer " + jira_private_key
+            'Authorization': "Basic " + jira_private_key
         }
         return headers
 
@@ -81,7 +84,7 @@ class JIRAMigration(models.Model):
     def load_all_users(self, user_email=''):
         headers = self.__get_request_headers()
         current_employee_data = self._get_current_employee()
-        result = requests.get(f'{self.jira_server_url}/user/search?startAt=0&maxResults=50000&username="{user_email}"',
+        result = requests.get(f'{self.jira_server_url}/user/search?startAt=0&maxResults=50000',
                               headers=headers)
         records = json.loads(result.text)
         if not isinstance(records, list):
@@ -188,29 +191,34 @@ class JIRAMigration(models.Model):
         }
 
     def processing_issue_raw_data(self, local, raw):
+        issue_mapping = IssueMapping(self.jira_server_url, self.server_type)
         response = []
         load_ac = self.is_load_acs
         for ticket in raw.get('issues', [raw]):
             ticket_fields = ticket['fields']
-            status = self.__load_from_key_paths(ticket_fields, ['status', 'id'])
-            story_point = ticket_fields.get('customfield_10008')
-            estimate_hour = ticket_fields.get('customfield_11102') or 0.0
-            assignee = self.__load_from_key_paths(ticket_fields, ['assignee', 'name'])
-            tester = self.__load_from_key_paths(ticket_fields, ['customfield_11101', 'name'])
-            project = self.__load_from_key_paths(ticket_fields, ['project', 'key'])
-            issue_type = self.__load_from_key_paths(ticket_fields, ['issuetype', 'id'])
-            server_url = urlparse(self.jira_server_url).netloc
-            map_url = (lambda r: f"https://{server_url}/browse/{r}")
+            status = self.__load_from_key_paths(ticket_fields, issue_mapping.status)
+            story_point = self.__load_from_key_paths(ticket_fields, issue_mapping.story_point)
+            estimate_hour = self.__load_from_key_paths(ticket_fields, issue_mapping.estimate_hour) or 0.0
+            assignee = self.__load_from_key_paths(ticket_fields, issue_mapping.assignee)
+            tester = self.__load_from_key_paths(ticket_fields, issue_mapping.tester)
+            project = self.__load_from_key_paths(ticket_fields, issue_mapping.project)
+            issue_type = self.__load_from_key_paths(ticket_fields, issue_mapping.issue_type)
+            summary = self.__load_from_key_paths(ticket_fields, issue_mapping.summary)
+            acceptance_criteria = self.__load_from_key_paths(ticket_fields, issue_mapping.acceptance_criteria)
+            created_date = self.__load_from_key_paths(ticket_fields, issue_mapping.created_date)
+            new_status = self.__load_from_key_paths(ticket_fields, issue_mapping.new_status)
+            jira_key = self.__load_from_key_paths(ticket_fields, issue_mapping.jira_status)
+            new_issue_type = self.__load_from_key_paths(ticket_fields, issue_mapping.new_issue_key)
             if ticket.get('key', '-') not in local['dict_ticket_key']:
                 if not ticket_fields:
                     continue
                 res = {
-                    'ticket_name': ticket_fields['summary'],
+                    'ticket_name': summary,
                     'ticket_key': ticket['key'],
-                    'ticket_url': map_url(ticket['key']),
-                    'story_point': story_point and story_point or estimate_hour,
+                    'ticket_url': issue_mapping.map_url(ticket['key']),
+                    'story_point': estimate_hour and estimate_hour or story_point,
                     'jira_migration_id': self.id,
-                    'create_date': ticket_fields['created']
+                    'create_date': created_date
                 }
                 if estimate_hour:
                     res['story_point_unit'] = 'hrs'
@@ -221,23 +229,33 @@ class JIRAMigration(models.Model):
                     res['project_id'] = local['project_key_dict'][project]
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
+                elif assignee:
+                    res['assignee_id'] = self.env['res.users'].create({
+                        'name': self.__load_from_key_paths(ticket_fields.assignee_name),
+                        'login': assignee,
+                        'active': False
+                    }).id
                 if local['dict_user'].get(tester, False):
                     res['tester_id'] = local['dict_user'][tester]
+                elif tester:
+                    res['tester_id'] = self.env['res.users'].create({
+                        'name': self.__load_from_key_paths(ticket_fields.tester_name),
+                        'login': tester,
+                        'active': False
+                    }).id
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
-                    new_status = self.__load_from_key_paths(ticket_fields, ['status'])
                     status_id = self.env['jira.status'].create({
                         'name': new_status['name'],
                         'key': new_status['id'],
-                        'jira_key': self.__load_from_key_paths(ticket_fields, ['status', 'statusCategory', 'key'])
+                        'jira_key': jira_key
                     }).id
                     local['dict_status'][status] = status_id
                     res['status_id'] = local['dict_status'][status]
                 if local["dict_type"].get(issue_type, False):
                     res['ticket_type_id'] = local['dict_type'][issue_type]
                 else:
-                    new_issue_type = self.__load_from_key_paths(ticket_fields, ['issuetype'])
                     new_issue_type_id = self.env['jira.type'].create({
                         'name': new_issue_type['name'],
                         'img_url': new_issue_type['iconUrl'],
@@ -246,18 +264,17 @@ class JIRAMigration(models.Model):
                     local['dict_type'][issue_type] = new_issue_type_id
                     res['ticket_type_id'] = local['dict_type'][issue_type]
                 if load_ac:
-                    res["ac_ids"] = self._create_new_acs(
-                        self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
+                    res["ac_ids"] = self._create_new_acs(acceptance_criteria)
                 response.append(res)
             else:
                 existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
                 update_dict = {
-                    'story_point': story_point and story_point or estimate_hour,
+                    'story_point': estimate_hour and estimate_hour or story_point,
                 }
                 if estimate_hour:
                     update_dict['story_point_unit'] = 'hrs'
-                if existing_record.ticket_name != ticket_fields['summary']:
-                    update_dict['ticket_name'] = ticket_fields['summary']
+                if existing_record.ticket_name != summary:
+                    update_dict['ticket_name'] = summary
                 if existing_record.status_id.id != local['dict_status'][status]:
                     update_dict['status_id'] = local['dict_status'][status]
                 if existing_record.ticket_type_id.id != local['dict_type'][issue_type]:
@@ -265,11 +282,11 @@ class JIRAMigration(models.Model):
                 if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
                     assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
-                if tester and tester in local['dict_user'] and existing_record.tester_id.id != local['dict_user'][tester]:
+                if tester and tester in local['dict_user'] and existing_record.tester_id.id != local['dict_user'][
+                    tester]:
                     update_dict['tester_id'] = local['dict_user'][tester]
                 if load_ac:
-                    res = self._update_acs(existing_record.ac_ids,
-                                           self.__load_from_key_paths(ticket_fields, ['customfield_10206']))
+                    res = self._update_acs(existing_record.ac_ids, acceptance_criteria)
                     if res:
                         update_dict['ac_ids'] = res
                 existing_record.write(update_dict)
@@ -407,26 +424,33 @@ class JIRAMigration(models.Model):
         if to_update:
             work_log_id.write(to_update)
 
-    def processing_worklog_raw_data(self, data, body):
+    def processing_worklog_raw_data(self, data, body, mapping=False):
+        if not mapping:
+            mapping = WorkLogMapping(self.jira_server_url, self.server_type)
         new_tickets = []
         ticket_id = data['ticket_id']
         affected_jira_ids = set()
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
             affected_jira_ids.add(log_id)
+            time = self.__load_from_key_paths(work_log, mapping.time)
+            duration = self.__load_from_key_paths(work_log, mapping.duration)
+            description = self.__load_from_key_paths(work_log, mapping.description) or ''
+            id_on_jira = self.__load_from_key_paths(work_log, mapping.id_on_jira)
+            start_date = self.__load_from_key_paths(work_log, mapping.start_date)
+            logging_email = self.__load_from_key_paths(work_log, mapping.author)
             if log_id not in data['work_logs']:
                 to_create = {
-                    'time': work_log['timeSpent'],
-                    'duration': work_log['timeSpentSeconds'],
-                    'description': work_log['comment'],
+                    'time': time,
+                    'duration': duration,
+                    'description': description,
                     'state': 'done',
                     'source': 'sync',
                     'ticket_id': ticket_id.id,
-                    'id_on_jira': work_log['id'],
-                    'start_date': self.convert_server_tz_to_utc(work_log['started'])
+                    'id_on_jira': id_on_jira,
+                    'start_date': self.convert_server_tz_to_utc(start_date),
+                    'user_id': data['dict_user'].get(logging_email, False)
                 }
-                logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
-                to_create['user_id'] = data['dict_user'].get(logging_email, False)
                 new_tickets.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data)
@@ -439,6 +463,7 @@ class JIRAMigration(models.Model):
 
     def load_work_logs(self, ticket_ids, paging=50, domain=[], load_all=False):
         if self.import_work_log:
+            mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
             for ticket_id in ticket_ids:
                 request_data = {
@@ -460,7 +485,7 @@ class JIRAMigration(models.Model):
                     if body.get('total', 0) > total_response and load_all:
                         total_response = body['total']
                     start_index += paging
-                    new_tickets = self.processing_worklog_raw_data(local_data, body)
+                    new_tickets = self.processing_worklog_raw_data(local_data, body, mapping)
                     to_create.extend(new_tickets)
                 if to_create:
                     self.env['jira.time.log'].create(to_create)
@@ -588,7 +613,7 @@ class JIRAMigration(models.Model):
         if not self.jira_agile_url:
             return
         if not board_ids:
-            board_ids = self.env['board.board'].search([('project_id.allowed_user_ids', '!=', False)])
+            board_ids = self.env['board.board'].search([])
         headers = self.__get_request_headers()
         for board in board_ids:
             if not board.id_on_jira and not board.type == 'scrum':
