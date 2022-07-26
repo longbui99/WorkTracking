@@ -229,7 +229,6 @@ class JIRAMigration(models.Model):
                 else:
                     local['project_key_dict'][project] = self._get_single_project(project)
                     res['project_id'] = local['project_key_dict'][project]
-                _logger.info(f"{assignee},{tester}") 
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
                 elif assignee:

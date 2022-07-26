@@ -11,6 +11,7 @@
     "data": [
         'data/project_data.xml',
         'data/digest_email_template.xml',
+        'data/system_data.xml',
 
         'security/jira_security.xml',
         'security/ir.model.access.csv',
