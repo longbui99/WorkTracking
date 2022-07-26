@@ -131,9 +131,6 @@ class JIRAMigration(models.Model):
         if request_data.get('method', 'get') in ['post', 'put']:
             headers.update({'Content-Type': 'application/json'})
         method = getattr(requests, request_data.get('method', 'get'))
-        _logger.info(endpoint)
-        _logger.info(headers)
-        _logger.info(body)
         result = method(url=endpoint, headers=headers, data=body)
         if result.text == "":
             return ""
