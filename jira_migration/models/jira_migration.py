@@ -236,7 +236,7 @@ class JIRAMigration(models.Model):
                         'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
                         'login': assignee,
                         'active': False
-                    }).id
+                    })
                     res['assignee_id'] = new_user.id
                     local['dict_user'][new_user.login] = new_user.id
                 if local['dict_user'].get(tester, False):
@@ -246,7 +246,7 @@ class JIRAMigration(models.Model):
                         'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
                         'login': assignee,
                         'active': False
-                    }).id
+                    })
                     res['tester_id'] = new_user.id
                     local['dict_user'][new_user.login] = new_user.id
                 if local['dict_status'].get(status, False):
