@@ -50,19 +50,18 @@ class JIRAMigration(models.Model):
     def __get_request_headers(self):
         self.ensure_one()
         jira_private_key = self._context.get('access_token')
+        user = self.admin_user_ids and self.admin_user_ids[0] or self.env.user
         if not jira_private_key:
-            user = self.admin_user_ids and self.admin_user_ids[0] or self.env.user
             employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
             if not employee_id:
                 raise UserError(_("Don't have any related Employee, please set up on Employee Application"))
             if not employee_id.jira_private_key:
                 raise UserError(_("Missing the Access token in the related Employee"))
             jira_private_key = employee_id.jira_private_key
-            if self.auth_type == 'api_token':
-                jira_private_key = "Basic " + base64.b64encode(
-                    f"{self.env.user.partner_id.email}:{jira_private_key}".encode('utf-8')).decode('utf-8')
-            else:
-                jira_private_key = "Bearer " + jira_private_key
+        if self.auth_type == 'api_token':
+            jira_private_key = "Basic " + base64.b64encode(f"{user.partner_id.email}:{jira_private_key}".encode('utf-8')).decode('utf-8')
+        else:
+            jira_private_key = "Bearer " + jira_private_key
 
         headers = {
             'Authorization': jira_private_key
