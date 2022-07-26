@@ -232,19 +232,23 @@ class JIRAMigration(models.Model):
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
                 elif assignee:
-                    res['assignee_id'] = self.env['res.users'].create({
+                    new_user = self.env['res.users'].create({
                         'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
                         'login': assignee,
                         'active': False
                     }).id
+                    res['assignee_id'] = new_user.id
+                    local['dict_user'][new_user.login] = new_user.id
                 if local['dict_user'].get(tester, False):
                     res['tester_id'] = local['dict_user'][tester]
                 elif tester:
-                    res['tester_id'] = self.env['res.users'].create({
-                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.tester_name),
-                        'login': tester,
+                    new_user = self.env['res.users'].create({
+                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
+                        'login': assignee,
                         'active': False
                     }).id
+                    res['tester_id'] = new_user.id
+                    local['dict_user'][new_user.login] = new_user.id
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
