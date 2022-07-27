@@ -29,7 +29,7 @@
         <field name="state">code</field>
         <field name="code">model.cron_fetch_ticket()
 for record in env["jira.migration"].search([]):
-    record.load_sprints()
+    record.with_delay().load_sprints()
         </field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
