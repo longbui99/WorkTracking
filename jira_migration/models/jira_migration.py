@@ -556,9 +556,13 @@ class JIRAMigration(models.Model):
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{updated_date}'"""
         request_data = {'endpoint': f"{self.jira_server_url}/search", "params": [params]}
         ticket_ids = self.do_request(request_data, load_all=True)
+        _logger.info(f"=====================================================================")
+        _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
         self.load_work_logs(ticket_ids)
         project_id.last_update = datetime.now()
+        _logger.info(f"Load Work Log")
         self.load_sprints(project_id.board_ids)
+        _logger.info(f"Load Sprint")
         self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
 
     def update_project(self, project_id, access_token):
