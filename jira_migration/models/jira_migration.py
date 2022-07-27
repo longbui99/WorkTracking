@@ -624,6 +624,7 @@ class JIRAMigration(models.Model):
             return
         if not board_ids:
             board_ids = self.env['board.board'].search([])
+        board_ids = board_ids.filtered(lambda r: r.type == "scrum")
         headers = self.__get_request_headers()
         for board in board_ids:
             if not board.id_on_jira and not board.type == 'scrum':
