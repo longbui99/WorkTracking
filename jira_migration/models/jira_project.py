@@ -21,7 +21,7 @@ class JiraProject(models.Model):
                 ('jira_private_key', '!=', False)], order='is_jira_admin desc').mapped(
                 'jira_private_key')
             if any(access_token) and project.jira_migration_id:
-                project.jira_migration_id.with_context().update_project(project, access_token[0])
+                project.jira_migration_id.update_project(project, access_token[0])
 
     def reset_state(self):
         for record in self:
