@@ -24,7 +24,7 @@ class JiraProject(models.Model):
             user_ids = self.env['jira.ticket'] \
                 .search([('project_id', '=', record.id)]) \
                 .mapped('time_log_ids').mapped('user_id')
-            create_new_users = user_ids.filtered(lambda r: r.id not in self.allowed_user_ids.ids)
+            create_new_users = user_ids.filtered(lambda r: r.id not in record.allowed_user_ids.ids)
             record.allowed_user_ids = create_new_users.mapped(lambda r: (4, r.id, False))
 
     @api.model
