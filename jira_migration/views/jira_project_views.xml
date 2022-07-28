@@ -19,4 +19,25 @@
         <field name="state">code</field>
         <field name="code">records.cron_fetch_ticket()</field>
     </record>
+
+    <record id="jira_project_form_view" model="ir.ui.view">
+        <field name="model">jira.project</field>
+        <field name="name">jira.project.migration.inherited</field>
+        <field name="inherit_id" ref="project_management.jira_project_form_view"/>
+        <field name="arch" type="xml">
+            <field name="project_key" position="after">
+                <field name="allow_to_fetch" widget="boolean_toggle"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="action_server_force_fetch_all" model="ir.actions.server">
+        <field name="name">Fetch tickets</field>
+        <field name="groups_id" eval="[(4, ref('project_management.group_jira_manager'))]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_jira_project" />
+        <field name="binding_model_id" ref="model_jira_project" />
+        <field name="state">code</field>
+        <field name="code">records.write({'allow_to_fetch': True})</field>
+    </record>
 </odoo>
