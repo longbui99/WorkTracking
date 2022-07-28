@@ -5,11 +5,12 @@ class JiraProject(models.Model):
 
     jira_migration_id = fields.Many2one("jira.migration", string="Jira Migration Credentials")
     last_update = fields.Datetime("Last Update Cron")
+    allow_to_fetch = fields.Boolean("Should Fetch?")
 
     @api.model
     def cron_fetch_ticket(self, load_create=True):
         if not self:
-            self = self.search([])
+            self = self.search([('allow_to_fetch', '=', True)])
         for project in self:
             user_ids = []
             if project.jira_migration_id:
