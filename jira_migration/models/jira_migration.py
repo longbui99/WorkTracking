@@ -564,6 +564,7 @@ class JIRAMigration(models.Model):
         self.load_sprints(project_id.board_ids)
         _logger.info(f"Load Sprint")
         self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
+        _logger.info(f"_____________________________________________________________________")
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
