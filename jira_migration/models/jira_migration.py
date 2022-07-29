@@ -213,6 +213,7 @@ class JIRAMigration(models.Model):
             jira_key = self.__load_from_key_paths(ticket_fields, issue_mapping.jira_status)
             new_issue_type = self.__load_from_key_paths(ticket_fields, issue_mapping.new_issue_key)
             if ticket.get('key', '-') not in local['dict_ticket_key']:
+                _logger.info(f"Loading for ticket: {ticket['key']}")
                 if not ticket_fields:
                     continue
                 res = {
