@@ -276,12 +276,17 @@ class JiraProject(models.Model):
 
     def get_search_ticket_domain(self, res, employee):
         domain = []
+        print(res)
         if 'ticket' in res:
             domain = expression.AND([domain, [('ticket_key', 'ilike', res['ticket'])]])
         if 'project' in res:
-            domain = expression.AND([domain, ['|',
-                                              ('project_id.project_key', 'ilike', res['project']),
-                                              ('project_id.project_name', 'ilike', res['project'])]])
+            project_domain = []
+            if res['project'].isupper():
+                project_domain = [('project_id.project_key', '=like', res['project']+"%")]
+            else:
+                project_domain = [('project_id.project_key', 'ilike', res['project'])]
+            project_domain = expression.OR([project_domain,[('project_id.project_name', 'ilike', res['project'])]])
+            domain = expression.AND([domain, project_domain])
             if 'sprint' in res:
                 project_id = self.env["jira.project"].search([('project_key', '=', res['project'])], limit=1)
                 if project_id:
@@ -296,7 +301,7 @@ class JiraProject(models.Model):
             domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
         if 'name' in res:
             user_ids = self.env['res.users'].with_context(active_test=False).sudo().search(
-                ['|', ('login', 'ilike', res['name']), ('partner_id.name', 'ilike', res['name'])])
+                ['|', ('login', 'ilike', res['name']), ('partner_id.email', 'ilike', res['name'])])
             domain = expression.AND([domain, ['|', ('assignee_id', 'in', user_ids.ids), ('tester_id', 'in', user_ids.ids)]])
         return domain
 
@@ -304,10 +309,10 @@ class JiraProject(models.Model):
         employee = self._get_result_management()
         res = get_search_request(payload)
         domain = self.get_search_ticket_domain(res, employee)
-        print(json.dumps(domain, indent=4))
+        result = self.env["jira.ticket"]
         if len(domain):
-            return self.search(domain, order=employee.order_style, limit=employee.maximum_search_result)
-        return self.env['jira.ticket']
+            result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result)
+        return result
 
     def action_cancel_progress(self, values={}):
         source = values.get('source', 'Internal')
