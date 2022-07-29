@@ -250,7 +250,7 @@ class JIRAMigration(models.Model):
                         'active': False
                     })
                     res['tester_id'] = new_user.id
-                    local['dict_user'][assignee] = new_user.id
+                    local['dict_user'][tester] = new_user.id
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
