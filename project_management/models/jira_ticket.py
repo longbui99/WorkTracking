@@ -304,7 +304,7 @@ class JiraProject(models.Model):
         employee = self._get_result_management()
         res = get_search_request(payload)
         domain = self.get_search_ticket_domain(res, employee)
-        print(json.dumps(domain, 4))
+        print(json.dumps(domain, indent=4))
         if len(domain):
             return self.search(domain, order=employee.order_style, limit=employee.maximum_search_result)
         return self.env['jira.ticket']
