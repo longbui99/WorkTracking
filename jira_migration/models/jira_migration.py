@@ -634,7 +634,7 @@ class JIRAMigration(models.Model):
             if not board.id_on_jira and not board.type == 'scrum':
                 continue
             request_data = {
-                'endpoint': f"""{self.jira_agile_url}/board/{board.id_on_jira}/sprint?maxResults=200""",
+                'endpoint': f"""{self.jira_agile_url}/board/{board.id_on_jira}/sprint?maxResults=2000""",
                 'method': 'get',
             }
             current_sprints = {x.id_on_jira: x for x in board.sprint_ids}
@@ -669,7 +669,7 @@ class JIRAMigration(models.Model):
             if not sprint.id_on_jira:
                 continue
             request_data = {
-                'endpoint': f"""{self.jira_agile_url}/sprint/{sprint.id_on_jira}/issue?maxResults=200""",
+                'endpoint': f"""{self.jira_agile_url}/sprint/{sprint.id_on_jira}/issue?maxResults=200&fields=""""",
                 'method': 'get',
             }
             try:
