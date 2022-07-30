@@ -30,6 +30,7 @@
                     <button name="load_by_links" type="object" string="Load By Keys" class="btn-primary"/>
                 </header>
                 <sheet>
+                    <field name="active" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_toggle" type="object" class="oe_stat_button text-primary" attrs="{'invisible': [('active', '=', False)]}">
                             Active
