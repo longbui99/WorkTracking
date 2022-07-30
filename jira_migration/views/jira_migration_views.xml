@@ -32,10 +32,10 @@
                 <sheet>
                     <field name="active" invisible="1"/>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_toggle" type="object" class="oe_stat_button text-primary text-center" attrs="{'invisible': [('active', '=', False)]}">
+                        <button name="action_toggle" type="object" class="oe_stat_button text-primary text-center" attrs="{'invisible': [('active', '=', True)]}">
                             Active
                         </button>
-                        <button name="action_toggle" type="object" class="oe_stat_button text-danger text-center" attrs="{'invisible': [('active', '=', True)]}">
+                        <button name="action_toggle" type="object" class="oe_stat_button text-danger text-center" attrs="{'invisible': [('active', '=', False)]}">
                             Archive
                         </button>
                     </div>
