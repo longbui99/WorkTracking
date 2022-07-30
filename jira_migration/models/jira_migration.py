@@ -156,6 +156,7 @@ class JIRAMigration(models.Model):
             parsed_values = mapping(values)
         else:
             parsed_values = values
+        print(json.dumps(parsed_values, indent=4))
         return list(map(lambda r: (0, 0, {
             'name': parsing(r["name"]),
             'jira_raw_name': r["name"],
@@ -189,30 +190,20 @@ class JIRAMigration(models.Model):
         res = self._create_new_acs(list(value_keys.values()), mapping)
         return res
 
-    def get_ac_payload(self, ticket_id):
-        res = ticket_id.ac_ids.mapped(
-            lambda r: {
-                "name": r.jira_raw_name,
-                "checked": r.checked,
-                "rank": r.sequence,
-                "isHeader": r.is_header,
-                "id": int(r.key)
-            }
-        )
-        res = {
-            "fields": {
-                "customfield_10206": res
-            }
-        }
-        return res
-
     def export_acceptance_criteria(self, ticket_id):
+        issue_mapping = IssueMapping(self.jira_server_url, self.server_type)
+        ac_mapping = ACMapping(self.jira_server_url, self.server_type).exporting()
         headers = self.__get_request_headers()
         request_data = {
             'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}",
             'method': 'put',
         }
-        payload = self.get_ac_payload(ticket_id)
+        updated_acs = ac_mapping(ticket_id.ac_ids)
+        payload = {
+            "fields": {
+                f"{issue_mapping.acceptance_criteria[0]}": updated_acs
+            }
+        }
         request_data['body'] = payload
         res = self.make_request(request_data, headers)
         return res
