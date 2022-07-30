@@ -30,6 +30,7 @@ class IssueMapping:
             self.assignee = ['assignee', 'emailAddress']
             self.estimate_hour = ['customfield_10052']
             self.story_point = ['customfield_10041']
+            self.acceptance_criteria = ['customfield_10104']
         else:
             raise TypeError("Doesn't support type: " + server_type)
 
