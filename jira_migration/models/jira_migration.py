@@ -5,7 +5,6 @@ import pytz
 import logging
 import base64
 
-from yaml import parse
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.jira_migration.models.mapping_table import IssueMapping, WorkLogMapping, ACMapping
@@ -152,7 +151,7 @@ class JIRAMigration(models.Model):
         if not values:
             return []
         if not mapping:
-            mapping = ACMapping(self.jira_server_url, self.server_type).parse()
+            mapping = ACMapping(self.jira_server_url, self.server_type).parsing()
         if not isinstance(values, list):
             parsed_values = mapping(values)
         else:
@@ -170,7 +169,7 @@ class JIRAMigration(models.Model):
         if not values:
             return False
         if not mapping:
-            mapping = ACMapping(self.jira_server_url, self.server_type).parse()
+            mapping = ACMapping(self.jira_server_url, self.server_type).parsing()
         parsed_values = mapping(values)
         value_keys = {r['id']: r for r in parsed_values}
         unexisting_records = ac_ids.filtered(lambda r: r.key not in value_keys)
