@@ -38,7 +38,6 @@ class JIRAMigration(models.Model):
     admin_user_ids = fields.Many2many("res.users", string="Admins")
     active = fields.Boolean(string="Active?", default=True)
 
-    @api.model
     def action_toggle(self):
         for record in self:
             record.active = not record.active
