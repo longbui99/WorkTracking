@@ -152,7 +152,7 @@ class JIRAMigration(models.Model):
         if not values:
             return []
         if not mapping:
-            mapping = ACMapping(self.server_url, self.server_type).parse()
+            mapping = ACMapping(self.jira_server_url, self.server_type).parse()
         if not isinstance(values, list):
             parsed_values = mapping(values)
         else:
@@ -170,7 +170,7 @@ class JIRAMigration(models.Model):
         if not values:
             return False
         if not mapping:
-            mapping = ACMapping(self.server_url, self.server_type).parse()
+            mapping = ACMapping(self.jira_server_url, self.server_type).parse()
         parsed_values = mapping(values)
         value_keys = {r['id']: r for r in parsed_values}
         unexisting_records = ac_ids.filtered(lambda r: r.key not in value_keys)
