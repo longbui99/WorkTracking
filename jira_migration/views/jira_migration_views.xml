@@ -34,7 +34,7 @@
                         <button name="action_toggle" type="object" class="oe_stat_button text-primary" attrs="{'invisible': [('active', '=', False)]}">
                             Active
                         </button>
-                        <button name="action_toggle" type="object" class="oe_stat_button text-danger"attrs="{'invisible': [('active', '=', True)]}">
+                        <button name="action_toggle" type="object" class="oe_stat_button text-danger" attrs="{'invisible': [('active', '=', True)]}">
                             Archive
                         </button>
                     </div>
