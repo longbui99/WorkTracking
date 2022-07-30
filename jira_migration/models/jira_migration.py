@@ -36,6 +36,12 @@ class JIRAMigration(models.Model):
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
     jira_agile_url = fields.Char(string="JIRA Agile URL")
     admin_user_ids = fields.Many2many("res.users", string="Admins")
+    active = fields.Boolean(string="Active?", default=True)
+
+    @api.model
+    def action_toggle(self):
+        for record in self:
+            record.active = not record.active
 
     def convert_server_tz_to_utc(self, timestamp):
         if not isinstance(timestamp, datetime):

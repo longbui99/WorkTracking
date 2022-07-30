@@ -30,6 +30,14 @@
                     <button name="load_by_links" type="object" string="Load By Keys" class="btn-primary"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_toggle" type="object" class="oe_stat_button text-primary" attrs="{'invisible': [('active', '=', False)]}">
+                            Active
+                        </button>
+                        <button name="action_toggle" type="object" class="oe_stat_button text-danger"attrs="{'invisible': [('active', '=', True)]}">
+                            Archive
+                        </button>
+                    </div>
                     <label for="name" class="oe_edit_only"/>
                     <h1>
                         <field name="name"/>
@@ -68,6 +76,7 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
+                <filter string="All" name="all" domain="[('active','in', (True,False))]"/>
             </search>
         </field>
     </record>
