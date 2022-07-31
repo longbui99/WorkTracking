@@ -5,7 +5,6 @@ import pytz
 import logging
 import base64
 
-from yaml import parse
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.jira_migration.models.mapping_table import IssueMapping, WorkLogMapping, ACMapping
@@ -152,11 +151,12 @@ class JIRAMigration(models.Model):
         if not values:
             return []
         if not mapping:
-            mapping = ACMapping(self.server_url, self.server_type).parse()
+            mapping = ACMapping(self.jira_server_url, self.server_type).parsing()
         if not isinstance(values, list):
             parsed_values = mapping(values)
         else:
             parsed_values = values
+        print(json.dumps(parsed_values, indent=4))
         return list(map(lambda r: (0, 0, {
             'name': parsing(r["name"]),
             'jira_raw_name': r["name"],
@@ -170,7 +170,7 @@ class JIRAMigration(models.Model):
         if not values:
             return False
         if not mapping:
-            mapping = ACMapping(self.server_url, self.server_type).parse()
+            mapping = ACMapping(self.jira_server_url, self.server_type).parsing()
         parsed_values = mapping(values)
         value_keys = {r['id']: r for r in parsed_values}
         unexisting_records = ac_ids.filtered(lambda r: r.key not in value_keys)
@@ -190,30 +190,20 @@ class JIRAMigration(models.Model):
         res = self._create_new_acs(list(value_keys.values()), mapping)
         return res
 
-    def get_ac_payload(self, ticket_id):
-        res = ticket_id.ac_ids.mapped(
-            lambda r: {
-                "name": r.jira_raw_name,
-                "checked": r.checked,
-                "rank": r.sequence,
-                "isHeader": r.is_header,
-                "id": int(r.key)
-            }
-        )
-        res = {
-            "fields": {
-                "customfield_10206": res
-            }
-        }
-        return res
-
     def export_acceptance_criteria(self, ticket_id):
+        issue_mapping = IssueMapping(self.jira_server_url, self.server_type)
+        ac_mapping = ACMapping(self.jira_server_url, self.server_type).exporting()
         headers = self.__get_request_headers()
         request_data = {
             'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}",
             'method': 'put',
         }
-        payload = self.get_ac_payload(ticket_id)
+        updated_acs = ac_mapping(ticket_id.ac_ids)
+        payload = {
+            "fields": {
+                f"{issue_mapping.acceptance_criteria[0]}": updated_acs
+            }
+        }
         request_data['body'] = payload
         res = self.make_request(request_data, headers)
         return res
@@ -604,15 +594,22 @@ class JIRAMigration(models.Model):
         _logger.info(f"=====================================================================")
         _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
         self.load_work_logs(ticket_ids)
-        project_id.last_update = datetime.now()
-        _logger.info(f"Load Work Log")
-        self.load_sprints(project_id.board_ids)
-        _logger.info(f"Load Sprint")
-        self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
         _logger.info(f"_____________________________________________________________________")
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
+    
+    def update_boards(self):
+        project_ids = self.env["jira.project"].search([])
+        self.load_boards(project_ids=project_ids)
+        for project_id in project_ids:
+            _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            project_id.last_update = datetime.now()
+            _logger.info(f"Load Work Log")
+            self.load_sprints(project_id.board_ids)
+            _logger.info(f"Load Sprint")
+            self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
+            _logger.info(f"-----------------------------------------------------------------------")
 
     # Agile Connection
     def load_boards(self, project_ids=False):

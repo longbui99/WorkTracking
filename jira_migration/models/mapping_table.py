@@ -1,3 +1,4 @@
+from tabnanny import check
 import yaml
 from urllib.parse import urlparse
 
@@ -30,6 +31,7 @@ class IssueMapping:
             self.assignee = ['assignee', 'emailAddress']
             self.estimate_hour = ['customfield_10052']
             self.story_point = ['customfield_10041']
+            self.acceptance_criteria = ['customfield_10104']
         else:
             raise TypeError("Doesn't support type: " + server_type)
 
@@ -56,14 +58,15 @@ class ACMapping:
         self.server_url = server_url
 
     def cloud_parsing(self, values):
-        yaml_values = yaml.safe_load(values)
-        for index, record in enumerate(yaml_values['items']):
+        yaml_values = yaml.safe_load(values)['items']
+        for index, record in enumerate(yaml_values):
             record['name'] = "" 
             if record['text'].startswith('---'):
                 record['name'] = record['text'][3:]
                 record['isHeader'] = True
             else:
                 record['name'] = record['text']
+                record['isHeader'] = False
             record['id'] = string_to_int(record['name'])
             record['rank'] = index
         return yaml_values
@@ -76,5 +79,32 @@ class ACMapping:
             return self.cloud_parsing
         elif self.server_type == "self_hosting":
             return self.self_hosted_parsing 
+        else:
+            raise TypeError("Doesn't support type: " + self.server_type)
+    
+    def self_hosted_exporting(self, ac_ids):
+        return ac_ids.mapped(
+            lambda r: {
+                "name": r.jira_raw_name,
+                "checked": r.checked,
+                "rank": r.sequence,
+                "isHeader": r.is_header,
+                "id": int(r.key)
+            }
+        )
+    
+    def cloud_exporting(self, ac_ids):
+        payloads = self.self_hosted_exporting(ac_ids=ac_ids)
+        for payload in payloads:
+            if payload['isHeader']:
+                payload['name'] = '---' + payload['name']
+        res = yaml.dump({"items": payloads}, sort_keys=False)
+        return res
+
+    def exporting(self):
+        if self.server_type == "cloud":
+            return self.cloud_exporting
+        elif self.server_type == "self_hosting":
+            return self.self_hosted_exporting 
         else:
             raise TypeError("Doesn't support type: " + self.server_type)
