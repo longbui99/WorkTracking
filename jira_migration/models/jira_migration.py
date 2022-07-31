@@ -1,3 +1,4 @@
+from threading import local
 from turtle import end_poly
 import requests
 import json
@@ -318,9 +319,9 @@ class JIRAMigration(models.Model):
                     update_dict['story_point_unit'] = 'hrs'
                 if existing_record.ticket_name != summary:
                     update_dict['ticket_name'] = summary
-                if existing_record.status_id.id != local['dict_status'][status]:
+                if existing_record.status_id.id != local['dict_status'].get(status):
                     update_dict['status_id'] = local['dict_status'][status]
-                if existing_record.ticket_type_id.id != local['dict_type'][issue_type]:
+                if existing_record.ticket_type_id.id != local['dict_type'].get(issue_type):
                     update_dict['ticket_type_id'] = local['dict_type'][issue_type]
                 if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
                     assignee]:
@@ -340,7 +341,7 @@ class JIRAMigration(models.Model):
                     response.insert(0, existing_record)
         return response
 
-    def do_request(self, request_data, domain=[], paging=200, load_all=False):
+    def do_request(self, request_data, domain=[], paging=100, load_all=False):
         existing_record = self.env['jira.ticket']
         headers = self.__get_request_headers()
         start_index = 0
@@ -354,7 +355,7 @@ class JIRAMigration(models.Model):
             page_size = paging if total_response - start_index > paging else total_response - start_index
             params = request_data['params'].copy()
             params += [f'startAt={start_index}']
-            params += [f'maxResult={page_size}']
+            params += [f'maxResults={page_size}']
             request['params'] = params
             body = self.make_request(request, headers)
             if body.get('total', 0) > total_response and load_all:
@@ -451,8 +452,7 @@ class JIRAMigration(models.Model):
     def get_local_worklog_data(self, ticket_id, domain):
         return {
             'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids if x.id_on_jira},
-            'ticket_id': ticket_id,
-            'dict_user': self.with_context(active_test=False).get_user(),
+            'ticket_id': ticket_id
         }
 
     def update_work_log_data(self, log_id, work_log, data):
@@ -507,10 +507,11 @@ class JIRAMigration(models.Model):
 
         return new_tickets
 
-    def load_work_logs(self, ticket_ids, paging=50, domain=[], load_all=False):
+    def load_work_logs(self, ticket_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
+            user_dict = self.with_context(active_test=False).get_user()
             for ticket_id in ticket_ids:
                 request_data = {
                     'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}/worklog",
@@ -519,6 +520,7 @@ class JIRAMigration(models.Model):
                 total_response = paging
                 to_create = []
                 local_data = self.get_local_worklog_data(ticket_id, domain)
+                local_data['dict_user'] = user_dict
                 request_data['params'] = request_data.get('params', [])
                 request = request_data.copy()
                 while start_index < total_response:
