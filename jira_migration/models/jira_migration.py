@@ -609,7 +609,7 @@ class JIRAMigration(models.Model):
             self.load_sprints(project_id.board_ids)
             _logger.info(f"Load Sprint")
             self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
-            _logger.info(f"-----------------------------------------------------------------------")
+            _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     # Agile Connection
     def load_boards(self, project_ids=False):
