@@ -4,9 +4,11 @@ import json
 import pytz
 import logging
 import base64
+
+from yaml import parse
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
-from odoo.addons.jira_migration.models.mapping_table import IssueMapping, WorkLogMapping
+from odoo.addons.jira_migration.models.mapping_table import IssueMapping, WorkLogMapping, ACMapping
 from odoo.addons.base.models.res_partner import _tz_get
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -36,6 +38,11 @@ class JIRAMigration(models.Model):
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
     jira_agile_url = fields.Char(string="JIRA Agile URL")
     admin_user_ids = fields.Many2many("res.users", string="Admins")
+    active = fields.Boolean(string="Active?", default=True)
+
+    def action_toggle(self):
+        for record in self:
+            record.active = not record.active
 
     def convert_server_tz_to_utc(self, timestamp):
         if not isinstance(timestamp, datetime):
@@ -141,9 +148,15 @@ class JIRAMigration(models.Model):
 
     # ===========================================  Section for loading tickets/issues =============================================
     @api.model
-    def _create_new_acs(self, values=[]):
+    def _create_new_acs(self, values=[], mapping=None):
         if not values:
             return []
+        if not mapping:
+            mapping = ACMapping(self.server_url, self.server_type).parse()
+        if not isinstance(values, list):
+            parsed_values = mapping(values)
+        else:
+            parsed_values = values
         return list(map(lambda r: (0, 0, {
             'name': parsing(r["name"]),
             'jira_raw_name': r["name"],
@@ -151,15 +164,18 @@ class JIRAMigration(models.Model):
             "key": r["id"],
             "sequence": r["rank"],
             "is_header": r["isHeader"]
-        }), values))
+        }), parsed_values))
 
-    def _update_acs(self, ac_ids, values=[]):
+    def _update_acs(self, ac_ids, values=[], mapping=None):
         if not values:
             return False
-        value_keys = {str(r['id']): r for r in values}
-        existing_records = ac_ids.filtered(lambda r: r.key not in value_keys)
-        ac_ids -= existing_records
-        existing_records.unlink()
+        if not mapping:
+            mapping = ACMapping(self.server_url, self.server_type).parse()
+        parsed_values = mapping(values)
+        value_keys = {r['id']: r for r in parsed_values}
+        unexisting_records = ac_ids.filtered(lambda r: r.key not in value_keys)
+        ac_ids -= unexisting_records
+        unexisting_records.unlink()
         for record in ac_ids:
             r = value_keys[record.key]
             record.write({
@@ -171,7 +187,35 @@ class JIRAMigration(models.Model):
                 "is_header": r["isHeader"]
             })
             del value_keys[record.key]
-        res = self._create_new_acs(list(value_keys.values()))
+        res = self._create_new_acs(list(value_keys.values()), mapping)
+        return res
+
+    def get_ac_payload(self, ticket_id):
+        res = ticket_id.ac_ids.mapped(
+            lambda r: {
+                "name": r.jira_raw_name,
+                "checked": r.checked,
+                "rank": r.sequence,
+                "isHeader": r.is_header,
+                "id": int(r.key)
+            }
+        )
+        res = {
+            "fields": {
+                "customfield_10206": res
+            }
+        }
+        return res
+
+    def export_acceptance_criteria(self, ticket_id):
+        headers = self.__get_request_headers()
+        request_data = {
+            'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}",
+            'method': 'put',
+        }
+        payload = self.get_ac_payload(ticket_id)
+        request_data['body'] = payload
+        res = self.make_request(request_data, headers)
         return res
 
     @api.model
@@ -250,7 +294,7 @@ class JIRAMigration(models.Model):
                         'active': False
                     })
                     res['tester_id'] = new_user.id
-                    local['dict_user'][assignee] = new_user.id
+                    local['dict_user'][tester] = new_user.id
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
@@ -569,35 +613,6 @@ class JIRAMigration(models.Model):
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
-
-    def get_ac_payload(self, ticket_id):
-        res = ticket_id.ac_ids.mapped(
-            lambda r: {
-                "name": r.jira_raw_name,
-                "checked": r.checked,
-                "rank": r.sequence,
-                "isHeader": r.is_header,
-                "id": int(r.key)
-            }
-        )
-        res = {
-            "fields": {
-                "customfield_10206": res
-            }
-        }
-        return res
-
-    def export_acceptance_criteria(self, ticket_id):
-        current_user_id = self.env.user.id
-        headers = self.__get_request_headers()
-        request_data = {
-            'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}",
-            'method': 'put',
-        }
-        payload = self.get_ac_payload(ticket_id)
-        request_data['body'] = payload
-        res = self.make_request(request_data, headers)
-        return res
 
     # Agile Connection
     def load_boards(self, project_ids=False):
