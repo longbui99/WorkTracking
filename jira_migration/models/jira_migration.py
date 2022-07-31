@@ -603,13 +603,16 @@ class JIRAMigration(models.Model):
         project_ids = self.env["jira.project"].search([])
         self.load_boards(project_ids=project_ids)
         for project_id in project_ids:
-            _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            project_id.last_update = datetime.now()
-            _logger.info(f"Load Work Log")
-            self.load_sprints(project_id.board_ids)
-            _logger.info(f"Load Sprint")
-            self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
-            _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            self.with_delay().update_board(project_id)
+
+    def update_board(self, project_id):
+        _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        project_id.last_update = datetime.now()
+        _logger.info(f"Load Work Log")
+        self.load_sprints(project_id.board_ids)
+        _logger.info(f"Load Sprint")
+        self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
+        _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     # Agile Connection
     def load_boards(self, project_ids=False):
