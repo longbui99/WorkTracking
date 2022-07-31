@@ -4,6 +4,7 @@ import json
 import pytz
 import logging
 import base64
+import time
 
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.jira_migration.utils.ac_parsing import parsing, unparsing
@@ -137,12 +138,14 @@ class JIRAMigration(models.Model):
         if request_data.get('method', 'get') in ['post', 'put']:
             headers.update({'Content-Type': 'application/json'})
         method = getattr(requests, request_data.get('method', 'get'))
+        stime = time.time()
         result = method(url=endpoint, headers=headers, data=body)
         if result.text == "":
             return ""
         body = result.json()
         if body.get('errorMessages', False):
             raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
+        _logger.info(f"Make request take: {(time.time()-stime)/1000}(s)")
         return body
 
     # ===========================================  Section for loading tickets/issues =============================================
