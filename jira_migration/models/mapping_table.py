@@ -18,7 +18,7 @@ class IssueMapping:
         self.project = ['project', 'key']
         self.issue_type = ['issuetype', 'id']
         self.summary = ['summary']
-        self.acceptance_criteria = ['customfield_10206']
+        self.acceptance_criteria = ['customfield_10034']
         self.created_date = ['created']
         self.new_status = ['status']
         self.jira_status = ['status', 'statusCategory', 'key']
