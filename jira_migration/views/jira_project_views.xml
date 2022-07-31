@@ -32,7 +32,7 @@
     </record>
 
     <record id="action_server_force_fetch_all" model="ir.actions.server">
-        <field name="name">Fetch tickets</field>
+        <field name="name">Allow to Fetc</field>
         <field name="groups_id" eval="[(4, ref('project_management.group_jira_manager'))]"/>
         <field name="type">ir.actions.server</field>
         <field name="model_id" ref="model_jira_project" />
