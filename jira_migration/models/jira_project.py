@@ -10,7 +10,7 @@ class JiraProject(models.Model):
     @api.model
     def cron_fetch_ticket(self, load_create=True):
         if not self:
-            self = self.search([('allow_to_fetch', '=', True)])
+            self = self.search([('allow_to_fetch', '=', True), ('jira_migration_id.active', '=', True)])
         for project in self:
             user_ids = []
             if project.jira_migration_id:
