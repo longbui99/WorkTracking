@@ -594,15 +594,22 @@ class JIRAMigration(models.Model):
         _logger.info(f"=====================================================================")
         _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
         self.load_work_logs(ticket_ids)
-        project_id.last_update = datetime.now()
-        _logger.info(f"Load Work Log")
-        self.load_sprints(project_id.board_ids)
-        _logger.info(f"Load Sprint")
-        self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
         _logger.info(f"_____________________________________________________________________")
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
+    
+    def update_boards(self):
+        project_ids = self.env["jira.project"].search([])
+        self.load_boards(project_ids=project_ids)
+        for project_id in project_ids:
+            _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            project_id.last_update = datetime.now()
+            _logger.info(f"Load Work Log")
+            self.load_sprints(project_id.board_ids)
+            _logger.info(f"Load Sprint")
+            self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
+            _logger.info(f"-----------------------------------------------------------------------")
 
     # Agile Connection
     def load_boards(self, project_ids=False):
