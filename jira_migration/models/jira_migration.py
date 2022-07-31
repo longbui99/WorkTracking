@@ -553,7 +553,6 @@ class JIRAMigration(models.Model):
         }
         for log in time_log_ids:
             payload = self._get_time_log_payload(log)
-            _logger.info(payload)
             request_data['body'] = payload
             res = self.make_request(request_data, headers)
             log.id_on_jira = res['id']
