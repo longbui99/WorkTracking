@@ -158,7 +158,6 @@ class JIRAMigration(models.Model):
             parsed_values = mapping(values)
         else:
             parsed_values = values
-        print(json.dumps(parsed_values, indent=4))
         return list(map(lambda r: (0, 0, {
             'name': parsing(r["name"]),
             'jira_raw_name': r["name"],

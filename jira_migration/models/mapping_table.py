@@ -18,7 +18,7 @@ class IssueMapping:
         self.project = ['project', 'key']
         self.issue_type = ['issuetype', 'id']
         self.summary = ['summary']
-        self.acceptance_criteria = ['customfield_10034']
+        self.acceptance_criteria = ['customfield_10206']
         self.created_date = ['created']
         self.new_status = ['status']
         self.jira_status = ['status', 'statusCategory', 'key']
@@ -31,7 +31,7 @@ class IssueMapping:
             self.assignee = ['assignee', 'emailAddress']
             self.estimate_hour = ['customfield_10052']
             self.story_point = ['customfield_10041']
-            self.acceptance_criteria = ['customfield_10104']
+            self.acceptance_criteria = ['customfield_10034']
         else:
             raise TypeError("Doesn't support type: " + server_type)
 
