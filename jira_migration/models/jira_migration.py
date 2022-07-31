@@ -598,6 +598,7 @@ class JIRAMigration(models.Model):
         _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
         self.load_work_logs(ticket_ids)
         _logger.info(f"_____________________________________________________________________")
+        project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
@@ -610,7 +611,6 @@ class JIRAMigration(models.Model):
 
     def update_board(self, project_id):
         _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        project_id.last_update = datetime.now()
         _logger.info(f"Load Work Log")
         self.load_sprints(project_id.board_ids)
         _logger.info(f"Load Sprint")
