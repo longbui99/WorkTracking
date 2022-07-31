@@ -541,7 +541,7 @@ class JIRAMigration(models.Model):
     def _get_time_log_payload(self, time_log_id):
         return {
             "comment": time_log_id.description,
-            "started": time_log_id.start_date.strftime("yyyy-MM-dd'T'HH:mm:ssZ") + "+0000",
+            "started": time_log_id.start_date.isoformat(sep='T', timespec='milliseconds') + "+0000",
             "timeSpentSeconds": time_log_id.duration
         }
 
@@ -553,6 +553,7 @@ class JIRAMigration(models.Model):
         }
         for log in time_log_ids:
             payload = self._get_time_log_payload(log)
+            _logger.info(payload)
             request_data['body'] = payload
             res = self.make_request(request_data, headers)
             log.id_on_jira = res['id']
