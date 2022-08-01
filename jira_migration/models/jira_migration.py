@@ -486,19 +486,20 @@ class JIRAMigration(models.Model):
             id_on_jira = self.__load_from_key_paths(work_log, mapping.id_on_jira)
             start_date = self.__load_from_key_paths(work_log, mapping.start_date)
             logging_email = self.__load_from_key_paths(work_log, mapping.author)
-            if log_id not in data['work_logs'] and duration > 0:
-                to_create = {
-                    'time': time,
-                    'duration': duration,
-                    'description': description,
-                    'state': 'done',
-                    'source': 'sync',
-                    'ticket_id': tickets.get(work_log['issueId'], False),
-                    'id_on_jira': id_on_jira,
-                    'start_date': self.convert_server_tz_to_utc(start_date),
-                    'user_id': data['dict_user'].get(logging_email, False)
-                }
-                new_tickets.append(to_create)
+            if log_id not in data['work_logs']:
+                if duration > 0 and tickets.get(int(work_log['issueId']), False):
+                    to_create = {
+                        'time': time,
+                        'duration': duration,
+                        'description': description,
+                        'state': 'done',
+                        'source': 'sync',
+                        'ticket_id': tickets.get(int(work_log['issueId']), False),
+                        'id_on_jira': id_on_jira,
+                        'start_date': self.convert_server_tz_to_utc(start_date),
+                        'user_id': data['dict_user'].get(logging_email, False)
+                    }
+                    new_tickets.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data)
 
@@ -508,12 +509,13 @@ class JIRAMigration(models.Model):
 
         return new_tickets
 
-    def load_work_logs_by_unix(self, ticket_ids, unix, batch=1000):
+    def load_work_logs_by_unix(self, unix, batch=1000):
         if self.import_work_log:
             last_page = False
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
             user_dict = self.with_context(active_test=False).get_user()
+            ticket_ids = self.env['jira.ticket'].search([('jira_id','!=', False),('write_date', '>=', datetime.fromtimestamp(unix/1000))])
             local_data = {
                 'work_logs': {x.id_on_jira: x for x in ticket_ids.mapped('time_log_ids') if x.id_on_jira},
                 'tickets': {ticket_id.jira_id: ticket_id.id for ticket_id in ticket_ids},
@@ -529,7 +531,9 @@ class JIRAMigration(models.Model):
                 body = self.make_request(request_data, headers)
                 request_data['endpoint'] = body.get('nextPage', '')
                 last_page = body.get('lastPage', True)
-                if len(flush)>batch:
+                ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
+                flush.extend(ids)
+                if len(flush)>batch or last_page:
                     request = {
                         'endpoint': f"{self.jira_server_url}/worklog/list",
                         'method': 'post',
@@ -540,9 +544,6 @@ class JIRAMigration(models.Model):
                     new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
                     to_create.extend(new_logs)
                     flush = []
-                else:
-                    ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
-                    flush.extend(ids)
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
                 
@@ -637,12 +638,11 @@ class JIRAMigration(models.Model):
         ticket_ids = self.do_request(request_data, load_all=True)
         _logger.info(f"=====================================================================")
         _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
-        self.load_work_logs_by_unix(ticket_ids, int(datetime.timestamp(updated_date)*1000))
         _logger.info(f"_____________________________________________________________________")
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
-        self._update_project(project_id, access_token)
+        self.with_delay()._update_project(project_id, access_token)
     
     def update_boards(self):
         project_ids = self.env["jira.project"].search([])
