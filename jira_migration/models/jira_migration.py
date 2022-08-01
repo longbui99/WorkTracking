@@ -1,3 +1,4 @@
+from math import fabs
 from threading import local
 from turtle import end_poly
 import requests
@@ -142,11 +143,8 @@ class JIRAMigration(models.Model):
         result = method(url=endpoint, headers=headers, data=body)
         if result.text == "":
             return ""
-        print("_---------------------------_")
-        print(result.text)
-        print("_---------------------------_")
         body = result.json()
-        if body.get('errorMessages', False):
+        if isinstance(body, dict) and body.get('errorMessages', False):
             raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
         return body
 
@@ -260,7 +258,8 @@ class JIRAMigration(models.Model):
                     'ticket_url': issue_mapping.map_url(ticket['key']),
                     'story_point': estimate_hour and estimate_hour or story_point,
                     'jira_migration_id': self.id,
-                    'create_date': created_date
+                    'create_date': created_date,
+                    'jira_id': ticket['id']
                 }
                 if estimate_hour:
                     res['story_point_unit'] = 'hrs'
@@ -454,7 +453,7 @@ class JIRAMigration(models.Model):
     def get_local_worklog_data(self, ticket_id, domain):
         return {
             'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids if x.id_on_jira},
-            'ticket_id': ticket_id
+            'tickets': {ticket_id.jira_id: ticket_id.id}
         }
 
     def update_work_log_data(self, log_id, work_log, data):
@@ -476,7 +475,7 @@ class JIRAMigration(models.Model):
         if not mapping:
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
         new_tickets = []
-        ticket_id = data['ticket_id']
+        tickets = data['tickets']
         affected_jira_ids = set()
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
@@ -494,7 +493,7 @@ class JIRAMigration(models.Model):
                     'description': description,
                     'state': 'done',
                     'source': 'sync',
-                    'ticket_id': ticket_id.id,
+                    'ticket_id': tickets.get(work_log['issueId'], False),
                     'id_on_jira': id_on_jira,
                     'start_date': self.convert_server_tz_to_utc(start_date),
                     'user_id': data['dict_user'].get(logging_email, False)
@@ -508,6 +507,45 @@ class JIRAMigration(models.Model):
             self.env['jira.time.log'].search([('id_on_jira', 'in', list(deleted))]).unlink()
 
         return new_tickets
+
+    def load_work_logs_by_unix(self, ticket_ids, unix, batch=500):
+        if self.import_work_log:
+            last_page = False
+            mapping = WorkLogMapping(self.jira_server_url, self.server_type)
+            headers = self.__get_request_headers()
+            user_dict = self.with_context(active_test=False).get_user()
+            local_data = {
+                'work_logs': {x.id_on_jira: x for x in ticket_ids.mapped('time_log_ids') if x.id_on_jira},
+                'tickets': {ticket_id.jira_id: ticket_id.id for ticket_id in ticket_ids},
+                'dict_user': self.with_context(active_test=False).get_user()
+            }
+            local_data['dict_user'] = user_dict
+            flush = []
+            to_create = []
+            while not last_page:
+                request_data = {
+                    'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
+                }
+                body = self.make_request(request_data, headers)
+                request_data['endpoint'] = body.get('nextPage', '')
+                last_page = body.get('lastPage', True)
+                if len(flush)>batch:
+                    request = {
+                        'endpoint': f"{self.jira_server_url}/worklog/list",
+                        'method': 'post',
+                        'body': {'ids': flush}
+                    }
+                    body = self.make_request(request, headers)
+                    data = {'worklogs': body}
+                    new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
+                    to_create.extend(new_logs)
+                    flush = []
+                else:
+                    ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
+                    flush.extend(ids)
+            if len(to_create):
+                self.env["jira.time.log"].create(to_create)
+                
 
     def load_work_logs(self, ticket_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:
@@ -590,15 +628,16 @@ class JIRAMigration(models.Model):
 
     def _update_project(self, project_id, access_token):
         self = self.with_context(access_token=access_token)
-        updated_date = '0001-01-01'
+        updated_date = datetime(1970, 1, 1, 1, 1, 1, 1)
         if project_id.last_update:
-            updated_date = self.convert_utc_to_usertz(project_id.last_update).strftime('%Y-%m-%d %H:%M')
-        params = f"""jql=project="{project_id.project_key}" AND updated >= '{updated_date}'"""
+            updated_date = self.convert_utc_to_usertz(project_id.last_update)
+        str_updated_date = updated_date.strftime('%Y-%m-%d %H:%M')
+        params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.jira_server_url}/search", "params": [params]}
         ticket_ids = self.do_request(request_data, load_all=True)
         _logger.info(f"=====================================================================")
         _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
-        self.load_work_logs(ticket_ids)
+        self.load_work_logs_by_unix(ticket_ids, int(datetime.timestamp(updated_date)*1000))
         _logger.info(f"_____________________________________________________________________")
         project_id.last_update = datetime.now()
 
