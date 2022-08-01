@@ -13,7 +13,7 @@ class JiraProject(models.Model):
     def cron_fetch_ticket(self, load_create=True):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('jira_migration_id.active', '=', True)])
-        last_update = min(self.mapped('last_update'))
+        last_update = min(self.mapped(lambda r: r.last_update or datetime(1969,1,1,1,1,1,1)))
         for project in self:
             user_ids = []
             if project.jira_migration_id:
