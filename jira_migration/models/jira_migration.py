@@ -142,6 +142,9 @@ class JIRAMigration(models.Model):
         result = method(url=endpoint, headers=headers, data=body)
         if result.text == "":
             return ""
+        print("_---------------------------_")
+        print(result.text)
+        print("_---------------------------_")
         body = result.json()
         if body.get('errorMessages', False):
             raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
@@ -484,7 +487,7 @@ class JIRAMigration(models.Model):
             id_on_jira = self.__load_from_key_paths(work_log, mapping.id_on_jira)
             start_date = self.__load_from_key_paths(work_log, mapping.start_date)
             logging_email = self.__load_from_key_paths(work_log, mapping.author)
-            if log_id not in data['work_logs']:
+            if log_id not in data['work_logs'] and duration > 0:
                 to_create = {
                     'time': time,
                     'duration': duration,
@@ -600,7 +603,7 @@ class JIRAMigration(models.Model):
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
-        self.with_delay()._update_project(project_id, access_token)
+        self._update_project(project_id, access_token)
     
     def update_boards(self):
         project_ids = self.env["jira.project"].search([])
