@@ -53,6 +53,10 @@ class JiraProject(models.Model):
             self.write({'auto_export_success': False})
         return res
 
+    def import_work_logs(self):
+        for record in self:
+            record.jira_migration_id.with_delay().load_work_logs(record)
+
     @api.model
     def re_export_work_log(self):
         self.search([('auto_export_success', '=', False)]).action_done_work_log({})
