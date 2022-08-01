@@ -508,7 +508,7 @@ class JIRAMigration(models.Model):
 
         return new_tickets
 
-    def load_work_logs_by_unix(self, ticket_ids, unix, batch=500):
+    def load_work_logs_by_unix(self, ticket_ids, unix, batch=1000):
         if self.import_work_log:
             last_page = False
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
