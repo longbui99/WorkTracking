@@ -11,6 +11,7 @@
     "data": [
         'data/queue_job_function.xml',
         'data/cron_job.xml',
+        'data/ir_config_params.xml',
         'security/ir.model.access.csv',
 
         'views/hr_employee_views.xml',

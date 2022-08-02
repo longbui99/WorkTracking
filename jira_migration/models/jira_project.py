@@ -1,4 +1,6 @@
 from odoo import api, fields, models, _
+from datetime import datetime
+import time
 
 class JiraProject(models.Model):
     _inherit = "jira.project"
@@ -11,6 +13,7 @@ class JiraProject(models.Model):
     def cron_fetch_ticket(self, load_create=True):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('jira_migration_id.active', '=', True)])
+        last_update = min(self.mapped(lambda r: r.last_update or datetime(1969,1,1,1,1,1,1)))
         for project in self:
             user_ids = []
             if project.jira_migration_id:
@@ -23,6 +26,12 @@ class JiraProject(models.Model):
                 'jira_private_key')
             if any(access_token) and project.jira_migration_id:
                 project.jira_migration_id.update_project(project, access_token[0])
+        if not last_update:
+            last_update = datetime(1969,1,1,1,1,1,1)
+        time.sleep(3)
+        self._cr.commit()
+        for jira in project.mapped('jira_migration_id'):
+            jira.with_delay(eta=30).load_work_logs_by_unix(int(last_update.timestamp()*1000))
 
     def reset_state(self):
         for record in self:

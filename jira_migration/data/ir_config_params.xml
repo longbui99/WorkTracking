@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="1">
+        <record id="latest_unix" model="ir.config_parameter">
+            <field name="key">latest_unix</field>
+            <field name="value">0</field>
+        </record>
+    </data>
+</odoo>
