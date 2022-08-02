@@ -482,8 +482,10 @@ class JIRAMigration(models.Model):
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
         new_tickets = []
         tickets = data['tickets']
+        affected_jira_ids = set()
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
+            affected_jira_ids.add(log_id)
             time = self.__load_from_key_paths(work_log, mapping.time)
             duration = self.__load_from_key_paths(work_log, mapping.duration)
             description = self.__load_from_key_paths(work_log, mapping.description) or ''
@@ -506,6 +508,10 @@ class JIRAMigration(models.Model):
                     new_tickets.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data)
+        if self.env.context.get('force_delete', False):
+            deleted = set(list(data['work_logs'].keys())) - affected_jira_ids
+            if deleted:
+                self.env['jira.time.log'].search([('id_on_jira', 'in', list(deleted))]).unlink()
 
         return new_tickets
 
@@ -627,7 +633,7 @@ class JIRAMigration(models.Model):
                     if body.get('total', 0) > total_response and load_all:
                         total_response = body['total']
                     start_index += paging
-                    new_tickets = self.processing_worklog_raw_data(local_data, body, mapping)
+                    new_tickets = self.with_context(force_delete=True).processing_worklog_raw_data(local_data, body, mapping)
                     to_create.extend(new_tickets)
                 if to_create:
                     self.env['jira.time.log'].create(to_create)
