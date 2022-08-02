@@ -469,7 +469,7 @@ class JIRAMigration(models.Model):
             to_update['duration'] = work_log['timeSpentSeconds']
             to_update['time'] = work_log['timeSpent']
         logging_email = self.__load_from_key_paths(work_log, mapping.author)
-        start_date = self.__load_from_key_paths(work_log, mapping.start_date)
+        start_date = self.convert_server_tz_to_utc(self.__load_from_key_paths(work_log, mapping.start_date))
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
         if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date.isoformat()[:16]:
