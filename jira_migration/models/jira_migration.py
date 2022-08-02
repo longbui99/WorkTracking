@@ -18,7 +18,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
-_logger = logging.getLogger(__name__) 
+_logger = logging.getLogger(__name__)
 
 
 class JIRAMigration(models.Model):
@@ -68,7 +68,8 @@ class JIRAMigration(models.Model):
                 raise UserError(_("Missing the Access token in the related Employee"))
             jira_private_key = employee_id.jira_private_key
         if self.auth_type == 'api_token':
-            jira_private_key = "Basic " + base64.b64encode(f"{user.partner_id.email}:{jira_private_key}".encode('utf-8')).decode('utf-8')
+            jira_private_key = "Basic " + base64.b64encode(
+                f"{user.partner_id.email}:{jira_private_key}".encode('utf-8')).decode('utf-8')
         else:
             jira_private_key = "Bearer " + jira_private_key
 
@@ -520,7 +521,8 @@ class JIRAMigration(models.Model):
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
             user_dict = self.with_context(active_test=False).get_user()
-            ticket_ids = self.env['jira.ticket'].search([('jira_id','!=', False),('write_date', '>=', datetime.fromtimestamp(unix/1000))])
+            ticket_ids = self.env['jira.ticket'].search(
+                [('jira_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
             local_data = {
                 'work_logs': {x.id_on_jira: x for x in ticket_ids.mapped('time_log_ids') if x.id_on_jira},
                 'tickets': {ticket_id.jira_id: ticket_id.id for ticket_id in ticket_ids},
@@ -543,7 +545,7 @@ class JIRAMigration(models.Model):
                     flush.extend(ids)
                     log_failed_count = 0
                     while log_failed_count < 6:
-                        if len(flush)>batch or last_page:
+                        if len(flush) > batch or last_page:
                             request = {
                                 'endpoint': f"{self.jira_server_url}/worklog/list",
                                 'method': 'post',
@@ -556,10 +558,11 @@ class JIRAMigration(models.Model):
                                 new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
                                 to_create.extend(new_logs)
                                 flush = []
+                                break
                             else:
                                 _logger.warning(f"WORKLOG FAILED COUNT: {log_failed_count}")
                                 log_failed_count += 1
-                                time.sleep(10)
+                                time.sleep(30)
                                 continue
                     del body['values']
                     _logger.info(json.dumps(body, indent=4))
@@ -570,8 +573,8 @@ class JIRAMigration(models.Model):
                     continue
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
-            self.env['ir.config_parameter'].set_param('latest_unix', body.get('until', datetime.now().timestamp()*1000))
-                
+            self.env['ir.config_parameter'].set_param('latest_unix',
+                                                      body.get('until', datetime.now().timestamp() * 1000))
 
     def load_work_logs(self, ticket_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:
@@ -668,7 +671,7 @@ class JIRAMigration(models.Model):
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
-    
+
     def update_boards(self):
         project_ids = self.env["jira.project"].search([])
         self.load_boards(project_ids=project_ids)
