@@ -528,6 +528,7 @@ class JIRAMigration(models.Model):
                 'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
             }
             while not last_page:
+                print(json.dumps(request_data, indent=4))
                 body = self.make_request(request_data, headers)
                 request_data['endpoint'] = body.get('nextPage', '')
                 last_page = body.get('lastPage', True)
