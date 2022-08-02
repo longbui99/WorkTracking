@@ -509,7 +509,7 @@ class JIRAMigration(models.Model):
 
         return new_tickets
 
-    def load_work_logs_by_unix(self, unix, batch=1000):
+    def load_work_logs_by_unix(self, unix, batch=900):
         if self.import_work_log:
             last_page = False
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
@@ -524,10 +524,10 @@ class JIRAMigration(models.Model):
             local_data['dict_user'] = user_dict
             flush = []
             to_create = []
+            request_data = {
+                'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
+            }
             while not last_page:
-                request_data = {
-                    'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
-                }
                 body = self.make_request(request_data, headers)
                 request_data['endpoint'] = body.get('nextPage', '')
                 last_page = body.get('lastPage', True)
@@ -544,8 +544,6 @@ class JIRAMigration(models.Model):
                     new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
                     to_create.extend(new_logs)
                     flush = []
-                del body['values']
-                _logger.info(json.dumps(body, indent=4))
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
                 
