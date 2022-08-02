@@ -462,14 +462,14 @@ class JIRAMigration(models.Model):
             'issue_to_logs': {}
         }
 
-    def update_work_log_data(self, log_id, work_log, data):
+    def update_work_log_data(self, log_id, work_log, data, mapping):
         to_update = {}
         work_log_id = data['work_logs'][log_id]
         if work_log_id.duration != work_log['timeSpentSeconds']:
             to_update['duration'] = work_log['timeSpentSeconds']
             to_update['time'] = work_log['timeSpent']
-        logging_email = self.__load_from_key_paths(work_log, ['updateAuthor', 'name'])
-        start_date = self.convert_server_tz_to_utc(self.__load_from_key_paths(work_log, ['started']))
+        logging_email = self.__load_from_key_paths(work_log, mapping.author)
+        start_date = self.__load_from_key_paths(work_log, mapping.start_date)
         if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
             to_update['user_id'] = data['dict_user'].get(logging_email, False)
         if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date.isoformat()[:16]:
@@ -507,7 +507,7 @@ class JIRAMigration(models.Model):
                     }
                     new_tickets.append(to_create)
             else:
-                self.update_work_log_data(log_id, work_log, data)
+                self.update_work_log_data(log_id, work_log, data, mapping)
         if self.env.context.get('force_delete', False):
             deleted = set(list(data['work_logs'].keys())) - affected_jira_ids
             if deleted:
@@ -521,7 +521,6 @@ class JIRAMigration(models.Model):
             last_page = False
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
-            user_dict = self.with_context(active_test=False).get_user()
             ticket_ids = self.env['jira.ticket'].search(
                 [('jira_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
             local_data = {
@@ -529,7 +528,6 @@ class JIRAMigration(models.Model):
                 'tickets': {ticket_id.jira_id: ticket_id.id for ticket_id in ticket_ids},
                 'dict_user': self.with_context(active_test=False).get_user()
             }
-            local_data['dict_user'] = user_dict
             flush = []
             to_create = []
             request_data = {
