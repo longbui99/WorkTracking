@@ -2,9 +2,11 @@ from tabnanny import check
 import yaml
 from urllib.parse import urlparse
 
+
 def string_to_int(s):
-    ord3 = lambda x : '%.3d' % ord(x)
+    ord3 = lambda x: '%.3d' % ord(x)
     return int(''.join(map(ord3, s)))
+
 
 class IssueMapping:
     def __init__(self, server_url, server_type):
@@ -60,7 +62,7 @@ class ACMapping:
     def cloud_parsing(self, values):
         yaml_values = yaml.safe_load(values)['items']
         for index, record in enumerate(yaml_values):
-            record['name'] = "" 
+            record['name'] = ""
             if record['text'].startswith('---'):
                 record['name'] = record['text'][3:]
                 record['isHeader'] = True
@@ -78,10 +80,10 @@ class ACMapping:
         if self.server_type == "cloud":
             return self.cloud_parsing
         elif self.server_type == "self_hosting":
-            return self.self_hosted_parsing 
+            return self.self_hosted_parsing
         else:
             raise TypeError("Doesn't support type: " + self.server_type)
-    
+
     def self_hosted_exporting(self, ac_ids):
         return ac_ids.mapped(
             lambda r: {
@@ -92,7 +94,7 @@ class ACMapping:
                 "id": int(r.key)
             }
         )
-    
+
     def cloud_exporting(self, ac_ids):
         payloads = self.self_hosted_exporting(ac_ids=ac_ids)
         for payload in payloads:
@@ -105,6 +107,6 @@ class ACMapping:
         if self.server_type == "cloud":
             return self.cloud_exporting
         elif self.server_type == "self_hosting":
-            return self.self_hosted_exporting 
+            return self.self_hosted_exporting
         else:
             raise TypeError("Doesn't support type: " + self.server_type)

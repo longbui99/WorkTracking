@@ -16,4 +16,10 @@
         <field name="channel_id" ref="jira_migration.channel_single"/>
         <field name="retry_pattern" eval="{1: 60, 2: 180, 3: 10, 5: 300}"/>
     </record>
+    <record id="job_function_delete_work_logs_action_done" model="queue.job.function">
+        <field name="model_id" ref="jira_migration.model_jira_migration"/>
+        <field name="method">delete_work_logs_by_unix</field>
+        <field name="channel_id" ref="jira_migration.channel_single"/>
+        <field name="retry_pattern" eval="{1: 60, 2: 180, 3: 10, 5: 300}"/>
+    </record>
 </odoo>
