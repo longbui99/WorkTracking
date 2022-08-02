@@ -145,7 +145,8 @@ class JIRAMigration(models.Model):
             return ""
         try:
             body = result.json()
-        except requests.JSONDecodeError as e:
+        except Exception as e:
+            _logger.error(e)
             _logger.warning(result.text)
         if isinstance(body, dict) and body.get('errorMessages', False):
             raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
@@ -531,7 +532,6 @@ class JIRAMigration(models.Model):
                 'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
             }
             while not last_page:
-                print(json.dumps(request_data, indent=4))
                 body = self.make_request(request_data, headers)
                 request_data['endpoint'] = body.get('nextPage', '')
                 last_page = body.get('lastPage', True)
