@@ -531,38 +531,41 @@ class JIRAMigration(models.Model):
             request_data = {
                 'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
             }
-            failed_count = 0
-            while not last_page or failed_count > 10:
+            page_failed_count, 
+            while not last_page or page_failed_count > 5:
                 body = self.make_request(request_data, headers)
                 if isinstance(body, dict):
+                    page_failed_count = 0
                     request_data['endpoint'] = body.get('nextPage', '')
                     last_page = body.get('lastPage', True)
                     ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
                     flush.extend(ids)
-                    if len(flush)>batch or last_page:
-                        request = {
-                            'endpoint': f"{self.jira_server_url}/worklog/list",
-                            'method': 'post',
-                            'body': {'ids': flush}
-                        }
-                        logs = self.make_request(request, headers)
-                        if isinstance(logs, list):
-                            failed_count = 0
-                            data = {'worklogs': logs}
-                            new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
-                            to_create.extend(new_logs)
-                            flush = []
-                        else:
-                            _logger.warning(f"FAILED COUNT: {failed_count}")
-                            failed_count += 1
-                            time.sleep(10)
-                            continue
-                    del body['values']
-                    _logger.info(json.dumps(body, indent=4))
+                    log_failed_count = 0
+                    while log_failed_count > 0:
+                        if len(flush)>batch or last_page:
+                            request = {
+                                'endpoint': f"{self.jira_server_url}/worklog/list",
+                                'method': 'post',
+                                'body': {'ids': flush}
+                            }
+                            logs = self.make_request(request, headers)
+                            if isinstance(logs, list):
+                                log_failed_count = 0
+                                data = {'worklogs': logs}
+                                new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
+                                to_create.extend(new_logs)
+                                flush = []
+                            else:
+                                _logger.warning(f"WORKLOG FAILED COUNT: {log_failed_count}")
+                                log_failed_count += 1
+                                time.sleep(10)
+                                continue
+                        del body['values']
+                        _logger.info(json.dumps(body, indent=4))
                 else:
-                    _logger.warning(f"FAILED COUNT: {failed_count}")
-                    failed_count += 1
-                    time.sleep(10)
+                    _logger.warning(f"PAGE FAILED COUNT: {page_failed_count}")
+                    page_failed_count += 1
+                    time.sleep(30)
                     continue
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
