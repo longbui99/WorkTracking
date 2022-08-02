@@ -143,7 +143,10 @@ class JIRAMigration(models.Model):
         result = method(url=endpoint, headers=headers, data=body)
         if result.text == "":
             return ""
-        body = result.json()
+        try:
+            body = result.json()
+        except requests.JSONDecodeError as e:
+            _logger.warning(result.text)
         if isinstance(body, dict) and body.get('errorMessages', False):
             raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
         return body
