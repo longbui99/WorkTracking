@@ -515,7 +515,7 @@ class JIRAMigration(models.Model):
 
     def load_work_logs_by_unix(self, unix, batch=900):
         if self.import_work_log:
-            unix = self.env['ir.config_parameter'].get_param('latest_unix')
+            unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
             last_page = False
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
