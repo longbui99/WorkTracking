@@ -545,6 +545,8 @@ class JIRAMigration(models.Model):
                     new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
                     to_create.extend(new_logs)
                     flush = []
+                del body['values']
+                _logger.info(json.dumps(body, indent=4))
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
                 
