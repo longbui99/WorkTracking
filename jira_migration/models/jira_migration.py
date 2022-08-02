@@ -545,7 +545,7 @@ class JIRAMigration(models.Model):
                         'body': {'ids': flush}
                     }
                     logs = self.make_request(request, headers)
-                    if logs:
+                    if isinstance(logs, list):
                         failed_count = 0
                         data = {'worklogs': logs}
                         new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
