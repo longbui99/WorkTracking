@@ -539,11 +539,13 @@ class JIRAMigration(models.Model):
                         'method': 'post',
                         'body': {'ids': flush}
                     }
-                    body = self.make_request(request, headers)
-                    data = {'worklogs': body}
+                    logs = self.make_request(request, headers)
+                    data = {'worklogs': logs}
                     new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
                     to_create.extend(new_logs)
                     flush = []
+                del body['values']
+                print(body)
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
                 
