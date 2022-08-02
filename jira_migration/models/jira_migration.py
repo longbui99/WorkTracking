@@ -531,7 +531,8 @@ class JIRAMigration(models.Model):
             request_data = {
                 'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
             }
-            while not last_page:
+            failed_count = 0
+            while not last_page or failed_count > 10:
                 body = self.make_request(request_data, headers)
                 request_data['endpoint'] = body.get('nextPage', '')
                 last_page = body.get('lastPage', True)
@@ -545,11 +546,14 @@ class JIRAMigration(models.Model):
                     }
                     logs = self.make_request(request, headers)
                     if logs:
+                        failed_count = 0
                         data = {'worklogs': logs}
                         new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
                         to_create.extend(new_logs)
                         flush = []
                     else:
+                        _logger.warning(f"FAILED COUNT: {failed_count}")
+                        failed_count += 1
                         time.sleep(10)
                         continue
                 del body['values']
