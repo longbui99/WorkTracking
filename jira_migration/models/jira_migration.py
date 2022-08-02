@@ -458,7 +458,8 @@ class JIRAMigration(models.Model):
     def get_local_worklog_data(self, ticket_id, domain):
         return {
             'work_logs': {x.id_on_jira: x for x in ticket_id.time_log_ids if x.id_on_jira},
-            'tickets': {ticket_id.jira_id: ticket_id.id}
+            'tickets': {ticket_id.jira_id: ticket_id.id},
+            'issue_to_logs': {}
         }
 
     def update_work_log_data(self, log_id, work_log, data):
@@ -481,10 +482,8 @@ class JIRAMigration(models.Model):
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
         new_tickets = []
         tickets = data['tickets']
-        affected_jira_ids = set()
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
-            affected_jira_ids.add(log_id)
             time = self.__load_from_key_paths(work_log, mapping.time)
             duration = self.__load_from_key_paths(work_log, mapping.duration)
             description = self.__load_from_key_paths(work_log, mapping.description) or ''
@@ -507,10 +506,6 @@ class JIRAMigration(models.Model):
                     new_tickets.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data)
-
-        deleted = set(list(data['work_logs'].keys())) - affected_jira_ids
-        if deleted:
-            self.env['jira.time.log'].search([('id_on_jira', 'in', list(deleted))]).unlink()
 
         return new_tickets
 
@@ -560,14 +555,14 @@ class JIRAMigration(models.Model):
                                 flush = []
                                 break
                             else:
-                                _logger.warning(f"WORKLOG FAILED COUNT: {log_failed_count}")
+                                _logger.warning(f"WORK LOG LOAD FAILED COUNT: {log_failed_count}")
                                 log_failed_count += 1
                                 time.sleep(30)
                                 continue
                     del body['values']
                     _logger.info(json.dumps(body, indent=4))
                 else:
-                    _logger.warning(f"PAGE FAILED COUNT: {page_failed_count}")
+                    _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
                     page_failed_count += 1
                     time.sleep(30)
                     continue
@@ -575,6 +570,36 @@ class JIRAMigration(models.Model):
                 self.env["jira.time.log"].create(to_create)
             self.env['ir.config_parameter'].set_param('latest_unix',
                                                       body.get('until', datetime.now().timestamp() * 1000))
+
+    def delete_work_logs_by_unix(self, unix, batch=900):
+        if self.import_work_log:
+            unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
+            last_page = False
+            headers = self.__get_request_headers()
+            flush = []
+            request_data = {
+                'endpoint': f"{self.jira_server_url}/worklog/deleted?since={unix}",
+            }
+            page_failed_count = 0
+            while not last_page and page_failed_count < 6:
+                body = self.make_request(request_data, headers)
+                if isinstance(body, dict):
+                    page_failed_count = 0
+                    request_data['endpoint'] = body.get('nextPage', '')
+                    last_page = body.get('lastPage', True)
+                    ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
+                    flush.extend(ids)
+                    log_failed_count = 0
+                    if len(flush) > batch or last_page:
+                        self.env['jira.time.log'].search([('id_on_jira', 'in', flush)]).unlink()
+                        flush = []
+                    del body['values']
+                    _logger.info(json.dumps(body, indent=4))
+                else:
+                    _logger.warning(f"PAGE DELETED FAILED COUNT: {page_failed_count}")
+                    page_failed_count += 1
+                    time.sleep(30)
+                    continue
 
     def load_work_logs(self, ticket_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:

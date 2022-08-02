@@ -32,6 +32,7 @@ class JiraProject(models.Model):
         self._cr.commit()
         for jira in project.mapped('jira_migration_id'):
             jira.with_delay(eta=30).load_work_logs_by_unix(int(last_update.timestamp()*1000))
+            jira.with_delay(eta=30).delete_work_logs_by_unix(int(last_update.timestamp()*1000))
 
     def reset_state(self):
         for record in self:
