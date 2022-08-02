@@ -515,6 +515,7 @@ class JIRAMigration(models.Model):
 
     def load_work_logs_by_unix(self, unix, batch=900):
         if self.import_work_log:
+            unix = self.env['ir.config_parameter'].get_param('latest_unix')
             last_page = False
             mapping = WorkLogMapping(self.jira_server_url, self.server_type)
             headers = self.__get_request_headers()
@@ -531,7 +532,7 @@ class JIRAMigration(models.Model):
             request_data = {
                 'endpoint': f"{self.jira_server_url}/worklog/updated?since={unix}",
             }
-            page_failed_count, 
+            page_failed_count = 0
             while not last_page or page_failed_count > 5:
                 body = self.make_request(request_data, headers)
                 if isinstance(body, dict):
@@ -569,6 +570,7 @@ class JIRAMigration(models.Model):
                     continue
             if len(to_create):
                 self.env["jira.time.log"].create(to_create)
+            self.env['ir.config_parameter'].set_param('latest_unix', body.get('until', datetime.timestamp()*1000))
                 
 
     def load_work_logs(self, ticket_ids, paging=100, domain=[], load_all=False):
