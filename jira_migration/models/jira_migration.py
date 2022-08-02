@@ -561,8 +561,8 @@ class JIRAMigration(models.Model):
                                 log_failed_count += 1
                                 time.sleep(10)
                                 continue
-                        del body['values']
-                        _logger.info(json.dumps(body, indent=4))
+                    del body['values']
+                    _logger.info(json.dumps(body, indent=4))
                 else:
                     _logger.warning(f"PAGE FAILED COUNT: {page_failed_count}")
                     page_failed_count += 1
