@@ -544,10 +544,14 @@ class JIRAMigration(models.Model):
                         'body': {'ids': flush}
                     }
                     logs = self.make_request(request, headers)
-                    data = {'worklogs': logs}
-                    new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
-                    to_create.extend(new_logs)
-                    flush = []
+                    if logs:
+                        data = {'worklogs': logs}
+                        new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
+                        to_create.extend(new_logs)
+                        flush = []
+                    else:
+                        time.sleep(10)
+                        continue
                 del body['values']
                 _logger.info(json.dumps(body, indent=4))
             if len(to_create):
