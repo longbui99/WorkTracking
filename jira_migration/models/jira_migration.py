@@ -356,14 +356,19 @@ class JIRAMigration(models.Model):
         local_data = self.get_local_issue_data(domain)
         request_data['params'] = request_data.get('params', [])
         request = request_data.copy()
-
-        while start_index < total_response:
+        failed_count = 0
+        while start_index < total_response and failed_count < 6:
             page_size = paging if total_response - start_index > paging else total_response - start_index
             params = request_data['params'].copy()
             params += [f'startAt={start_index}']
             params += [f'maxResults={page_size}']
             request['params'] = params
             body = self.make_request(request, headers)
+            if not isinstance(body, dict):
+                failed_count += 1
+                time.sleep(30)
+                continue
+            failed_count = 0
             if body.get('total', 0) > total_response and load_all:
                 total_response = body['total']
             start_index += paging
