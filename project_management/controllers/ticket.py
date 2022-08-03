@@ -76,10 +76,40 @@ class JiraTicket(http.Controller):
     @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
                 auth='jwt')
     def search_ticket(self, keyword, **kwargs):
-        limit = int(request.params.get('limitRecord', 80))
-        ticket_ids = request.env['jira.ticket'].with_context(limit=limit).search_ticket_by_criteria(keyword)
+        offset = int(kwargs.get('offset', 0))
+        ticket_ids = request.env['jira.ticket'].with_context(offset=offset).search_ticket_by_criteria(keyword)
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
+    
+    @handling_req_res
+    @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    def get_related_active(self, **kwargs):
+        active_ticket_ids = request.env['jira.ticket'].get_all_active(json.loads(request.params.get("payload", '{}')))
+        data = self._get_ticket(active_ticket_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+
+    @handling_req_res
+    @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    def get_favorite_tickets(self, **kwargs):
+        ticket_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
+        data = self._get_ticket(ticket_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+
+    @handling_req_res
+    @http.route(['/management/ticket/favorite/add'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
+    def add_favorite_ticket(self, **kwargs):
+        ticket_id = self.check_work_log_prerequisite()
+        employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
+        employee_id.favorite_ticket_ids = [fields.Command.link(ticket_id.id)]
+        return http.Response("", content_type='application/json', status=200)
+
+    @handling_req_res
+    @http.route(['/management/ticket/favorite/delete'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
+    def remove_favorite_ticket(self, **kwargs):
+        ticket_id = self.check_work_log_prerequisite()
+        employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
+        employee_id.favorite_ticket_ids = [fields.Command.unlink(ticket_id.id)]
+        return http.Response("", content_type='application/json', status=200)
 
     def check_work_log_prerequisite(self, **kwargs):
         id = request.params.get('id')
@@ -128,36 +158,31 @@ class JiraTicket(http.Controller):
         ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_cancel_progress(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
-
+    
+    def _get_work_log(self, log_ids):
+        if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
+            log_ids = request.env['jira.ticket'].browse(log_ids)
+            if not log_ids.exists():
+                return str(MissingError("Cannot found ticket in our system!"))
+        res = []
+        for log in log_ids:
+            res.append({
+                "id": log.id,
+                "key": log.ticket_id.ticket_key,
+                "duration": log.duration,
+                "project": log.project_id.id,
+                "description": log.description,
+                "start_date": log.start_date.isoformat()
+            })
+        return res
+    
     @handling_req_res
-    @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
-    def get_related_active(self, **kwargs):
-        active_ticket_ids = request.env['jira.ticket'].get_all_active(json.loads(request.params.get("payload", '{}')))
-        data = self._get_ticket(active_ticket_ids)
+    @http.route(['/management/ticket/work-log/history'], type="http", cors="*", methods=['GET'], auth='jwt')
+    def get_history_work_logs(self, **kwargs):
+        unix = int(kwargs.get('unix', 0))
+        log_ids = request.env['jira.time.log'].with_context(unix=unix).load_history()
+        data = self._get_work_log(log_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
-
-    @handling_req_res
-    @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
-    def get_favorite_tickets(self, **kwargs):
-        ticket_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
-        data = self._get_ticket(ticket_ids)
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
-
-    @handling_req_res
-    @http.route(['/management/ticket/favorite/add'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
-    def add_favorite_ticket(self, **kwargs):
-        ticket_id = self.check_work_log_prerequisite()
-        employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
-        employee_id.favorite_ticket_ids = [fields.Command.link(ticket_id.id)]
-        return http.Response("", content_type='application/json', status=200)
-
-    @handling_req_res
-    @http.route(['/management/ticket/favorite/delete'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
-    def remove_favorite_ticket(self, **kwargs):
-        ticket_id = self.check_work_log_prerequisite()
-        employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
-        employee_id.favorite_ticket_ids = [fields.Command.unlink(ticket_id.id)]
-        return http.Response("", content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
         id = request.params.get('id')

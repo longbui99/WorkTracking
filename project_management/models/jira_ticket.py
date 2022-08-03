@@ -310,8 +310,9 @@ class JiraProject(models.Model):
         res = get_search_request(payload)
         domain = self.get_search_ticket_domain(res, employee)
         result = self.env["jira.ticket"]
+        offset = int(self._context.get('offset', 0))
         if len(domain):
-            result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result)
+            result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result, offset=offset)
         return result
 
     def action_cancel_progress(self, values={}):

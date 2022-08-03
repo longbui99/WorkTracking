@@ -1,4 +1,6 @@
 from datetime import datetime
+from turtle import end_fill
+from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second, get_date_range
@@ -75,3 +77,11 @@ class JiraTimeLog(models.Model):
                 'key': record.encode_string,
                 'value': nonce
             })
+
+    @api.model
+    def load_history(self):
+        number_of_days = 3
+        unix = self._context.get('unix')
+        end_time = (unix and datetime.fromtimestamp(unix) or datetime.now())
+        start_time = end_time - relativedelta(days=number_of_days)
+        return self.search([('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time)], order='start_date desc')
