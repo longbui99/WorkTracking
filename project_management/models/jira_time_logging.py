@@ -89,7 +89,9 @@ class JiraTimeLog(models.Model):
         tz = pytz.timezone(self.env.user.tz or 'UTC')
         number_of_days = 3
         unix = self._context.get('unix')
-        end_time = (unix and datetime.fromtimestamp(unix) or datetime.now())
+        utc_end_time = (unix and datetime.fromtimestamp(unix) or datetime.now())
+        user_end_time = utc_end_time.astimezone(tz) + relativedelta(hour=23, minute=59, second=59)
+        end_time = user_end_time.astimezone(pytz.utc)
         user_start_time = end_time.astimezone(tz) - relativedelta(days=number_of_days, hour=0, minute=0, second=0)
         start_time  = user_start_time.astimezone(pytz.utc)
         return self.search([('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time), ('user_id', '=', self.env.user.id)], order='start_date desc')
