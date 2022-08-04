@@ -23,3 +23,13 @@ class JiraTimeLog(models.Model):
         action = self.env.ref("jira_migration.export_work_log_action_form").read()[0]
         action["context"] = {'default_time_log_ids': self.ids}
         return action
+
+    def write(self, values):
+        res = super().write(values)
+        self.ticket_id.jira_migration_id.update_time_logs(self.ticket_id, self)
+        return res
+
+    def unlink(self):
+        if self.id_on_jira:
+            self.ticket_id.jira_migration_id.delete_time_logs(self.ticket_id, self)
+        return super().unlink()

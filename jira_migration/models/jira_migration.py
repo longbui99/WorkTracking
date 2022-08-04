@@ -677,6 +677,20 @@ class JIRAMigration(models.Model):
             except:
                 continue
 
+    def delete_time_logs(self, ticket_id, time_log_ids):
+        headers = self.__get_request_headers()
+        request_data = {
+            'endpoint': f"{self.jira_server_url}/issue/{ticket_id.ticket_key}/worklog",
+            'method': 'delete',
+        }
+        for log in time_log_ids:
+            payload = self._get_time_log_payload(log)
+            request_data['body'] = payload
+            request_clone = request_data.copy()
+            request_clone['endpoint'] += f"/{log.id_on_jira}"
+            res = self.make_request(request_clone, headers)
+            
+
     def export_time_log(self, ticket_id):
         current_user_id = self.env.user.id
         time_log_to_create_ids = ticket_id.time_log_ids.filtered(lambda x: not x.id_on_jira and x.state == 'done')

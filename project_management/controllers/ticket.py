@@ -171,6 +171,7 @@ class JiraTicket(http.Controller):
                 "key": log.ticket_id.ticket_key,
                 "duration": log.duration,
                 "project": log.project_id.id,
+                "issue": log.ticket_id.id,
                 "description": log.description,
                 "start_date": log.start_date.isoformat()
             })
@@ -192,11 +193,18 @@ class JiraTicket(http.Controller):
         return ac_id
     
     @handling_req_res
-    @http.route(['/management/ticket/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt')
+    @http.route(['/management/ticket/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def update_done_work_logs(self, **kwargs):
         params = json.loads(request.httprequest.data)
         time_id = params.pop('id')
+        params.pop('jwt')
         request.env['jira.time.log'].browse(time_id).write(params)
+        return http.Response("", content_type='application/json', status=200)
+    
+    @handling_req_res
+    @http.route(['/management/ticket/work-log/delete/<int:log_id>'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
+    def delete_done_work_logs(self, log_id, **kwargs):
+        request.env['jira.time.log'].browse(log_id).unlink()
         return http.Response("", content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):

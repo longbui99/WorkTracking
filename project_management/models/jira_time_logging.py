@@ -54,6 +54,12 @@ class JiraTimeLog(models.Model):
         work_log_ids.filtered(lambda r: not r.end).write({'end': datetime.now()})
         return super().unlink()
 
+    def write(self, values):
+        if 'time' in values:
+            values['duration'] = convert_log_format_to_second(values['time'])
+            values.pop('time')
+        return super().write(values)
+
     @api.model
     def create(self, values):
         if 'time' in values:
