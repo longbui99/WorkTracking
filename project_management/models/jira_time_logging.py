@@ -1,5 +1,5 @@
 from datetime import datetime
-from turtle import end_fill
+import pytz
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -80,8 +80,10 @@ class JiraTimeLog(models.Model):
 
     @api.model
     def load_history(self):
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
         number_of_days = 3
         unix = self._context.get('unix')
         end_time = (unix and datetime.fromtimestamp(unix) or datetime.now())
-        start_time = end_time - relativedelta(days=number_of_days)
-        return self.search([('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time)], order='start_date desc')
+        user_start_time = end_time.astimezone(tz) - relativedelta(days=number_of_days, hour=0, minute=0, second=0)
+        start_time  = user_start_time.astimezone(pytz.utc)
+        return self.search([('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time), ('user_id', '=', self.env.user.id)], order='start_date desc')
