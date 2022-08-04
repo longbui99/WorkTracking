@@ -196,9 +196,8 @@ class JiraTicket(http.Controller):
     def update_done_work_logs(self, **kwargs):
         params = json.loads(request.httprequest.data)
         time_id = params.pop('id')
-        log_ids = request.env['jira.time.log'].browse(time_id).write(params)
-        data = self._get_work_log(log_ids)
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
+        request.env['jira.time.log'].browse(time_id).write(params)
+        return http.Response("", content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
         id = request.params.get('id')
