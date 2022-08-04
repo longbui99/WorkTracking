@@ -190,6 +190,22 @@ class JiraTicket(http.Controller):
             raise MissingParams("Ticket's ID must be specific!")
         ac_id = request.env['jira.ac'].browse(int(id))
         return ac_id
+    
+    @handling_req_res
+    @http.route(['/management/ticket/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt')
+    def update_done_work_logs(self, **kwargs):
+        params = json.loads(request.httprequest.data)
+        time_id = params.pop('id')
+        log_ids = request.env['jira.time.log'].browse(time_id).write(params)
+        data = self._get_work_log(log_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+
+    def __check_ac_prequisite(self, **kwargs):
+        id = request.params.get('id')
+        if not isinstance(id, int):
+            raise MissingParams("Ticket's ID must be specific!")
+        ac_id = request.env['jira.ac'].browse(int(id))
+        return ac_id
 
     @handling_req_res
     @http.route(['/management/ticket/ac'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
