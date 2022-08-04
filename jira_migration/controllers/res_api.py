@@ -15,7 +15,8 @@ class JiraTicketMigration(JiraTicket):
     def search_ticket(self, keyword, **kwargs):
         try:
             res = super().search_ticket(keyword, **kwargs)
-            if res.data == b'[]':
+            offset = int(kwargs.get('offset', 0))
+            if res.data == b'[]' and offset == 0:
                 ticket_ids = request.env['jira.ticket']
                 for migrate in request.env['jira.migration'].sudo().search([]):
                     ticket_ids |= migrate.sudo().search_ticket(keyword)
