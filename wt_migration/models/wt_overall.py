@@ -6,7 +6,7 @@ from odoo.exceptions import UserError
 class JiraStatus(models.Model):
     _inherit = "wt.status"
 
-    wt_key = fields.Char(string='Jira Key')
+    wt_key = fields.Char(string='Tasks Key')
 
 
 class JiraTimeLog(models.Model):

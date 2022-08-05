@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 
 class LoadByLinkTransient(models.TransientModel):
     _name = 'export.work.log.pivot'
-    _description = 'JIRA Load By Link'
+    _description = 'Tasks Load By Link'
 
     time_log_ids = fields.One2many('wt.time.log', store=False)
     ticket_ids = fields.One2many('wt.ticket', store=False)

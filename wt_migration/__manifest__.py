@@ -2,8 +2,8 @@
 # See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Jira Migration',
-    'summary': 'Jira Migration',
+    'name': 'Tasks Migration',
+    'summary': 'Tasks Migration',
     'category': 'Project',
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",

@@ -23,14 +23,14 @@ _logger = logging.getLogger(__name__)
 
 class JIRAMigration(models.Model):
     _name = 'wt.migration'
-    _description = 'JIRA Migration'
+    _description = 'Tasks Migration'
     _order = 'sequence asc'
     _rec_name = 'name'
 
     name = fields.Char(string='Name', required=True)
     sequence = fields.Integer(string='Sequence')
     timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
-    wt_server_url = fields.Char(string='JIRA Server URL')
+    wt_server_url = fields.Char(string='Tasks Server URL')
     auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type",
                                  default="basic")
     server_type = fields.Selection([('self_hosting', 'Self-Hosted'), ('cloud', 'Cloud')], string="Server Type",
@@ -38,7 +38,7 @@ class JIRAMigration(models.Model):
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
-    wt_agile_url = fields.Char(string="JIRA Agile URL")
+    wt_agile_url = fields.Char(string="Tasks Agile URL")
     admin_user_ids = fields.Many2many("res.users", string="Admins")
     active = fields.Boolean(string="Active?", default=True)
 
@@ -150,7 +150,7 @@ class JIRAMigration(models.Model):
             _logger.error(e)
             _logger.warning(result.text)
         if isinstance(body, dict) and body.get('errorMessages', False):
-            raise UserError("Jira Server: \n" + "\n".join(body['errorMessages']))
+            raise UserError("Tasks Server: \n" + "\n".join(body['errorMessages']))
         return body
 
     # ===========================================  Section for loading tickets/issues =============================================
