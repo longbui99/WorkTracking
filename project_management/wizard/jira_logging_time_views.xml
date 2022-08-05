@@ -2,7 +2,7 @@
 <odoo>
     <record id="log_work_form_view" model="ir.ui.view">
         <field name="name">Log Works</field>
-        <field name="model">jira.done.work.log</field>
+        <field name="model">wt.done.work.log</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
@@ -22,7 +22,7 @@
 
     <record id="log_work_action_form_view" model="ir.actions.act_window">
         <field name="name">Log Works</field>
-        <field name="res_model">jira.done.work.log</field>
+        <field name="res_model">wt.done.work.log</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="log_work_form_view"/>
         <field name="target">new</field>

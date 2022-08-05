@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_hr_form_view_inherited" model="ir.ui.view">
+        <field name="name">JIRA Configurations</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="project_management.wt_hr_form_view_inherited"/>
+        <field name="arch" type="xml">
+            <field name="order_style" position="after">
+                <field name="is_wt_admin" widget="boolean_toggle"/>
+                <field name="auto_export_work_log" widget="boolean_toggle"/>
+                <field name="wt_private_key" password="True"/>
+                <field name="auto_remove_access" widget="boolean_toggle"/>
+                <field name="maximum_connection" attrs="{'invisible': [('auto_remove_access', '=', False)]}"/>
+                <button name="action_reset_token" type="object" string="Reset Extension Token" class="btn-secondary"/>
+            </field>
+        </field>
+    </record>
+</odoo>

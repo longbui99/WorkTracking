@@ -10,7 +10,7 @@ import base64
 
 
 class JiraProject(models.Model):
-    _name = "jira.ticket"
+    _name = "wt.ticket"
     _description = "JIRA Ticket"
     _order = 'ticket_sequence desc, sequence asc, create_date desc'
 
@@ -19,29 +19,29 @@ class JiraProject(models.Model):
     ticket_name = fields.Char(string='Name', required=True)
     ticket_key = fields.Char(string='Ticket Key', required=True)
     ticket_url = fields.Char(string='JIRA Ticket')
-    time_log_ids = fields.One2many('jira.time.log', 'ticket_id', string='Log Times')
+    time_log_ids = fields.One2many('wt.time.log', 'ticket_id', string='Log Times')
     story_point = fields.Float(string='Estimate')
     story_point_unit = fields.Selection([('general', 'Fibonanci'), ('hrs', 'Hour(s)')], string="Estimate Unit", default="general")
-    project_id = fields.Many2one('jira.project', string='Project', required=True)
+    project_id = fields.Many2one('wt.project', string='Project', required=True)
     assignee_id = fields.Many2one('res.users', string='Assignee')
     tester_id = fields.Many2one("res.users", string="Tester")
-    ticket_type_id = fields.Many2one("jira.type", string="Type")
-    ac_ids = fields.One2many("jira.ac", "ticket_id", string="Acceptance Criteria")
+    ticket_type_id = fields.Many2one("wt.type", string="Type")
+    ac_ids = fields.One2many("wt.ac", "ticket_id", string="Acceptance Criteria")
     suitable_assignee = fields.Many2many('res.users', store=False, compute='_compute_suitable_assignee',
                                          compute_sudo=True)
     status_value = fields.Char('Status Raw Value', related='status_id.key')
-    status_id = fields.Many2one('jira.status', string='Status')
+    status_id = fields.Many2one('wt.status', string='Status')
     duration = fields.Integer('Duration', compute='_compute_duration', store=True)
-    progress_cluster_id = fields.Many2one('jira.work.log.cluster', string='Progress Cluster')
-    work_log_ids = fields.One2many('jira.work.log', 'ticket_id', string='Work Log Statuses')
+    progress_cluster_id = fields.Many2one('wt.work.log.cluster', string='Progress Cluster')
+    work_log_ids = fields.One2many('wt.work.log', 'ticket_id', string='Work Log Statuses')
     active_duration = fields.Integer("Active Duration", compute='_compute_active_duration')
     my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration")
     last_start = fields.Datetime("Last Start", compute="_compute_last_start")
     ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
     start_date = fields.Datetime("Start Date")
-    parent_ticket_id = fields.Many2one("jira.ticket", string="Parent")
+    parent_ticket_id = fields.Many2one("wt.ticket", string="Parent")
     log_to_parent = fields.Boolean("Log to Parent?")
-    children_ticket_ids = fields.One2many("jira.ticket", "parent_ticket_id", store=False)
+    children_ticket_ids = fields.One2many("wt.ticket", "parent_ticket_id", store=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
@@ -159,7 +159,7 @@ class JiraProject(models.Model):
             time_log_ids = record.time_log_ids.filtered(
                 lambda r: r.user_id.id == user_id and r.state == 'progress' and source == source)
             if not time_log_ids:
-                cluster = self.env['jira.work.log.cluster'].create({
+                cluster = self.env['wt.work.log.cluster'].create({
                     'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
                 })
                 record.time_log_ids = [fields.Command.create({
@@ -198,7 +198,7 @@ class JiraProject(models.Model):
     def action_done_work_log(self, values={}):
         self.action_pause_work_log(values)
         source = values.get('source', 'Internal')
-        change_records = self.env['jira.ticket']
+        change_records = self.env['wt.ticket']
         for ticket in self:
             record = ticket._get_suitable_log()
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
@@ -229,15 +229,15 @@ class JiraProject(models.Model):
 
     def action_manual_work_log(self, values={}):
         source = values.get('source', 'Internal')
-        log_ids = self.env['jira.time.log']
-        change_records = self.env['jira.ticket']
+        log_ids = self.env['wt.time.log']
+        change_records = self.env['wt.ticket']
         start_date = values.get('start_date', False)
         if start_date:
             start_date = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S%z").astimezone(pytz.utc)
             start_date = start_date.replace(tzinfo=None)
         for ticket in self:
             record = ticket._get_suitable_log()
-            log_ids |= record.env['jira.time.log'].create({
+            log_ids |= record.env['wt.time.log'].create({
                 'description': values.get('description', ''),
                 'time': values.get('time', ''),
                 'user_id': self.env.user.id,
@@ -260,7 +260,7 @@ class JiraProject(models.Model):
         source = values.get('source', 'Internal')
         if values.get('except', False):
             except_ids = self.browse(values['except'])
-        active_time_ids = self.env['jira.time.log'].search([('user_id', '=', self.env.user.id),
+        active_time_ids = self.env['wt.time.log'].search([('user_id', '=', self.env.user.id),
                                                             ('source', '=', source),
                                                             ('state', '=', 'progress')])
         active_ticket_ids = (active_time_ids.mapped('ticket_id') - except_ids).ids
@@ -288,7 +288,7 @@ class JiraProject(models.Model):
             project_domain = expression.OR([project_domain,[('project_id.project_name', 'ilike', res['project'])]])
             domain = expression.AND([domain, project_domain])
             if 'sprint' in res:
-                project_id = self.env["jira.project"].search([('project_key', '=', res['project'])], limit=1)
+                project_id = self.env["wt.project"].search([('project_key', '=', res['project'])], limit=1)
                 if project_id:
                     if 'sprint+' == res['sprint']:
                         sprint_id = project_id.sprint_ids.filtered(lambda r: r.state == 'future')
@@ -309,7 +309,7 @@ class JiraProject(models.Model):
         employee = self._get_result_management()
         res = get_search_request(payload)
         domain = self.get_search_ticket_domain(res, employee)
-        result = self.env["jira.ticket"]
+        result = self.env["wt.ticket"]
         offset = int(self._context.get('offset', 0))
         if len(domain):
             result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result, offset=offset)

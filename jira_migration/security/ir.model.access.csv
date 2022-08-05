@@ -1,6 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_jira_migration_user,jira.migration,model_jira_migration,project_management.group_jira_user,1,0,0,0
-access_jira_migration_manager,jira.migration,model_jira_migration,project_management.group_jira_manager,1,1,1,1
-access_jira_load_by_link_user,jira.load.by.link,model_jira_load_by_link,project_management.group_jira_user,1,1,1,1
-access_jira_load_by_link_line_user,jira.load.by.link.line,model_jira_load_by_link_line,project_management.group_jira_user,1,1,1,1
-access_export_work_log_pivot_user,export.work.log.pivot,model_export_work_log_pivot,project_management.group_jira_user,1,1,1,1

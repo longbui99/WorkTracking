@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 
 
 class JiraType(models.Model):
-    _name = "jira.type"
+    _name = "wt.type"
     _description = "JIRA type"
     _order = 'write_date desc'
     

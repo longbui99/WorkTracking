@@ -2,7 +2,7 @@ from odoo import api, fields, models, _
 
 
 class JiraProject(models.Model):
-    _name = "jira.project"
+    _name = "wt.project"
     _description = "JIRA Project"
     _order = 'pin desc, sequence asc, create_date desc'
     _rec_name = 'project_key'
@@ -12,16 +12,16 @@ class JiraProject(models.Model):
     project_name = fields.Char(string='Name', required=True)
     project_key = fields.Char(string='Project Key')
     allowed_user_ids = fields.Many2many('res.users', string='Allowed Users')
-    allowed_manager_ids = fields.Many2many('res.users', 'res_user_jira_project_rel_2', string='Managers')
-    ticket_ids = fields.One2many('jira.ticket', 'project_id', string='Tickets')
-    jira_migration_id = fields.Many2one("jira.migration", string="Jira Migration Credentials")
-    chain_work_ids = fields.One2many("jira.chain.work.session", "project_id", "Chain Works")
+    allowed_manager_ids = fields.Many2many('res.users', 'res_user_wt_project_rel_2', string='Managers')
+    ticket_ids = fields.One2many('wt.ticket', 'project_id', string='Tickets')
+    wt_migration_id = fields.Many2one("wt.migration", string="Jira Migration Credentials")
+    chain_work_ids = fields.One2many("wt.chain.work.session", "project_id", "Chain Works")
     board_ids = fields.One2many('board.board', 'project_id', string="Boards")
     sprint_ids = fields.One2many('agile.sprint', 'project_id', string="Sprints")
 
     def fetch_user_from_ticket(self):
         for record in self:
-            user_ids = self.env['jira.ticket'] \
+            user_ids = self.env['wt.ticket'] \
                 .search([('project_id', '=', record.id)]) \
                 .mapped('time_log_ids').mapped('user_id')
             create_new_users = user_ids.filtered(lambda r: r.id not in record.allowed_user_ids.ids)
@@ -51,6 +51,6 @@ class JiraProject(models.Model):
 
     def action_open_sprint(self):
         self.ensure_one()
-        action = self.env['ir.actions.actions']._for_xml_id("project_management.action_jira_active_sprint")
+        action = self.env['ir.actions.actions']._for_xml_id("project_management.action_wt_active_sprint")
         action["domain"] = [('project_id', '=', self.id)]
         return action

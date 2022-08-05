@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_migration_tree_view" model="ir.ui.view">
+        <field name="name">Jira Migrations</field>
+        <field name="priority">1</field>
+        <field name="model">wt.migration</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="wt_server_url"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_migration_form_view" model="ir.ui.view">
+        <field name="name">Jira Migrations</field>
+        <field name="priority">1</field>
+        <field name="model">wt.migration</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="load_projects" type="object" string="Load All Projects" class="btn-primary"/>
+                    <button name="load_boards" type="object" string="Load Boards" class="btn-primary"/>
+                    <button name="load_sprints" type="object" string="Load Sprints" class="btn-primary"/>
+                    <button name="update_issue_for_sprints" type="object" string="Update Sprints" class="btn-secondary"/>
+                    <button name="load_all_users" type="object" string="Load Users" class="btn-primary"/>
+                    <button name="load_all_tickets" type="object" string="Load All Tickets" class="btn-primary"/>
+                    <button name="load_my_tickets" type="object" string="Load My Tickets" class="btn-primary"/>
+                    <button name="load_by_links" type="object" string="Load By Keys" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_toggle" type="object" class="oe_stat_button text-primary text-center" attrs="{'invisible': [('active', '=', True)]}">
+                            Active
+                        </button>
+                        <button name="action_toggle" type="object" class="oe_stat_button text-danger text-center" attrs="{'invisible': [('active', '=', False)]}">
+                            Archive
+                        </button>
+                    </div>
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="wt_server_url"/>
+                            <field name="wt_agile_url"/>
+                            <field name="auth_type"/>
+                            <field name="server_type"/>
+                            <field name="timezone"/>
+                            <field name="admin_user_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Work Logs">
+                            <group>
+                                <group>
+                                    <field name="import_work_log" widget="boolean_toggle"/>
+                                    <field name="is_load_acs" widget="boolean_toggle"/>
+                                </group>
+                                <group>
+                                    <field name="auto_export_work_log" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_migration_search_view" model="ir.ui.view">
+        <field name="name">Jira Migrations</field>
+        <field name="model">wt.migration</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter string="All" name="all" domain="[('active','in', (True,False))]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_wt_migration" model="ir.actions.act_window">
+        <field name="name">Jira Migrations</field>
+        <field name="res_model">wt.migration</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_all': 1}</field>
+        <field name="view_id" ref="wt_migration_tree_view"/>
+    </record>
+</odoo>

@@ -13,21 +13,21 @@
         'data/digest_email_template.xml',
         'data/system_data.xml',
 
-        'security/jira_security.xml',
+        'security/wt_security.xml',
         'security/ir.model.access.csv',
 
         'views/board_board_views.xml',
         'views/hr_employee_views.xml',
-        'views/jira_project_views.xml',
-        'views/jira_ticket_views.xml',
-        'views/jira_status_views.xml',
-        'views/jira_type_views.xml',
-        'views/jira_time_logging_views.xml',
+        'views/wt_project_views.xml',
+        'views/wt_ticket_views.xml',
+        'views/wt_status_views.xml',
+        'views/wt_type_views.xml',
+        'views/wt_time_logging_views.xml',
         'views/digest_email_views.xml',
 
         'views/menus.xml',
 
-        'wizard/jira_logging_time_views.xml',
+        'wizard/wt_logging_time_views.xml',
         'wizard/kick_off_counting_views.xml',
     ],
     "application": True,

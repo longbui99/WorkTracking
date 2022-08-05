@@ -5,7 +5,7 @@ import json
 
 
 class JiraWorkLog(models.Model):
-    _name = "jira.work.log"
+    _name = "wt.work.log"
     _description = "JIRA Work Log"
     _order = 'create_date desc'
 
@@ -13,8 +13,8 @@ class JiraWorkLog(models.Model):
     end = fields.Datetime(string='End')
     duration = fields.Integer(string='Duration (s)', compute='_compute_duration', store=True)
     description = fields.Text(string='Description', required=True)
-    ticket_id = fields.Many2one('jira.ticket', string='Ticket')
-    cluster_id = fields.Many2one('jira.work.log.cluster', string='Cluster')
+    ticket_id = fields.Many2one('wt.ticket', string='Ticket')
+    cluster_id = fields.Many2one('wt.work.log.cluster', string='Cluster')
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done'), ('cancel', 'Canceled')], string='Status',
                              default='progress')
     source = fields.Char(string='Source')
@@ -44,7 +44,7 @@ class JiraWorkLog(models.Model):
 
 
 class JiraWorkLogCluster(models.Model):
-    _name = "jira.work.log.cluster"
+    _name = "wt.work.log.cluster"
     _description = "JIRA Work Log Cluster"
 
     name = fields.Char(string='Cluster Name')

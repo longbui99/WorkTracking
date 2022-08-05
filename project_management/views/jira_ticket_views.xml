@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="jira_ticket_tree_view" model="ir.ui.view">
+    <record id="wt_ticket_tree_view" model="ir.ui.view">
         <field name="name">Jira Tickets</field>
         <field name="priority">1</field>
-        <field name="model">jira.ticket</field>
+        <field name="model">wt.ticket</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="sequence" widget="handle"/>
@@ -17,10 +17,10 @@
         </field>
     </record>
 
-    <record id="jira_ticket_form_view" model="ir.ui.view">
+    <record id="wt_ticket_form_view" model="ir.ui.view">
         <field name="name">Jira Tickets</field>
         <field name="priority">1</field>
-        <field name="model">jira.ticket</field>
+        <field name="model">wt.ticket</field>
         <field name="arch" type="xml">
             <form>
                 <header>
@@ -119,10 +119,10 @@
         </field>
     </record>
 
-    <record id="jira_ticket_kanban_view" model="ir.ui.view">
+    <record id="wt_ticket_kanban_view" model="ir.ui.view">
         <field name="name">Jira Tickets</field>
         <field name="priority">1</field>
-        <field name="model">jira.ticket</field>
+        <field name="model">wt.ticket</field>
         <field name="arch" type="xml">
             <kanban default_group_by="status_id">
                 <field name="status_id" options="{'group_by_tooltip': {'name': 'Description'}}"/>
@@ -142,10 +142,10 @@
         </field>
     </record>
 
-    <record id="jira_ticket_kanban_mobile_view" model="ir.ui.view">
+    <record id="wt_ticket_kanban_mobile_view" model="ir.ui.view">
         <field name="name">Jira Tickets</field>
         <field name="priority">1</field>
-        <field name="model">jira.ticket</field>
+        <field name="model">wt.ticket</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_mobile">
                 <field name="ticket_key"/>
@@ -166,9 +166,9 @@
         </field>
     </record>
 
-    <record id="jira_ticket_search_view" model="ir.ui.view">
+    <record id="wt_ticket_search_view" model="ir.ui.view">
         <field name="name">Jira Tickets</field>
-        <field name="model">jira.ticket</field>
+        <field name="model">wt.ticket</field>
         <field name="arch" type="xml">
             <search>
                 <field name="ticket_key"/>
@@ -183,23 +183,23 @@
         </field>
     </record>
 
-    <record id="action_jira_active_sprint" model="ir.actions.act_window">
+    <record id="action_wt_active_sprint" model="ir.actions.act_window">
         <field name="name">Sprints</field>
-        <field name="res_model">jira.ticket</field>
+        <field name="res_model">wt.ticket</field>
         <field name="view_mode">kanban,form</field>
         <field name="context">{'search_default_filter_my_ticket': True}</field>
-        <field name="view_id" ref="jira_ticket_tree_view"/>
-        <field name="search_view_id" ref="project_management.jira_ticket_search_view"/>
+        <field name="view_id" ref="wt_ticket_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_ticket_search_view"/>
     </record>
 
-    <record id="action_jira_ticket" model="ir.actions.act_window">
+    <record id="action_wt_ticket" model="ir.actions.act_window">
         <field name="name">Jira Tickets</field>
-        <field name="res_model">jira.ticket</field>
+        <field name="res_model">wt.ticket</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="context">{'search_default_filter_my_ticket': True, 'search_default_group_by_project': True,
             'search_default_filter_in_progress': True}
         </field>
-        <field name="view_id" ref="jira_ticket_tree_view"/>
-        <field name="search_view_id" ref="project_management.jira_ticket_search_view"/>
+        <field name="view_id" ref="wt_ticket_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_ticket_search_view"/>
     </record>
 </odoo>

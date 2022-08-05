@@ -85,9 +85,9 @@ def mock_with_delay():
                 self.assertDictEqual(delay_kwargs, {})
 
     An example of the first kind of test:
-    https://github.com/camptocamp/connector-jira/blob/0ca4261b3920d5e8c2ae4bb0fc352ea3f6e9d2cd/connector_jira/tests/test_batch_timestamp_import.py#L43-L76  # noqa
+    https://github.com/camptocamp/connector-wt/blob/0ca4261b3920d5e8c2ae4bb0fc352ea3f6e9d2cd/connector_wt/tests/test_batch_timestamp_import.py#L43-L76  # noqa
     And the second kind:
-    https://github.com/camptocamp/connector-jira/blob/0ca4261b3920d5e8c2ae4bb0fc352ea3f6e9d2cd/connector_jira/tests/test_import_task.py#L34-L46  # noqa
+    https://github.com/camptocamp/connector-wt/blob/0ca4261b3920d5e8c2ae4bb0fc352ea3f6e9d2cd/connector_wt/tests/test_import_task.py#L34-L46  # noqa
 
     """
     with mock.patch(

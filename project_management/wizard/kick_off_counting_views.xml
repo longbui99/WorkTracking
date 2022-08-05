@@ -2,7 +2,7 @@
 <odoo>
     <record id="chain_work_base_form_view" model="ir.ui.view">
         <field name="name">Chain Work</field>
-        <field name="model">jira.chain.work.base</field>
+        <field name="model">wt.chain.work.base</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
@@ -21,7 +21,7 @@
     </record>
     <record id="chain_work_base_action" model="ir.actions.act_window">
         <field name="name">Chain Work</field>
-        <field name="res_model">jira.chain.work.base</field>
+        <field name="res_model">wt.chain.work.base</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_base_form_view"/>
         <field name="target">new</field>
@@ -29,7 +29,7 @@
 
     <record id="chain_work_base_mobile_action" model="ir.actions.act_window">
         <field name="name">Chain Work</field>
-        <field name="res_model">jira.chain.work.base</field>
+        <field name="res_model">wt.chain.work.base</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_base_form_view"/>
     </record>
@@ -37,7 +37,7 @@
 
     <record id="chain_work_session_form_view" model="ir.ui.view">
         <field name="name">Chain Work</field>
-        <field name="model">jira.chain.work.session</field>
+        <field name="model">wt.chain.work.session</field>
         <field name="arch" type="xml">
             <form>
                 <header>
@@ -121,7 +121,7 @@
 
     <record id="chain_work_session_form_line_view" model="ir.ui.view">
         <field name="name">Chain Work Line</field>
-        <field name="model">jira.chain.work.session.line</field>
+        <field name="model">wt.chain.work.session.line</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
@@ -135,7 +135,7 @@
 
     <record id="log_work_action_form_view" model="ir.actions.act_window">
         <field name="name">Chain Work</field>
-        <field name="res_model">jira.chain.work.session</field>
+        <field name="res_model">wt.chain.work.session</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_session_form_view"/>
         <field name="target">new</field>
@@ -143,7 +143,7 @@
 
     <record id="log_work_action_form_mobile_view" model="ir.actions.act_window">
         <field name="name">Chain Work</field>
-        <field name="res_model">jira.chain.work.session</field>
+        <field name="res_model">wt.chain.work.session</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="chain_work_session_form_view"/>
     </record>

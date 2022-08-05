@@ -10,16 +10,16 @@ import json
 
 
 class JiraTimeLog(models.Model):
-    _name = "jira.time.log"
+    _name = "wt.time.log"
     _description = "JIRA Time Log"
     _order = 'start_date desc'
     _rec_name = 'ticket_id'
 
     time = fields.Char(string='Time Logging', compute='_compute_time_data', store=True)
     description = fields.Text(string='Description', required=True)
-    ticket_id = fields.Many2one('jira.ticket', string='Ticket', ondelete="cascade")
+    ticket_id = fields.Many2one('wt.ticket', string='Ticket', ondelete="cascade")
     duration = fields.Integer(string='Duration', required=True)
-    cluster_id = fields.Many2one('jira.work.log.cluster')
+    cluster_id = fields.Many2one('wt.work.log.cluster')
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')
     source = fields.Char(string='Source')
     user_id = fields.Many2one('res.users', string='User')
