@@ -3,7 +3,7 @@ from odoo import api, fields, models, _
 
 class JiraProject(models.Model):
     _name = "wt.status"
-    _description = "JIRA Status"
+    _description = "Tasks Status"
     _order = 'sequence asc'
 
     sequence = fields.Integer(string='Sequence')

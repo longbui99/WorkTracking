@@ -13,7 +13,7 @@ PARSER = {
 
 class KickOffSession(models.TransientModel):
     _name = 'wt.chain.work.session'
-    _description = 'JIRA Kick Of Session'
+    _description = 'Tasks Kick Of Session'
     _order = "create_date desc"
 
     name = fields.Char(string="Name")
@@ -119,7 +119,7 @@ class KickOffSession(models.TransientModel):
 
 class KickOffSessionLine(models.TransientModel):
     _name = 'wt.chain.work.session.line'
-    _description = 'JIRA Kick Of Session Line'
+    _description = 'Tasks Kick Of Session Line'
     _order = 'sequence asc, write_date desc'
 
     sequence = fields.Integer(string="Sequence")
@@ -164,7 +164,7 @@ class KickOffSessionLine(models.TransientModel):
 
 class KickOffBase(models.TransientModel):
     _name = 'wt.chain.work.base'
-    _description = 'JIRA Kick Of base'
+    _description = 'Tasks Kick Of base'
 
     name = fields.Char(string="Name")
     type = fields.Selection([('manual', 'Select manually')], default='manual')

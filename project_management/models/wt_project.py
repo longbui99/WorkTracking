@@ -3,7 +3,7 @@ from odoo import api, fields, models, _
 
 class JiraProject(models.Model):
     _name = "wt.project"
-    _description = "JIRA Project"
+    _description = "Tasks Project"
     _order = 'pin desc, sequence asc, create_date desc'
     _rec_name = 'project_key'
 
@@ -14,7 +14,7 @@ class JiraProject(models.Model):
     allowed_user_ids = fields.Many2many('res.users', string='Allowed Users')
     allowed_manager_ids = fields.Many2many('res.users', 'res_user_wt_project_rel_2', string='Managers')
     ticket_ids = fields.One2many('wt.ticket', 'project_id', string='Tickets')
-    wt_migration_id = fields.Many2one("wt.migration", string="Jira Migration Credentials")
+    wt_migration_id = fields.Many2one("wt.migration", string="Tasks Migration Credentials")
     chain_work_ids = fields.One2many("wt.chain.work.session", "project_id", "Chain Works")
     board_ids = fields.One2many('board.board', 'project_id', string="Boards")
     sprint_ids = fields.One2many('agile.sprint', 'project_id', string="Sprints")

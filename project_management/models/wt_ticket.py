@@ -11,14 +11,14 @@ import base64
 
 class JiraProject(models.Model):
     _name = "wt.ticket"
-    _description = "JIRA Ticket"
+    _description = "Tasks Ticket"
     _order = 'ticket_sequence desc, sequence asc, create_date desc'
 
     pin = fields.Boolean(string='Pin')
     sequence = fields.Integer(string='Sequence')
     ticket_name = fields.Char(string='Name', required=True)
     ticket_key = fields.Char(string='Ticket Key', required=True)
-    ticket_url = fields.Char(string='JIRA Ticket')
+    ticket_url = fields.Char(string='Tasks Ticket')
     time_log_ids = fields.One2many('wt.time.log', 'ticket_id', string='Log Times')
     story_point = fields.Float(string='Estimate')
     story_point_unit = fields.Selection([('general', 'Fibonanci'), ('hrs', 'Hour(s)')], string="Estimate Unit", default="general")

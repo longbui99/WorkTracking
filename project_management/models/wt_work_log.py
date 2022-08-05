@@ -6,7 +6,7 @@ import json
 
 class JiraWorkLog(models.Model):
     _name = "wt.work.log"
-    _description = "JIRA Work Log"
+    _description = "Tasks Work Log"
     _order = 'create_date desc'
 
     start = fields.Datetime(string='Start')
@@ -45,6 +45,6 @@ class JiraWorkLog(models.Model):
 
 class JiraWorkLogCluster(models.Model):
     _name = "wt.work.log.cluster"
-    _description = "JIRA Work Log Cluster"
+    _description = "Tasks Work Log Cluster"
 
     name = fields.Char(string='Cluster Name')

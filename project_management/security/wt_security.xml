@@ -6,7 +6,7 @@
         </record>
 
         <record id="group_wt_user" model="res.groups">
-            <field name="name">JIRA User</field>
+            <field name="name">Tasks User</field>
             <field name="category_id" ref="project_management.module_category_wt"/>
         </record>
 

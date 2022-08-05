@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="wt_hr_form_view_inherited" model="ir.ui.view">
-        <field name="name">JIRA Configurations</field>
+        <field name="name">Tasks Configurations</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook[1]" position="inside">
-                <page string="JIRA Configurations">
+                <page string="Tasks Configurations">
                     <group>
                         <field name="maximum_search_result"/>
                         <field name="maximum_relative_result"/>

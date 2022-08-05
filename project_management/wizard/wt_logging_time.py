@@ -3,7 +3,7 @@ from odoo import api, fields, models, _
 
 class LoadByLinkTransient(models.TransientModel):
     _name = 'wt.done.work.log'
-    _description = 'JIRA Done Work Log'
+    _description = 'Tasks Done Work Log'
 
     log_text = fields.Char(string="Work Logs", required=True)
     log_date = fields.Datetime(string="Start Date", default=fields.Datetime.now)
