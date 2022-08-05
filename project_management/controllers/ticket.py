@@ -180,8 +180,7 @@ class JiraTicket(http.Controller):
     @handling_req_res
     @http.route(['/management/ticket/work-log/history'], type="http", cors="*", methods=['GET'], auth='jwt')
     def get_history_work_logs(self, **kwargs):
-        unix = int(kwargs.get('unix', 0))
-        log_ids = request.env['jira.time.log'].with_context(unix=unix).load_history()
+        log_ids = request.env['jira.time.log'].with_context(kwargs).load_history()
         data = self._get_work_log(log_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
