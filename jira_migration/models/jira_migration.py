@@ -326,6 +326,13 @@ class JIRAMigration(models.Model):
                 if existing_record.ticket_name != summary:
                     update_dict['ticket_name'] = summary
                 if existing_record.status_id.id != local['dict_status'].get(status):
+                    if status not in local['dict_status']:
+                        status_id = self.env['jira.status'].create({
+                            'name': new_status['name'],
+                            'key': new_status['id'],
+                            'jira_key': jira_key
+                        }).id
+                        local['dict_status'][status] = status_id
                     update_dict['status_id'] = local['dict_status'][status]
                 if existing_record.ticket_type_id.id != local['dict_type'].get(issue_type):
                     update_dict['ticket_type_id'] = local['dict_type'][issue_type]
