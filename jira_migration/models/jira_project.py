@@ -16,11 +16,9 @@ class JiraProject(models.Model):
             self = self.search([('allow_to_fetch', '=', True), ('jira_migration_id.active', '=', True)])
         last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
         for project in self:
-            user_ids = []
-            if project.jira_migration_id:
+            user_ids = project.allowed_user_ids.ids
+            if len(user_ids) == 0 and project.jira_migration_id:
                 user_ids = project.jira_migration_id.admin_user_ids.ids
-            if len(user_ids) == 0:
-                user_ids = project.allowed_user_ids.ids
             access_token = self.env['hr.employee'].search(
                 [('user_id', 'in', user_ids),
                  ('jira_private_key', '!=', False)], order='is_jira_admin desc').mapped(
