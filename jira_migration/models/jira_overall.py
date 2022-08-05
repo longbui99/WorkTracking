@@ -30,6 +30,9 @@ class JiraTimeLog(models.Model):
         return res
 
     def unlink(self):
-        if self.id_on_jira:
-            self.ticket_id.jira_migration_id.delete_time_logs(self.ticket_id, self)
+        try:
+            if self.id_on_jira:
+                self.ticket_id.jira_migration_id.delete_time_logs(self.ticket_id, self)
+        except:
+            pass
         return super().unlink()
