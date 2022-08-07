@@ -48,7 +48,7 @@ def convert_log_format_to_second(log_data):
 
 def get_week_start(self):
     employee_id = self.env["hr.employee"].search([('user_id', '=', self.env.user.id)], limit=1)
-    return (employee_id and (-int(employee_id.week_start%7) + 1) or 0)
+    return (employee_id and (-int(employee_id.week_start)%7 + 1) or 0)
 
 
 def get_date_range(self, periodic):
