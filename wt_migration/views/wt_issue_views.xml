@@ -18,7 +18,7 @@
         <field name="inherit_id" ref="project_management.wt_issue_form_view"/>
         <field name="arch" type="xml">
             <button name="action_done_work" position="after">
-                <button name="import_issue_wt" string="Import Ticket" type="object" class="btn-secondary"/>
+                <button name="import_issue_wt" string="Import Issue" type="object" class="btn-secondary"/>
                 <button name="export_time_log_to_wt" string="Export Work Log" type="object" class="btn-secondary"/>
                 <button name="export_ac_to_wt" string="Export Checklist" type="object" class="btn-secondary"/>
             </button>

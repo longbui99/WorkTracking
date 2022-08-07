@@ -12,7 +12,7 @@
     </record>
 
     <record id="ir_cron_re_export_issue" model="ir.cron">
-        <field name="name">Re Export Ticket</field>
+        <field name="name">Re Export Issue</field>
         <field name="model_id" ref="model_wt_issue"/>
         <field name="state">code</field>
         <field name="code">model.re_export_work_log()</field>
