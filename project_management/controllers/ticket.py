@@ -55,13 +55,13 @@ class JiraTicket(http.Controller):
         return res
 
     @handling_req_res
-    @http.route(['/management/ticket/get/<int:ticket_id>'], type="http", cors="*", methods=['GET'], csrf=False, auth='jwt')
+    @http.route(['/management/issue/get/<int:ticket_id>'], type="http", cors="*", methods=['GET'], csrf=False, auth='jwt')
     def get_ticket(self, ticket_id, **kwargs):
         data = self._get_ticket(ticket_id)
         return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/get-my-all'], type="http", methods=['GET'], csrf=False, auth='jwt')
+    @http.route(['/management/issue/get-my-all'], type="http", methods=['GET'], csrf=False, auth='jwt')
     def get_all_ticket(self, **kwargs):
         ticket_ids = request.env['wt.issue'].search([('assignee_id', '=', request.env.user.id)])
         data = self._get_ticket(ticket_ids)
@@ -73,7 +73,7 @@ class JiraTicket(http.Controller):
         return res
 
     @handling_req_res
-    @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
+    @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
                 auth='jwt')
     def search_ticket(self, keyword, **kwargs):
         offset = int(kwargs.get('offset', 0))
@@ -82,21 +82,21 @@ class JiraTicket(http.Controller):
         return http.Response(json.dumps(data), content_type='application/json', status=200)
     
     @handling_req_res
-    @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    @http.route(['/management/issue/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_related_active(self, **kwargs):
         active_ticket_ids = request.env['wt.issue'].get_all_active(json.loads(request.params.get("payload", '{}')))
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    @http.route(['/management/issue/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_favorite_tickets(self, **kwargs):
         ticket_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_ticket_ids
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/favorite/add'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
+    @http.route(['/management/issue/favorite/add'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
     def add_favorite_ticket(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
         employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
@@ -104,7 +104,7 @@ class JiraTicket(http.Controller):
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/favorite/delete'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
+    @http.route(['/management/issue/favorite/delete'], type="http", cors="*", methods=["POST"], csrf=False, auth="jwt")
     def remove_favorite_ticket(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
         employee_id = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1)
@@ -122,7 +122,7 @@ class JiraTicket(http.Controller):
         return ticket_id
 
     @handling_req_res
-    @http.route(['/management/ticket/work-log/add'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
+    @http.route(['/management/issue/work-log/add'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
     def add_ticket_work_log(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
         ticket_id.generate_progress_work_log(request.params.get('payload', {}))
@@ -130,21 +130,21 @@ class JiraTicket(http.Controller):
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/work-log/pause'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
+    @http.route(['/management/issue/work-log/pause'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
     def pause_ticket_work_log(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_pause_work_log(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/work-log/done'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
+    @http.route(['/management/issue/work-log/done'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
     def done_ticket_work_log(self, **kwargs):
         request.params = json.loads(request.httprequest.data)
         ticket_id = self.check_work_log_prerequisite()
         ticket_id.action_done_work_log(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
 
-    @http.route(['/management/ticket/work-log/manual'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
+    @http.route(['/management/issue/work-log/manual'], type="http", cors="*", methods=['POST'], csrf=False, auth='jwt')
     def manual_ticket_work_log(self, **kwargs):
         request.params = json.loads(request.httprequest.data)
         ticket_id = self.check_work_log_prerequisite()
@@ -152,7 +152,7 @@ class JiraTicket(http.Controller):
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/work-log/cancel'], type="http", cors="*", methods=['POST'], csrf=False,
+    @http.route(['/management/issue/work-log/cancel'], type="http", cors="*", methods=['POST'], csrf=False,
                 auth='jwt')
     def cancel_ticket_work_log(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
@@ -178,7 +178,7 @@ class JiraTicket(http.Controller):
         return res
     
     @handling_req_res
-    @http.route(['/management/ticket/work-log/history'], type="http", cors="*", methods=['GET'], auth='jwt')
+    @http.route(['/management/issue/work-log/history'], type="http", cors="*", methods=['GET'], auth='jwt')
     def get_history_work_logs(self, **kwargs):
         log_ids = request.env['wt.time.log'].with_context(kwargs).load_history()
         data = self._get_work_log(log_ids)
@@ -192,7 +192,7 @@ class JiraTicket(http.Controller):
         return ac_id
     
     @handling_req_res
-    @http.route(['/management/ticket/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
+    @http.route(['/management/issue/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def update_done_work_logs(self, **kwargs):
         params = json.loads(request.httprequest.data)
         time_id = params.pop('id')
@@ -201,7 +201,7 @@ class JiraTicket(http.Controller):
         return http.Response("", content_type='application/json', status=200)
     
     @handling_req_res
-    @http.route(['/management/ticket/work-log/delete/<int:log_id>'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
+    @http.route(['/management/issue/work-log/delete/<int:log_id>'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def delete_done_work_logs(self, log_id, **kwargs):
         request.env['wt.time.log'].browse(log_id).unlink()
         return http.Response("", content_type='application/json', status=200)
@@ -214,7 +214,7 @@ class JiraTicket(http.Controller):
         return ac_id
 
     @handling_req_res
-    @http.route(['/management/ticket/ac'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
+    @http.route(['/management/issue/ac'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_acceptance_criteria(self, **kwargs):
         ticket_id = self.check_work_log_prerequisite()
         data = ticket_id.get_acceptance_criteria(request.params.get('payload', {}))

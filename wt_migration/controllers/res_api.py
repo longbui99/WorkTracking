@@ -10,7 +10,7 @@ from odoo.addons.project_management.utils.error_tracking import handling_req_res
 class JiraTicketMigration(JiraTicket):
 
     @handling_req_res
-    @http.route(['/management/ticket/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
+    @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
                 auth='jwt', csrf=False)
     def search_ticket(self, keyword, **kwargs):
         try:
@@ -28,7 +28,7 @@ class JiraTicketMigration(JiraTicket):
         return res
 
     @handling_req_res
-    @http.route(['/management/ticket/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET"],
+    @http.route(['/management/issue/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET"],
                 auth="jwt", csrf=False)
     def fetch_ticket_from_server(self, ticket_id, **kwargs):
         if not ticket_id:
@@ -39,7 +39,7 @@ class JiraTicketMigration(JiraTicket):
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/ticket/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
+    @http.route(['/management/issue/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_ticket_to_server(self, **kwargs):
         ticket_id = super().check_work_log_prerequisite()
         data = ticket_id.export_ticket_to_server(request.params.get('payload', {}))
