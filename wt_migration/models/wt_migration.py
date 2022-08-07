@@ -385,6 +385,7 @@ class TaskMigration(models.Model):
                     existing_record |= new_tickets[0]
                     new_tickets.pop(0)
             response.extend(new_tickets)
+        print(json.dumps(response, indent=4))
         return existing_record | self.env['wt.issue'].create(response)
 
     def load_tickets(self, extra_jql="", domain=[], load_all=False):
