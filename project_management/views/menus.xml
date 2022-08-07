@@ -13,7 +13,7 @@
         <menuitem
                 id="project_management.menu_wt_ticket"
                 sequence="2"
-                name="Tickets"
+                name="Issues"
                 action="project_management.action_wt_ticket"/>
         <menuitem
                 id="project_management.menu_work_log"

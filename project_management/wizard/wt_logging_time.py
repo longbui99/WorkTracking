@@ -8,7 +8,7 @@ class LoadByLinkTransient(models.TransientModel):
     log_text = fields.Char(string="Work Logs", required=True)
     log_date = fields.Datetime(string="Start Date", default=fields.Datetime.now)
     log_description = fields.Char(string="Description", required=True)
-    ticket_id = fields.Many2one("wt.ticket", string="Ticket", required=True)
+    ticket_id = fields.Many2one("wt.issue", string="Ticket", required=True)
 
     def action_confirm(self):
         self.ensure_one()

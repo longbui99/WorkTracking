@@ -6,7 +6,7 @@ _logger = logging.getLogger(__name__)
 
 
 class JiraProject(models.Model):
-    _inherit = "wt.ticket"
+    _inherit = "wt.issue"
 
     wt_migration_id = fields.Many2one('wt.migration', string='Task Migration')
     status_value = fields.Char(related='status_id.wt_key', store=True)

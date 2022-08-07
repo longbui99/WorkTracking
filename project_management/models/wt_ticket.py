@@ -10,7 +10,7 @@ import base64
 
 
 class JiraProject(models.Model):
-    _name = "wt.ticket"
+    _name = "wt.issue"
     _description = "Task Ticket"
     _order = 'ticket_sequence desc, sequence asc, create_date desc'
 
@@ -39,9 +39,9 @@ class JiraProject(models.Model):
     last_start = fields.Datetime("Last Start", compute="_compute_last_start")
     ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
     start_date = fields.Datetime("Start Date")
-    parent_ticket_id = fields.Many2one("wt.ticket", string="Parent")
+    parent_ticket_id = fields.Many2one("wt.issue", string="Parent")
     log_to_parent = fields.Boolean("Log to Parent?")
-    children_ticket_ids = fields.One2many("wt.ticket", "parent_ticket_id", store=False)
+    children_ticket_ids = fields.One2many("wt.issue", "parent_ticket_id", store=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
@@ -198,7 +198,7 @@ class JiraProject(models.Model):
     def action_done_work_log(self, values={}):
         self.action_pause_work_log(values)
         source = values.get('source', 'Internal')
-        change_records = self.env['wt.ticket']
+        change_records = self.env['wt.issue']
         for ticket in self:
             record = ticket._get_suitable_log()
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
@@ -230,7 +230,7 @@ class JiraProject(models.Model):
     def action_manual_work_log(self, values={}):
         source = values.get('source', 'Internal')
         log_ids = self.env['wt.time.log']
-        change_records = self.env['wt.ticket']
+        change_records = self.env['wt.issue']
         start_date = values.get('start_date', False)
         if start_date:
             start_date = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S%z").astimezone(pytz.utc)
@@ -309,7 +309,7 @@ class JiraProject(models.Model):
         employee = self._get_result_management()
         res = get_search_request(payload)
         domain = self.get_search_ticket_domain(res, employee)
-        result = self.env["wt.ticket"]
+        result = self.env["wt.issue"]
         offset = int(self._context.get('offset', 0))
         if len(domain):
             result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result, offset=offset)

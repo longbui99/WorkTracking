@@ -17,7 +17,7 @@ class JiraTicketMigration(JiraTicket):
             res = super().search_ticket(keyword, **kwargs)
             offset = int(kwargs.get('offset', 0))
             if res.data == b'[]' and offset == 0:
-                ticket_ids = request.env['wt.ticket']
+                ticket_ids = request.env['wt.issue']
                 for migrate in request.env['wt.migration'].sudo().search([]):
                     ticket_ids |= migrate.sudo().search_ticket(keyword)
                 if ticket_ids:
@@ -33,7 +33,7 @@ class JiraTicketMigration(JiraTicket):
     def fetch_ticket_from_server(self, ticket_id, **kwargs):
         if not ticket_id:
             return Exception("Need to provide ticket id")
-        ticket_id = request.env['wt.ticket'].browse(ticket_id)
+        ticket_id = request.env['wt.issue'].browse(ticket_id)
         res = {'ticket': [ticket_id.ticket_key]}
         ticket_id.wt_migration_id._search_load(res)
         return http.Response("", content_type='application/json', status=200)

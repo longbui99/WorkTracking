@@ -14,7 +14,7 @@ class JiraACs(models.Model):
     key = fields.Char(string="Key")
     checked = fields.Boolean(string="Checked?")
     is_header = fields.Boolean(string="Header?")
-    ticket_id = fields.Many2one("wt.ticket", string="Ticket")
+    ticket_id = fields.Many2one("wt.issue", string="Ticket")
 
     @api.model
     def create(self, values):

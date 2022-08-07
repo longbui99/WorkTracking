@@ -26,7 +26,7 @@ class JiraTicket(http.Controller):
 
     def _get_ticket(self, ticket_ids):
         if ticket_ids and isinstance(ticket_ids, list) or isinstance(ticket_ids, int):
-            ticket_ids = request.env['wt.ticket'].browse(ticket_ids)
+            ticket_ids = request.env['wt.issue'].browse(ticket_ids)
             if not ticket_ids.exists():
                 return str(MissingError("Cannot found ticket in our system!"))
         res = []
@@ -63,7 +63,7 @@ class JiraTicket(http.Controller):
     @handling_req_res
     @http.route(['/management/ticket/get-my-all'], type="http", methods=['GET'], csrf=False, auth='jwt')
     def get_all_ticket(self, **kwargs):
-        ticket_ids = request.env['wt.ticket'].search([('assignee_id', '=', request.env.user.id)])
+        ticket_ids = request.env['wt.issue'].search([('assignee_id', '=', request.env.user.id)])
         data = self._get_ticket(ticket_ids)
         res = {
             "status": 200,
@@ -77,14 +77,14 @@ class JiraTicket(http.Controller):
                 auth='jwt')
     def search_ticket(self, keyword, **kwargs):
         offset = int(kwargs.get('offset', 0))
-        ticket_ids = request.env['wt.ticket'].with_context(offset=offset).search_ticket_by_criteria(keyword)
+        ticket_ids = request.env['wt.issue'].with_context(offset=offset).search_ticket_by_criteria(keyword)
         data = self._get_ticket(ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
     
     @handling_req_res
     @http.route(['/management/ticket/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_related_active(self, **kwargs):
-        active_ticket_ids = request.env['wt.ticket'].get_all_active(json.loads(request.params.get("payload", '{}')))
+        active_ticket_ids = request.env['wt.issue'].get_all_active(json.loads(request.params.get("payload", '{}')))
         data = self._get_ticket(active_ticket_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
@@ -116,7 +116,7 @@ class JiraTicket(http.Controller):
         key = request.params.get('key')
         if not key and not id:
             raise MissingParams("Ticket's ID or KEY must be specific!")
-        ticket_id = request.env['wt.ticket'].search(['|', ('id', '=', id), ('ticket_key', '=', key)])
+        ticket_id = request.env['wt.issue'].search(['|', ('id', '=', id), ('ticket_key', '=', key)])
         if not ticket_id.exists():
             raise NotFound("Cannot found ticket")
         return ticket_id
@@ -161,7 +161,7 @@ class JiraTicket(http.Controller):
     
     def _get_work_log(self, log_ids):
         if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
-            log_ids = request.env['wt.ticket'].browse(log_ids)
+            log_ids = request.env['wt.issue'].browse(log_ids)
             if not log_ids.exists():
                 return str(MissingError("Cannot found ticket in our system!"))
         res = []

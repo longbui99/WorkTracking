@@ -229,7 +229,7 @@ class TaskMigration(models.Model):
         return {
             'project_key_dict': {r.project_key: r.id for r in self.env['wt.project'].sudo().search([])},
             'dict_user': self.with_context(active_test=False).get_user(),
-            'dict_ticket_key': {r.ticket_key: r for r in self.env['wt.ticket'].sudo().search(domain)},
+            'dict_ticket_key': {r.ticket_key: r for r in self.env['wt.issue'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['wt.status'].sudo().search([])},
             'dict_type': {r.key: r.id for r in self.env["wt.type"].sudo().search([])}
         }
@@ -355,7 +355,7 @@ class TaskMigration(models.Model):
         return response
 
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
-        existing_record = self.env['wt.ticket']
+        existing_record = self.env['wt.issue']
         headers = self.__get_request_headers()
         start_index = 0
         total_response = paging
@@ -385,7 +385,7 @@ class TaskMigration(models.Model):
                     existing_record |= new_tickets[0]
                     new_tickets.pop(0)
             response.extend(new_tickets)
-        return existing_record | self.env['wt.ticket'].create(response)
+        return existing_record | self.env['wt.issue'].create(response)
 
     def load_tickets(self, extra_jql="", domain=[], load_all=False):
         request_data = {
@@ -420,7 +420,7 @@ class TaskMigration(models.Model):
         return self.search_load(keyword)
 
     def _search_load(self, res, delay=False):
-        ticket_ids = self.env['wt.ticket']
+        ticket_ids = self.env['wt.issue']
         if 'ticket' in res:
             if not isinstance(res['ticket'], (list, tuple)):
                 res['ticket'] = [res['ticket']]
@@ -533,7 +533,7 @@ class TaskMigration(models.Model):
             last_page = False
             mapping = WorkLogMapping(self.wt_server_url, self.server_type)
             headers = self.__get_request_headers()
-            ticket_ids = self.env['wt.ticket'].search(
+            ticket_ids = self.env['wt.issue'].search(
                 [('wt_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
             local_data = {
                 'work_logs': {x.id_on_wt: x for x in ticket_ids.mapped('time_log_ids') if x.id_on_wt},
@@ -806,7 +806,7 @@ class TaskMigration(models.Model):
         if not sprint_ids:
             sprint_ids = self.env["agile.sprint"].search([('state', 'in', ('active', 'future'))])
         headers = self.__get_request_headers()
-        current_tickets = {x.ticket_key: x for x in self.env["wt.ticket"].search(
+        current_tickets = {x.ticket_key: x for x in self.env["wt.issue"].search(
             [('create_date', '>', datetime.now() - relativedelta(months=2))])}
         force = self.env.context.get('force', False)
         for sprint in sprint_ids:

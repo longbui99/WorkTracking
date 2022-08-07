@@ -7,7 +7,7 @@ class LoadByLinkTransient(models.TransientModel):
     _description = 'Task Load By Link'
 
     time_log_ids = fields.One2many('wt.time.log', store=False)
-    ticket_ids = fields.One2many('wt.ticket', store=False)
+    ticket_ids = fields.One2many('wt.issue', store=False)
     from_datetime = fields.Datetime(string="From Timestamp")
 
     def export(self):

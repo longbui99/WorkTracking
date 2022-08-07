@@ -13,7 +13,7 @@ class JiraProject(models.Model):
     project_key = fields.Char(string='Project Key')
     allowed_user_ids = fields.Many2many('res.users', string='Allowed Users')
     allowed_manager_ids = fields.Many2many('res.users', 'res_user_wt_project_rel_2', string='Managers')
-    ticket_ids = fields.One2many('wt.ticket', 'project_id', string='Tickets')
+    ticket_ids = fields.One2many('wt.issue', 'project_id', string='Issues')
     wt_migration_id = fields.Many2one("wt.migration", string="Task Migration Credentials")
     chain_work_ids = fields.One2many("wt.chain.work.session", "project_id", "Chain Works")
     board_ids = fields.One2many('board.board', 'project_id', string="Boards")
@@ -21,7 +21,7 @@ class JiraProject(models.Model):
 
     def fetch_user_from_ticket(self):
         for record in self:
-            user_ids = self.env['wt.ticket'] \
+            user_ids = self.env['wt.issue'] \
                 .search([('project_id', '=', record.id)]) \
                 .mapped('time_log_ids').mapped('user_id')
             create_new_users = user_ids.filtered(lambda r: r.id not in record.allowed_user_ids.ids)
