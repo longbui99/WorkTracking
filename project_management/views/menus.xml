@@ -6,20 +6,20 @@
               sequence="10"
               web_icon="project_management,static/description/icon.png">
         <menuitem
-                id="project_management.menu_jira_project"
+                id="project_management.menu_wt_project"
                 name="Projects"
-                action="project_management.action_jira_project"
+                action="project_management.action_wt_project"
                 sequence="1"/>
         <menuitem
-                id="project_management.menu_jira_ticket"
+                id="project_management.menu_wt_ticket"
                 sequence="2"
                 name="Tickets"
-                action="project_management.action_jira_ticket"/>
+                action="project_management.action_wt_ticket"/>
         <menuitem
                 id="project_management.menu_work_log"
                 sequence="3"
                 name="Work Logs"
-                action="project_management.action_jira_time_log"/>
+                action="project_management.action_wt_time_log"/>
         <menuitem
                 id="project_management.settings"
                 sequence="9999"
@@ -28,12 +28,12 @@
                         id="project_management.menu_status"
                         sequence="4"
                         name="Statuses"
-                        action="project_management.action_jira_status"/>
+                        action="project_management.action_wt_status"/>
                 <menuitem
                         id="project_management.menu_type"
                         sequence="5"
                         name="Types"
-                        action="project_management.action_jira_type"/>
+                        action="project_management.action_wt_type"/>
         </menuitem>
     </menuitem>
 </odoo>

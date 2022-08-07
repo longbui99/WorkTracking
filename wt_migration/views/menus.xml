@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem id="wt_migration.migration_dashboard"
+              name="Migration"
+              action="wt_migration.action_wt_migration"
+              sequence="1"
+              parent="project_management.settings">
+    </menuitem>
+</odoo>

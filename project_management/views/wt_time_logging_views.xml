@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_time_log_tree_view" model="ir.ui.view">
+        <field name="name">Work Logs</field>
+        <field name="model">wt.time.log</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="ticket_id"/>
+                <field name="time"/>
+                <field name="description"/>
+                <field name="duration_hrs" sum="Total"/>
+                <field name="state"/>
+                <field name="user_id"/>
+                <field name="start_date" string="Start Date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_time_log_form_view" model="ir.ui.view">
+        <field name="name">Work Logs</field>
+        <field name="model">wt.time.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="ticket_id"/>
+                        <field name="time"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_time_log_search_view" model="ir.ui.view">
+        <field name="name">Work Logs</field>
+        <field name="model">wt.time.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="ticket_id"/>
+                <field name="user_id"/>
+                <field name="project_id"/>
+                <separator/>
+                <filter string="My Logs" name="filter_by_my_log" domain="[('user_id','=', uid)]"/>
+                <separator/>
+                <group expand="0"  string="Date Range">
+                    <filter string="Last Week" name="last_week" domain="[('filter_date', '=', 'last_1_week')]"/>
+                    <filter string="This Week" name="current_week" domain="[('filter_date', '=', 'week')]"/>
+                    <filter string="Last Month" name="last_month" domain="[('filter_date', '=', 'last_1_month')]"/>
+                    <filter string="This Month" name="current_month" domain="[('filter_date', '=', 'month')]"/>
+                    <filter string="Last Quarter" name="last_quarter" domain="[('filter_date', '=', 'last_1_quarter')]"/>
+                    <filter string="This Quarter" name="current_quarter" domain="[('filter_date', '=', 'quarter')]"/>
+                </group>
+                <separator/>
+                <filter string="Project" name="group_by_project_id" context="{'group_by':'project_id'}"/>
+                <filter string="User" name="group_by_user_id" context="{'group_by':'user_id'}"/>
+                <filter string="Ticket" name="group_by_ticket_id" context="{'group_by':'ticket_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="wt_time_log_graph_view">
+        <field name="name">wt.work.log.graph.view</field>
+        <field name="model">wt.time.log</field>
+        <field name="arch" type="xml">
+            <graph string="Time Logs" type="pie">
+                <field name="project_id" type="row"/>
+                <field name="ticket_id" />
+                <field name="duration_hrs"  type="measure" string="Total Hours"/>
+            </graph>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="wt_time_log_pivot_view">
+        <field name="name">wt.work.log.pivot.view</field>
+        <field name="model">wt.time.log</field>
+        <field name="arch" type="xml">
+            <pivot string="Time Logs">
+                <field name="project_id" type="row"/>
+                <field name="ticket_id" />
+                <field name="duration_hrs"  type="measure" string="Total Hours"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="wt_time_log_dashboard_view">
+        <field name="name">wt.work.log.dashboard.view</field>
+        <field name="model">wt.time.log</field>
+        <field name="arch" type="xml">
+            <dashboard>
+                <view type="graph" ref="project_management.wt_time_log_graph_view"/>
+                <view type="pivot" ref="project_management.wt_time_log_pivot_view"/>
+            </dashboard>
+        </field>
+    </record>
+
+    <record id="action_wt_time_log" model="ir.actions.act_window">
+        <field name="name">Work Logs</field>
+        <field name="res_model">wt.time.log</field>
+        <field name="view_mode">dashboard,graph,tree,form</field>
+        <field name="context">{'search_default_group_by_project_id': True, 'search_default_group_by_user_id': True, 'search_default_group_by_ticket_id': True, 'search_default_filter_by_my_log': True}</field>
+        <field name="view_id" ref="wt_time_log_dashboard_view"/>
+        <field name="search_view_id" ref="project_management.wt_time_log_search_view"/>
+    </record>
+</odoo>

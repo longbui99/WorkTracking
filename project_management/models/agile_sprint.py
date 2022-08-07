@@ -6,7 +6,7 @@ class AgileSprint(models.Model):
     _description = "Agile Sprint"
 
     name = fields.Char(string="Name", required=1)
-    project_id = fields.Many2one("jira.project", string="Project")
+    project_id = fields.Many2one("wt.project", string="Project")
     board_id = fields.Many2one("board.board", string="Board")
     state = fields.Selection([('closed', 'Closed'), ('active', "In Progress"), ('future', "Future")], string="Status")
-    ticket_ids = fields.Many2many("jira.ticket", string="Tickets")
+    ticket_ids = fields.Many2many("wt.ticket", string="Tickets")

@@ -7,7 +7,7 @@ class Board(models.Model):
     _order = 'is_favorite desc, id desc'
 
     name = fields.Char(string="Name", required=1)
-    project_id = fields.Many2one("jira.project", string="Project")
+    project_id = fields.Many2one("wt.project", string="Project")
     type = fields.Selection([('kanban', 'Kanban'), ('scrum', 'Scrum')])
     sprint_ids = fields.One2many("agile.sprint", 'board_id', string="Sprints")
     is_favorite = fields.Boolean("Favorite")

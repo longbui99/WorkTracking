@@ -12,15 +12,15 @@ PARSER = {
 
 
 class KickOffSession(models.TransientModel):
-    _name = 'jira.chain.work.session'
-    _description = 'JIRA Kick Of Session'
+    _name = 'wt.chain.work.session'
+    _description = 'Tasks Kick Of Session'
     _order = "create_date desc"
 
     name = fields.Char(string="Name")
-    project_id = fields.Many2one('jira.project', string="Project")
-    ticket_id = fields.Many2one('jira.ticket', string="Ticket")
+    project_id = fields.Many2one('wt.project', string="Project")
+    ticket_id = fields.Many2one('wt.ticket', string="Ticket")
     start = fields.Datetime(string="Start At")
-    ticket_chain_work_ids = fields.One2many('jira.chain.work.session.line', 'chain_work_id', string="Tickets")
+    ticket_chain_work_ids = fields.One2many('wt.chain.work.session.line', 'chain_work_id', string="Tickets")
     state = fields.Selection([('draft', 'Draft'),
                               ('progress', 'In Progress'),
                               ('done', 'Done'),
@@ -30,7 +30,7 @@ class KickOffSession(models.TransientModel):
     description = fields.Char(string="Description")
     logging_type = fields.Selection([('ticket', 'To the specific ticket'),
                                      ('separate', 'In separated')], default='separate')
-    log_to_ticket_id = fields.Many2one('jira.ticket', string="Ticket")
+    log_to_ticket_id = fields.Many2one('wt.ticket', string="Ticket")
 
     @api.depends('ticket_chain_work_ids', 'ticket_chain_work_ids.state')
     def _compute_state(self):
@@ -118,13 +118,13 @@ class KickOffSession(models.TransientModel):
 
 
 class KickOffSessionLine(models.TransientModel):
-    _name = 'jira.chain.work.session.line'
-    _description = 'JIRA Kick Of Session Line'
+    _name = 'wt.chain.work.session.line'
+    _description = 'Tasks Kick Of Session Line'
     _order = 'sequence asc, write_date desc'
 
     sequence = fields.Integer(string="Sequence")
-    chain_work_id = fields.Many2one('jira.chain.work.session', string="Kick Off")
-    ticket_id = fields.Many2one("jira.ticket", string="Ticket")
+    chain_work_id = fields.Many2one('wt.chain.work.session', string="Kick Off")
+    ticket_id = fields.Many2one("wt.ticket", string="Ticket")
     state = fields.Selection([('draft', 'Draft'),
                               ('progress', 'In Progress'),
                               ('done', 'Done')], default="draft")
@@ -163,14 +163,14 @@ class KickOffSessionLine(models.TransientModel):
 
 
 class KickOffBase(models.TransientModel):
-    _name = 'jira.chain.work.base'
-    _description = 'JIRA Kick Of base'
+    _name = 'wt.chain.work.base'
+    _description = 'Tasks Kick Of base'
 
     name = fields.Char(string="Name")
     type = fields.Selection([('manual', 'Select manually')], default='manual')
     template = fields.Selection([('kickoff', 'Kick-off'),
                                  ('demo', 'Demo')])
-    project_id = fields.Many2one('jira.project', string="Project")
+    project_id = fields.Many2one('wt.project', string="Project")
 
     #
     # def prepare_kickoff_line_data(self):
@@ -187,7 +187,7 @@ class KickOffBase(models.TransientModel):
         #     jql = f"jql=project={self.project_id.project_key} AND Sprint in openSprints() AND assignee = {}"
         # elif self.type == "next_sprint":
         #     pass
-        return self.env['jira.chain.work.session'].create(res)
+        return self.env['wt.chain.work.session'].create(res)
 
     def action_start(self):
         self.ensure_one()

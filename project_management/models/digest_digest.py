@@ -8,7 +8,7 @@ from odoo.addons.project_management.utils.time_parsing import convert_second_to_
 class Digest(models.Model):
     _inherit = "digest.digest"
 
-    jira_time_management = fields.Boolean('Management')
+    wt_time_management = fields.Boolean('Management')
 
     def get_next_run_date(self):
         _, end_date = get_date_range(self, self.periodicity)
@@ -17,19 +17,19 @@ class Digest(models.Model):
     @api.model
     def create(self, values):
         res = super().create(values)
-        if 'periodicity' in values or 'jira_time_management' in values:
+        if 'periodicity' in values or 'wt_time_management' in values:
             res.next_run_date = res.get_next_run_date()
         return res
 
     def write(self, values):
         res = super().write(values)
-        if 'periodicity' in values or 'jira_time_management' in values:
+        if 'periodicity' in values or 'wt_time_management' in values:
             self.next_run_date = self.get_next_run_date()
         return res
 
     def action_send(self):
         self.ensure_one()
-        if not self.jira_time_management:
+        if not self.wt_time_management:
             return super(Digest, self).action_send()
         else:
             res = self.mail_create_and_send()
@@ -53,16 +53,16 @@ class Digest(models.Model):
         base_time_domain = [('user_id', '=', user_id.id),
                             ('start_date', '>=', start_date),
                             ('start_date', '<=', end_date)]
-        log_ids = self.env["jira.time.log"].search(base_time_domain + special_domain)
+        log_ids = self.env["wt.time.log"].search(base_time_domain + special_domain)
         user_data.append({
             "title": "Done Work Logs",
             "payload": log_ids,
             "finalize": True
         })
         if len(special_domain):
-            normal_log_ids = self.env["jira.time.log"].search(base_time_domain + normal_domain)
+            normal_log_ids = self.env["wt.time.log"].search(base_time_domain + normal_domain)
         else:
-            normal_log_ids = self.env["jira.time.log"]
+            normal_log_ids = self.env["wt.time.log"]
 
         if normal_log_ids:
             user_data.append({
@@ -132,10 +132,10 @@ class Digest(models.Model):
                 if res["payload"][log.ticket_id.project_id.id]:
                     log_ids = payload.filtered(lambda r: r.ticket_id.project_id == log.ticket_id.project_id)
                     payload -= log_ids
-                    if payload._name == "jira.time.log":
+                    if payload._name == "wt.time.log":
                         res["payload"][log.ticket_id.project_id.id]["tickets"] = self._formatting_ticket_from_time_log(
                             log_ids)
-                    elif payload._name == "jira.work.log":
+                    elif payload._name == "wt.work.log":
                         res["payload"][log.ticket_id.project_id.id]["tickets"] = self._formatting_ticket_from_work_log(
                             log_ids)
                     record = res["payload"][log.ticket_id.project_id.id]
@@ -173,13 +173,13 @@ class Digest(models.Model):
             formatted_data = self._formatting_data(data)
             heading_data = self._heading_data(formatted_data)
             content = self._generate_mail_content(user_id, user_id.company_id, formatted_data, heading_data)
-            self.jira_send_main(user_id, user_id.company_id, content, formatted_data, heading_data)
+            self.wt_send_main(user_id, user_id.company_id, content, formatted_data, heading_data)
 
     def _generate_mail_content(self, user, company, formatted_data, heading_data):
         web_base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         rendered_body = self.env['mail.render.mixin'].with_context(preserve_comments=True)._render_template(
             'project_management.project_management_digest_email',
-            'jira.project',
+            'wt.project',
             self.ids,
             engine='qweb_view',
             add_context={
@@ -199,7 +199,7 @@ class Digest(models.Model):
         mail_template = full_mail
         return mail_template
 
-    def jira_send_main(self, user, company, content, formatted_data, heading_data):
+    def wt_send_main(self, user, company, content, formatted_data, heading_data):
         mail_values = {
             'subject': '%s: %s' % (heading_data['name'], heading_data['time_duration']),
             'email_from': company.partner_id.email_formatted,
