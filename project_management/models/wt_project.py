@@ -13,13 +13,13 @@ class JiraProject(models.Model):
     project_key = fields.Char(string='Project Key')
     allowed_user_ids = fields.Many2many('res.users', string='Allowed Users')
     allowed_manager_ids = fields.Many2many('res.users', 'res_user_wt_project_rel_2', string='Managers')
-    ticket_ids = fields.One2many('wt.issue', 'project_id', string='Issues')
+    issue_ids = fields.One2many('wt.issue', 'project_id', string='Issues')
     wt_migration_id = fields.Many2one("wt.migration", string="Task Migration Credentials")
     chain_work_ids = fields.One2many("wt.chain.work.session", "project_id", "Chain Works")
     board_ids = fields.One2many('board.board', 'project_id', string="Boards")
     sprint_ids = fields.One2many('agile.sprint', 'project_id', string="Sprints")
 
-    def fetch_user_from_ticket(self):
+    def fetch_user_from_issue(self):
         for record in self:
             user_ids = self.env['wt.issue'] \
                 .search([('project_id', '=', record.id)]) \
@@ -28,8 +28,8 @@ class JiraProject(models.Model):
             record.allowed_user_ids = create_new_users.mapped(lambda r: (4, r.id, False))
 
     @api.model
-    def cron_fetch_user_from_ticket(self):
-        self.search([]).fetch_user_from_ticket()
+    def cron_fetch_user_from_issue(self):
+        self.search([]).fetch_user_from_issue()
 
     def action_start_kick_off(self):
         self.ensure_one()

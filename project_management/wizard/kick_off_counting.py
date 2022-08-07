@@ -18,9 +18,9 @@ class KickOffSession(models.TransientModel):
 
     name = fields.Char(string="Name")
     project_id = fields.Many2one('wt.project', string="Project")
-    ticket_id = fields.Many2one('wt.issue', string="Ticket")
+    issue_id = fields.Many2one('wt.issue', string="Ticket")
     start = fields.Datetime(string="Start At")
-    ticket_chain_work_ids = fields.One2many('wt.chain.work.session.line', 'chain_work_id', string="Issues")
+    issue_chain_work_ids = fields.One2many('wt.chain.work.session.line', 'chain_work_id', string="Issues")
     state = fields.Selection([('draft', 'Draft'),
                               ('progress', 'In Progress'),
                               ('done', 'Done'),
@@ -28,14 +28,14 @@ class KickOffSession(models.TransientModel):
                              compute='_compute_state', store=True
                              )
     description = fields.Char(string="Description")
-    logging_type = fields.Selection([('ticket', 'To the specific ticket'),
+    logging_type = fields.Selection([('issue', 'To the specific issue'),
                                      ('separate', 'In separated')], default='separate')
-    log_to_ticket_id = fields.Many2one('wt.issue', string="Ticket")
+    log_to_issue_id = fields.Many2one('wt.issue', string="Ticket")
 
-    @api.depends('ticket_chain_work_ids', 'ticket_chain_work_ids.state')
+    @api.depends('issue_chain_work_ids', 'issue_chain_work_ids.state')
     def _compute_state(self):
         for record in self:
-            status = record.ticket_chain_work_ids.mapped('state')
+            status = record.issue_chain_work_ids.mapped('state')
             if 'progress' in status:
                 record.state = 'progress'
             elif status and 'draft' not in status:
@@ -43,23 +43,23 @@ class KickOffSession(models.TransientModel):
             else:
                 record.state = 'draft'
 
-    def get_free_ticket(self):
+    def get_free_issue(self):
         self.ensure_one()
-        tickets = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'draft')
-        if tickets:
-            return tickets[0]
+        issues = self.issue_chain_work_ids.filtered(lambda r: r.state == 'draft')
+        if issues:
+            return issues[0]
         else:
             return False
 
     def update_processing(self, next_line=False):
         if not next_line:
-            next_line = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'draft')
-        current_line = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'progress')
+            next_line = self.issue_chain_work_ids.filtered(lambda r: r.state == 'draft')
+        current_line = self.issue_chain_work_ids.filtered(lambda r: r.state == 'progress')
         if current_line:
             current_line.action_done()
         if next_line:
             next_line[0].action_progress()
-            return next_line[0].ticket_id
+            return next_line[0].issue_id
 
     def reload_chain(self):
         self.ensure_one()
@@ -72,35 +72,35 @@ class KickOffSession(models.TransientModel):
 
     def action_next(self, next_line=False):
         self.ensure_one()
-        if not self.ticket_chain_work_ids:
-            raise UserError('Need at least one ticket')
-        self.ticket_id = self.update_processing(next_line)
+        if not self.issue_chain_work_ids:
+            raise UserError('Need at least one issue')
+        self.issue_id = self.update_processing(next_line)
         self.start = datetime.now()
         return self.reload_chain()
 
     def action_done(self):
         self.ensure_one()
-        self.ticket_chain_work_ids.filtered(lambda r: r.state == 'draft').unlink()
-        progresses = self.ticket_chain_work_ids.filtered(lambda r: r.state == 'progress')
+        self.issue_chain_work_ids.filtered(lambda r: r.state == 'draft').unlink()
+        progresses = self.issue_chain_work_ids.filtered(lambda r: r.state == 'progress')
         if progresses:
             progresses.action_done()
             return self.reload_chain()
-        if self.logging_type == "ticket":
-            time = convert_second_to_log_format(sum(self.ticket_chain_work_ids.mapped('duration')))
+        if self.logging_type == "issue":
+            time = convert_second_to_log_format(sum(self.issue_chain_work_ids.mapped('duration')))
             description = "\n".join(
-                self.ticket_chain_work_ids.mapped(lambda
-                                                      r: f"[{convert_second_to_log_format(r.duration)}][{r.ticket_id.ticket_key}]: {r.description}"))
-            self.log_to_ticket_id.action_manual_work_log({
+                self.issue_chain_work_ids.mapped(lambda
+                                                      r: f"[{convert_second_to_log_format(r.duration)}][{r.issue_id.issue_key}]: {r.description}"))
+            self.log_to_issue_id.action_manual_work_log({
                 "source": "Internal Chain",
                 "description": description,
                 "time": time
             })
         elif self.logging_type == "separate":
-            for ticket in self.ticket_chain_work_ids:
-                ticket.ticket_id.action_manual_work_log({
+            for issue in self.issue_chain_work_ids:
+                issue.issue_id.action_manual_work_log({
                     "source": "Internal Chain",
-                    "description": ticket.description or '',
-                    "time": convert_second_to_log_format(ticket.duration)
+                    "description": issue.description or '',
+                    "time": convert_second_to_log_format(issue.duration)
                 })
         self.state = "logged"
         return {'type': 'ir.actions.act_window_close'}
@@ -124,7 +124,7 @@ class KickOffSessionLine(models.TransientModel):
 
     sequence = fields.Integer(string="Sequence")
     chain_work_id = fields.Many2one('wt.chain.work.session', string="Kick Off")
-    ticket_id = fields.Many2one("wt.issue", string="Ticket")
+    issue_id = fields.Many2one("wt.issue", string="Ticket")
     state = fields.Selection([('draft', 'Draft'),
                               ('progress', 'In Progress'),
                               ('done', 'Done')], default="draft")
@@ -176,7 +176,7 @@ class KickOffBase(models.TransientModel):
     # def prepare_kickoff_line_data(self):
     #     pass
 
-    def loading_ticket(self):
+    def loading_issue(self):
         self.ensure_one()
         res = {
             'project_id': self.project_id.id,
@@ -193,5 +193,5 @@ class KickOffBase(models.TransientModel):
         self.ensure_one()
         if self.project_id:
             action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_view")
-            action['res_id'] = self.loading_ticket().id
+            action['res_id'] = self.loading_issue().id
             return action

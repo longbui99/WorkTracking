@@ -5,7 +5,7 @@ class LoadByLinkTransient(models.TransientModel):
     _name = 'wt.load.by.link'
     _description = 'Task Load By Link'
 
-    type = fields.Selection([('ticket', 'Ticket'), ('project', 'Project')], string='Type', default='ticket')
+    type = fields.Selection([('issue', 'Ticket'), ('project', 'Project')], string='Type', default='issue')
     link_line_ids = fields.One2many('wt.load.by.link.line', 'origin_id', string="Keys")
     migration_id = fields.Many2one('wt.migration', string='Migration')
 

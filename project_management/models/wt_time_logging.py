@@ -13,11 +13,11 @@ class JiraTimeLog(models.Model):
     _name = "wt.time.log"
     _description = "Task Time Log"
     _order = 'start_date desc'
-    _rec_name = 'ticket_id'
+    _rec_name = 'issue_id'
 
     time = fields.Char(string='Time Logging', compute='_compute_time_data', store=True)
     description = fields.Text(string='Description', required=True)
-    ticket_id = fields.Many2one('wt.issue', string='Ticket', ondelete="cascade")
+    issue_id = fields.Many2one('wt.issue', string='Ticket', ondelete="cascade")
     duration = fields.Integer(string='Duration', required=True)
     cluster_id = fields.Many2one('wt.work.log.cluster')
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')
@@ -25,7 +25,7 @@ class JiraTimeLog(models.Model):
     user_id = fields.Many2one('res.users', string='User')
     start_date = fields.Datetime("Start Date")
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
-    project_id = fields.Many2one(string='Project', related="ticket_id.project_id", store=True)
+    project_id = fields.Many2one(string='Project', related="issue_id.project_id", store=True)
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
     filter_date = fields.Char(string="Filter", store=False, search='_search_filter_date')
 
@@ -49,7 +49,7 @@ class JiraTimeLog(models.Model):
 
     def unlink(self):
         cluster_ids = self.mapped('cluster_id')
-        work_log_ids = self.mapped('ticket_id').mapped('work_log_ids').filtered(lambda r: r.cluster_id in cluster_ids)
+        work_log_ids = self.mapped('issue_id').mapped('work_log_ids').filtered(lambda r: r.cluster_id in cluster_ids)
         work_log_ids.write({'state': 'cancel'})
         work_log_ids.filtered(lambda r: not r.end).write({'end': datetime.now()})
         return super().unlink()

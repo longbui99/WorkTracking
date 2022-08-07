@@ -25,8 +25,8 @@
                     <button name="load_sprints" type="object" string="Load Sprints" class="btn-primary"/>
                     <button name="update_issue_for_sprints" type="object" string="Update Sprints" class="btn-secondary"/>
                     <button name="load_all_users" type="object" string="Load Users" class="btn-primary"/>
-                    <button name="load_all_tickets" type="object" string="Load All Issues" class="btn-primary"/>
-                    <button name="load_my_tickets" type="object" string="Load My Issues" class="btn-primary"/>
+                    <button name="load_all_issues" type="object" string="Load All Issues" class="btn-primary"/>
+                    <button name="load_my_issues" type="object" string="Load My Issues" class="btn-primary"/>
                     <button name="load_by_links" type="object" string="Load By Keys" class="btn-primary"/>
                 </header>
                 <sheet>

@@ -153,7 +153,7 @@ class TaskMigration(models.Model):
             raise UserError("Task Server: \n" + "\n".join(body['errorMessages']))
         return body
 
-    # ===========================================  Section for loading tickets/issues =============================================
+    # ===========================================  Section for loading issues/issues =============================================
     @api.model
     def _create_new_acs(self, values=[], mapping=None):
         if not values:
@@ -197,15 +197,15 @@ class TaskMigration(models.Model):
         res = self._create_new_acs(list(value_keys.values()), mapping)
         return res
 
-    def export_acceptance_criteria(self, ticket_id):
+    def export_acceptance_criteria(self, issue_id):
         issue_mapping = IssueMapping(self.wt_server_url, self.server_type)
         ac_mapping = ACMapping(self.wt_server_url, self.server_type).exporting()
         headers = self.__get_request_headers()
         request_data = {
-            'endpoint': f"{self.wt_server_url}/issue/{ticket_id.ticket_key}",
+            'endpoint': f"{self.wt_server_url}/issue/{issue_id.issue_key}",
             'method': 'put',
         }
-        updated_acs = ac_mapping(ticket_id.ac_ids)
+        updated_acs = ac_mapping(issue_id.ac_ids)
         payload = {
             "fields": {
                 f"{issue_mapping.acceptance_criteria[0]}": updated_acs
@@ -229,7 +229,7 @@ class TaskMigration(models.Model):
         return {
             'project_key_dict': {r.project_key: r.id for r in self.env['wt.project'].sudo().search([])},
             'dict_user': self.with_context(active_test=False).get_user(),
-            'dict_ticket_key': {r.ticket_key: r for r in self.env['wt.issue'].sudo().search(domain)},
+            'dict_issue_key': {r.issue_key: r for r in self.env['wt.issue'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['wt.status'].sudo().search([])},
             'dict_type': {r.key: r.id for r in self.env["wt.type"].sudo().search([])}
         }
@@ -238,33 +238,33 @@ class TaskMigration(models.Model):
         issue_mapping = IssueMapping(self.wt_server_url, self.server_type)
         response = []
         load_ac = self.is_load_acs
-        for ticket in raw.get('issues', [raw]):
-            ticket_fields = ticket['fields']
-            status = self.__load_from_key_paths(ticket_fields, issue_mapping.status)
-            story_point = self.__load_from_key_paths(ticket_fields, issue_mapping.story_point)
-            estimate_hour = self.__load_from_key_paths(ticket_fields, issue_mapping.estimate_hour) or 0.0
-            assignee = self.__load_from_key_paths(ticket_fields, issue_mapping.assignee)
-            tester = self.__load_from_key_paths(ticket_fields, issue_mapping.tester)
-            project = self.__load_from_key_paths(ticket_fields, issue_mapping.project)
-            issue_type = self.__load_from_key_paths(ticket_fields, issue_mapping.issue_type)
-            summary = self.__load_from_key_paths(ticket_fields, issue_mapping.summary)
-            acceptance_criteria = self.__load_from_key_paths(ticket_fields, issue_mapping.acceptance_criteria)
-            created_date = self.__load_from_key_paths(ticket_fields, issue_mapping.created_date)
-            new_status = self.__load_from_key_paths(ticket_fields, issue_mapping.new_status)
-            wt_key = self.__load_from_key_paths(ticket_fields, issue_mapping.wt_status)
-            new_issue_type = self.__load_from_key_paths(ticket_fields, issue_mapping.new_issue_key)
-            if ticket.get('key', '-') not in local['dict_ticket_key']:
-                # _logger.info(f"Loading for ticket: {ticket['key']}")
-                if not ticket_fields:
+        for issue in raw.get('issues', [raw]):
+            issue_fields = issue['fields']
+            status = self.__load_from_key_paths(issue_fields, issue_mapping.status)
+            story_point = self.__load_from_key_paths(issue_fields, issue_mapping.story_point)
+            estimate_hour = self.__load_from_key_paths(issue_fields, issue_mapping.estimate_hour) or 0.0
+            assignee = self.__load_from_key_paths(issue_fields, issue_mapping.assignee)
+            tester = self.__load_from_key_paths(issue_fields, issue_mapping.tester)
+            project = self.__load_from_key_paths(issue_fields, issue_mapping.project)
+            issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.issue_type)
+            summary = self.__load_from_key_paths(issue_fields, issue_mapping.summary)
+            acceptance_criteria = self.__load_from_key_paths(issue_fields, issue_mapping.acceptance_criteria)
+            created_date = self.__load_from_key_paths(issue_fields, issue_mapping.created_date)
+            new_status = self.__load_from_key_paths(issue_fields, issue_mapping.new_status)
+            wt_key = self.__load_from_key_paths(issue_fields, issue_mapping.wt_status)
+            new_issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.new_issue_key)
+            if issue.get('key', '-') not in local['dict_issue_key']:
+                # _logger.info(f"Loading for issue: {issue['key']}")
+                if not issue_fields:
                     continue
                 res = {
-                    'ticket_name': summary,
-                    'ticket_key': ticket['key'],
-                    'ticket_url': issue_mapping.map_url(ticket['key']),
+                    'issue_name': summary,
+                    'issue_key': issue['key'],
+                    'issue_url': issue_mapping.map_url(issue['key']),
                     'story_point': estimate_hour and estimate_hour or story_point,
                     'wt_migration_id': self.id,
                     'create_date': created_date,
-                    'wt_id': ticket['id']
+                    'wt_id': issue['id']
                 }
                 if estimate_hour:
                     res['story_point_unit'] = 'hrs'
@@ -277,7 +277,7 @@ class TaskMigration(models.Model):
                     res['assignee_id'] = local['dict_user'][assignee]
                 elif assignee:
                     new_user = self.env['res.users'].create({
-                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.assignee_name),
+                        'name': self.__load_from_key_paths(issue_fields, issue_mapping.assignee_name),
                         'login': assignee,
                         'active': False
                     })
@@ -287,7 +287,7 @@ class TaskMigration(models.Model):
                     res['tester_id'] = local['dict_user'][tester]
                 elif tester:
                     new_user = self.env['res.users'].create({
-                        'name': self.__load_from_key_paths(ticket_fields, issue_mapping.tester_name),
+                        'name': self.__load_from_key_paths(issue_fields, issue_mapping.tester_name),
                         'login': tester,
                         'active': False
                     })
@@ -304,7 +304,7 @@ class TaskMigration(models.Model):
                     local['dict_status'][status] = status_id
                     res['status_id'] = local['dict_status'][status]
                 if local["dict_type"].get(issue_type, False):
-                    res['ticket_type_id'] = local['dict_type'][issue_type]
+                    res['issue_type_id'] = local['dict_type'][issue_type]
                 else:
                     new_issue_type_id = self.env['wt.type'].create({
                         'name': new_issue_type['name'],
@@ -312,19 +312,19 @@ class TaskMigration(models.Model):
                         'key': issue_type
                     }).id
                     local['dict_type'][issue_type] = new_issue_type_id
-                    res['ticket_type_id'] = local['dict_type'][issue_type]
+                    res['issue_type_id'] = local['dict_type'][issue_type]
                 if load_ac:
                     res["ac_ids"] = self._create_new_acs(acceptance_criteria)
                 response.append(res)
             else:
-                existing_record = local['dict_ticket_key'][ticket.get('key', '-')]
+                existing_record = local['dict_issue_key'][issue.get('key', '-')]
                 update_dict = {
                     'story_point': estimate_hour and estimate_hour or story_point,
                 }
                 if estimate_hour:
                     update_dict['story_point_unit'] = 'hrs'
-                if existing_record.ticket_name != summary:
-                    update_dict['ticket_name'] = summary
+                if existing_record.issue_name != summary:
+                    update_dict['issue_name'] = summary
                 if existing_record.status_id.id != local['dict_status'].get(status):
                     if status not in local['dict_status']:
                         status_id = self.env['wt.status'].create({
@@ -334,8 +334,8 @@ class TaskMigration(models.Model):
                         }).id
                         local['dict_status'][status] = status_id
                     update_dict['status_id'] = local['dict_status'][status]
-                if existing_record.ticket_type_id.id != local['dict_type'].get(issue_type):
-                    update_dict['ticket_type_id'] = local['dict_type'][issue_type]
+                if existing_record.issue_type_id.id != local['dict_type'].get(issue_type):
+                    update_dict['issue_type_id'] = local['dict_type'][issue_type]
                 if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
                     assignee]:
                     update_dict['assignee_id'] = local['dict_user'][assignee]
@@ -379,34 +379,34 @@ class TaskMigration(models.Model):
             if body.get('total', 0) > total_response and load_all:
                 total_response = body['total']
             start_index += paging
-            new_tickets = self.processing_issue_raw_data(local_data, body)
-            if new_tickets:
-                if not isinstance(new_tickets[0], dict):
-                    existing_record |= new_tickets[0]
-                    new_tickets.pop(0)
-            response.extend(new_tickets)
+            new_issues = self.processing_issue_raw_data(local_data, body)
+            if new_issues:
+                if not isinstance(new_issues[0], dict):
+                    existing_record |= new_issues[0]
+                    new_issues.pop(0)
+            response.extend(new_issues)
         print(json.dumps(response, indent=4))
         return existing_record | self.env['wt.issue'].create(response)
 
-    def load_tickets(self, extra_jql="", domain=[], load_all=False):
+    def load_issues(self, extra_jql="", domain=[], load_all=False):
         request_data = {
             'endpoint': f"{self.wt_server_url}/search",
             'params': [extra_jql]
         }
         return self.do_request(request_data, domain=domain, load_all=load_all)
 
-    def load_all_tickets(self):
-        ticket_ids = self.load_tickets(load_all=True)
-        if ticket_ids and self.import_work_log:
-            for ticket_id in ticket_ids:
-                self.with_delay().load_work_logs(ticket_id)
+    def load_all_issues(self):
+        issue_ids = self.load_issues(load_all=True)
+        if issue_ids and self.import_work_log:
+            for issue_id in issue_ids:
+                self.with_delay().load_work_logs(issue_id)
 
-    def load_my_tickets(self):
+    def load_my_issues(self):
         extra_jql = f"""jql=assignee='{self.env.user.partner_id.email}' ORDER BY createdDate ASC"""
-        ticket_ids = self.load_tickets(extra_jql, domain=[('assignee_id', '=', self.env.user.id)], load_all=True)
-        if ticket_ids and self.import_work_log:
-            for ticket_id in ticket_ids:
-                self.with_delay().load_work_logs(ticket_id)
+        issue_ids = self.load_issues(extra_jql, domain=[('assignee_id', '=', self.env.user.id)], load_all=True)
+        if issue_ids and self.import_work_log:
+            for issue_id in issue_ids:
+                self.with_delay().load_work_logs(issue_id)
 
     def load_by_links(self):
         self.ensure_one()
@@ -417,19 +417,19 @@ class TaskMigration(models.Model):
         return action
 
     @api.model
-    def search_ticket(self, keyword):
+    def search_issue(self, keyword):
         return self.search_load(keyword)
 
     def _search_load(self, res, delay=False):
-        ticket_ids = self.env['wt.issue']
-        if 'ticket' in res:
-            if not isinstance(res['ticket'], (list, tuple)):
-                res['ticket'] = [res['ticket']]
-            for key in res['ticket']:
+        issue_ids = self.env['wt.issue']
+        if 'issue' in res:
+            if not isinstance(res['issue'], (list, tuple)):
+                res['issue'] = [res['issue']]
+            for key in res['issue']:
                 request_data = {
                     'endpoint': f"{self.wt_server_url}/issue/{key.upper()}",
                 }
-                ticket_ids |= self.do_request(request_data, [('ticket_key', 'in', res['ticket'])])
+                issue_ids |= self.do_request(request_data, [('issue_key', 'in', res['issue'])])
         else:
             params = []
             if 'project' in res:
@@ -452,13 +452,13 @@ class TaskMigration(models.Model):
                 'endpoint': f"{self.wt_server_url}/search",
                 "params": [query]
             }
-            ticket_ids |= self.do_request(request_data, load_all=True)
+            issue_ids |= self.do_request(request_data, load_all=True)
         if delay:
-            self.with_delay().load_work_logs(ticket_ids)
+            self.with_delay().load_work_logs(issue_ids)
         else:
-            self.load_work_logs(ticket_ids)
+            self.load_work_logs(issue_ids)
 
-        return ticket_ids
+        return issue_ids
 
     def search_load(self, payload):
         res = get_search_request(payload)
@@ -468,10 +468,10 @@ class TaskMigration(models.Model):
     def get_user(self):
         return {r.partner_id.email or r.login: r.id for r in self.env['res.users'].sudo().search([])}
 
-    def get_local_worklog_data(self, ticket_id, domain):
+    def get_local_worklog_data(self, issue_id, domain):
         return {
-            'work_logs': {x.id_on_wt: x for x in ticket_id.time_log_ids if x.id_on_wt},
-            'tickets': {ticket_id.wt_id: ticket_id.id},
+            'work_logs': {x.id_on_wt: x for x in issue_id.time_log_ids if x.id_on_wt},
+            'issues': {issue_id.wt_id: issue_id.id},
             'issue_to_logs': {}
         }
 
@@ -493,8 +493,8 @@ class TaskMigration(models.Model):
     def processing_worklog_raw_data(self, data, body, mapping=False):
         if not mapping:
             mapping = WorkLogMapping(self.wt_server_url, self.server_type)
-        new_tickets = []
-        tickets = data['tickets']
+        new_issues = []
+        issues = data['issues']
         affected_wt_ids = set()
         for work_log in body.get('worklogs', [body]):
             log_id = int(work_log.get('id', '-'))
@@ -506,19 +506,19 @@ class TaskMigration(models.Model):
             start_date = self.__load_from_key_paths(work_log, mapping.start_date)
             logging_email = self.__load_from_key_paths(work_log, mapping.author)
             if log_id not in data['work_logs']:
-                if duration > 0 and tickets.get(int(work_log['issueId']), False):
+                if duration > 0 and issues.get(int(work_log['issueId']), False):
                     to_create = {
                         'time': time,
                         'duration': duration,
                         'description': description,
                         'state': 'done',
                         'source': 'sync',
-                        'ticket_id': tickets.get(int(work_log['issueId']), False),
+                        'issue_id': issues.get(int(work_log['issueId']), False),
                         'id_on_wt': id_on_wt,
                         'start_date': self.convert_server_tz_to_utc(start_date),
                         'user_id': data['dict_user'].get(logging_email, False)
                     }
-                    new_tickets.append(to_create)
+                    new_issues.append(to_create)
             else:
                 self.update_work_log_data(log_id, work_log, data, mapping)
         if self.env.context.get('force_delete', False):
@@ -526,7 +526,7 @@ class TaskMigration(models.Model):
             if deleted:
                 self.env['wt.time.log'].search([('id_on_wt', 'in', list(deleted))]).unlink()
 
-        return new_tickets
+        return new_issues
 
     def load_work_logs_by_unix(self, unix, batch=900):
         if self.import_work_log:
@@ -534,11 +534,11 @@ class TaskMigration(models.Model):
             last_page = False
             mapping = WorkLogMapping(self.wt_server_url, self.server_type)
             headers = self.__get_request_headers()
-            ticket_ids = self.env['wt.issue'].search(
+            issue_ids = self.env['wt.issue'].search(
                 [('wt_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
             local_data = {
-                'work_logs': {x.id_on_wt: x for x in ticket_ids.mapped('time_log_ids') if x.id_on_wt},
-                'tickets': {ticket_id.wt_id: ticket_id.id for ticket_id in ticket_ids},
+                'work_logs': {x.id_on_wt: x for x in issue_ids.mapped('time_log_ids') if x.id_on_wt},
+                'issues': {issue_id.wt_id: issue_id.id for issue_id in issue_ids},
                 'dict_user': self.with_context(active_test=False).get_user()
             }
             flush = []
@@ -618,19 +618,19 @@ class TaskMigration(models.Model):
                     time.sleep(30)
                     continue
 
-    def load_work_logs(self, ticket_ids, paging=100, domain=[], load_all=False):
+    def load_work_logs(self, issue_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:
             mapping = WorkLogMapping(self.wt_server_url, self.server_type)
             headers = self.__get_request_headers()
             user_dict = self.with_context(active_test=False).get_user()
-            for ticket_id in ticket_ids:
+            for issue_id in issue_ids:
                 request_data = {
-                    'endpoint': f"{self.wt_server_url}/issue/{ticket_id.ticket_key}/worklog",
+                    'endpoint': f"{self.wt_server_url}/issue/{issue_id.issue_key}/worklog",
                 }
                 start_index = 0
                 total_response = paging
                 to_create = []
-                local_data = self.get_local_worklog_data(ticket_id, domain)
+                local_data = self.get_local_worklog_data(issue_id, domain)
                 local_data['dict_user'] = user_dict
                 request_data['params'] = request_data.get('params', [])
                 request = request_data.copy()
@@ -644,8 +644,8 @@ class TaskMigration(models.Model):
                     if body.get('total', 0) > total_response and load_all:
                         total_response = body['total']
                     start_index += paging
-                    new_tickets = self.with_context(force_delete=True).processing_worklog_raw_data(local_data, body, mapping)
-                    to_create.extend(new_tickets)
+                    new_issues = self.with_context(force_delete=True).processing_worklog_raw_data(local_data, body, mapping)
+                    to_create.extend(new_issues)
                 if to_create:
                     self.env['wt.time.log'].create(to_create)
 
@@ -657,10 +657,10 @@ class TaskMigration(models.Model):
             "timeSpentSeconds": time_log_id.duration
         }
 
-    def add_time_logs(self, ticket_id, time_log_ids):
+    def add_time_logs(self, issue_id, time_log_ids):
         headers = self.__get_request_headers()
         request_data = {
-            'endpoint': f"{self.wt_server_url}/issue/{ticket_id.ticket_key}/worklog",
+            'endpoint': f"{self.wt_server_url}/issue/{issue_id.issue_key}/worklog",
             'method': 'post',
         }
         for log in time_log_ids:
@@ -669,10 +669,10 @@ class TaskMigration(models.Model):
             res = self.make_request(request_data, headers)
             log.id_on_wt = res['id']
 
-    def update_time_logs(self, ticket_id, time_log_ids):
+    def update_time_logs(self, issue_id, time_log_ids):
         headers = self.__get_request_headers()
         request_data = {
-            'endpoint': f"{self.wt_server_url}/issue/{ticket_id.ticket_key}/worklog",
+            'endpoint': f"{self.wt_server_url}/issue/{issue_id.issue_key}/worklog",
             'method': 'put',
         }
         for log in time_log_ids:
@@ -685,10 +685,10 @@ class TaskMigration(models.Model):
             except:
                 continue
 
-    def delete_time_logs(self, ticket_id, time_log_ids):
+    def delete_time_logs(self, issue_id, time_log_ids):
         headers = self.__get_request_headers()
         request_data = {
-            'endpoint': f"{self.wt_server_url}/issue/{ticket_id.ticket_key}/worklog",
+            'endpoint': f"{self.wt_server_url}/issue/{issue_id.issue_key}/worklog",
             'method': 'delete',
         }
         for log in time_log_ids:
@@ -699,17 +699,17 @@ class TaskMigration(models.Model):
             res = self.make_request(request_clone, headers)
             
 
-    def export_time_log(self, ticket_id):
+    def export_time_log(self, issue_id):
         current_user_id = self.env.user.id
-        time_log_to_create_ids = ticket_id.time_log_ids.filtered(lambda x: not x.id_on_wt and x.state == 'done')
-        time_log_to_update_ids = ticket_id.time_log_ids.filtered(
+        time_log_to_create_ids = issue_id.time_log_ids.filtered(lambda x: not x.id_on_wt and x.state == 'done')
+        time_log_to_update_ids = issue_id.time_log_ids.filtered(
             lambda x: x.id_on_wt
-                      and (not ticket_id.last_export or x.write_date > ticket_id.last_export)
+                      and (not issue_id.last_export or x.write_date > issue_id.last_export)
                       and (x.user_id.id == current_user_id)
                       and x.state == 'done'
         )
-        self.add_time_logs(ticket_id, time_log_to_create_ids)
-        self.update_time_logs(ticket_id, time_log_to_update_ids)
+        self.add_time_logs(issue_id, time_log_to_create_ids)
+        self.update_time_logs(issue_id, time_log_to_update_ids)
 
     def _update_project(self, project_id, access_token):
         self = self.with_context(access_token=access_token)
@@ -719,9 +719,9 @@ class TaskMigration(models.Model):
         str_updated_date = updated_date.strftime('%Y-%m-%d %H:%M')
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
-        ticket_ids = self.do_request(request_data, load_all=True)
+        issue_ids = self.do_request(request_data, load_all=True)
         _logger.info(f"=====================================================================")
-        _logger.info(f"{project_id.project_name}: {len(ticket_ids)}")
+        _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
         _logger.info(f"_____________________________________________________________________")
         project_id.last_update = datetime.now()
 
@@ -807,7 +807,7 @@ class TaskMigration(models.Model):
         if not sprint_ids:
             sprint_ids = self.env["agile.sprint"].search([('state', 'in', ('active', 'future'))])
         headers = self.__get_request_headers()
-        current_tickets = {x.ticket_key: x for x in self.env["wt.issue"].search(
+        current_issues = {x.issue_key: x for x in self.env["wt.issue"].search(
             [('create_date', '>', datetime.now() - relativedelta(months=2))])}
         force = self.env.context.get('force', False)
         for sprint in sprint_ids:
@@ -820,8 +820,8 @@ class TaskMigration(models.Model):
             try:
                 data = self.make_request(request_data, headers)
                 for issue in data['issues']:
-                    if issue['key'] in current_tickets:
-                        current_tickets[issue['key']].sprint_id = sprint.id
+                    if issue['key'] in current_issues:
+                        current_issues[issue['key']].sprint_id = sprint.id
                 sprint.write({'updated': False})
             except Exception as e:
                 _logger.warning(f"Loading issue of sprint {sprint.name} failed: " + str(e))

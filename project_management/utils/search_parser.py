@@ -16,9 +16,9 @@ def get_search_request(string):
         'sprint': ('sprint', 0, True),
         'mine': ('mine', 0, True),
         '<[a-zA-Z0-9]+>': ('project', 1, -1),
-        '[a-zA-Z]+-[0-9]+': ('ticket', 0, True),
+        '[a-zA-Z]+-[0-9]+': ('issue', 0, True),
         '[A-Z]{2,}': ('project', 0, True),
-        '<[a-zA-Z0-9]+-[a-zA-Z0-9]+>': ('ticket', 1, -1),
+        '<[a-zA-Z0-9]+-[a-zA-Z0-9]+>': ('issue', 1, -1),
         '>[a-zA-Z0-9@.]+<?': ('name', 1, True),
     }
     interator = re.finditer('(([a-zA-Z]+-[0-9]+:?)|[A-Z]{2,}:?|<[a-zA-Z0-9-]*>|>[a-zA-Z0-9@.]+<?|[ \.]?(chain|mine|sprint\+?)[ \.]?|jql=)', string)

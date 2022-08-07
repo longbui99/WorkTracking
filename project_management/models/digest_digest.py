@@ -72,43 +72,43 @@ class Digest(models.Model):
             })
         return user_data
 
-    def _formatting_ticket_from_work_log(self, work_log_ids):
+    def _formatting_issue_from_work_log(self, work_log_ids):
         res = {}
         for log in work_log_ids:
-            if log.ticket_id not in res:
-                res[log.ticket_id] = {
-                    'ticket_key': log.ticket_id.ticket_key,
-                    'ticket_name': log.ticket_id.ticket_name,
+            if log.issue_id not in res:
+                res[log.issue_id] = {
+                    'issue_key': log.issue_id.issue_key,
+                    'issue_name': log.issue_id.issue_name,
                     'log': [],
                     'total_duration': 0,
                     'time_duration': ''
                 }
-            res[log.ticket_id]['log'].append({
+            res[log.issue_id]['log'].append({
                 'time': log.time,
                 'description': log.description
             })
-            res[log.ticket_id]['total_duration'] += log.duration
+            res[log.issue_id]['total_duration'] += log.duration
         for key in res:
             res[key]['time_duration'] = convert_second_to_time_format(res[key]['total_duration'])
         return res
 
     @api.model
-    def _formatting_ticket_from_time_log(self, time_log_ids):
+    def _formatting_issue_from_time_log(self, time_log_ids):
         res = {}
         for log in time_log_ids:
-            if log.ticket_id not in res:
-                res[log.ticket_id] = {
-                    'ticket_key': log.ticket_id.ticket_key,
-                    'ticket_name': log.ticket_id.ticket_name,
+            if log.issue_id not in res:
+                res[log.issue_id] = {
+                    'issue_key': log.issue_id.issue_key,
+                    'issue_name': log.issue_id.issue_name,
                     'log': [],
                     'total_duration': 0,
                     'time_duration': ''
                 }
-            res[log.ticket_id]['log'].append({
+            res[log.issue_id]['log'].append({
                 'time': log.time,
                 'description': log.description
             })
-            res[log.ticket_id]['total_duration'] += log.duration
+            res[log.issue_id]['total_duration'] += log.duration
         for key in res:
             res[key]['time_duration'] = convert_second_to_time_format(res[key]['total_duration'])
         return res
@@ -122,24 +122,24 @@ class Digest(models.Model):
         payload = record["payload"]
         while len(payload) > 0:
             log = payload[0]
-            if log.ticket_id.project_id.id not in res["payload"]:
-                res["payload"][log.ticket_id.project_id.id] = {
-                    "project_key": log.ticket_id.project_id.project_key,
-                    "project_name": log.ticket_id.project_id.project_name,
+            if log.issue_id.project_id.id not in res["payload"]:
+                res["payload"][log.issue_id.project_id.id] = {
+                    "project_key": log.issue_id.project_id.project_key,
+                    "project_name": log.issue_id.project_id.project_name,
                     "total_duration": 0,
                     'time_duration': ''
                 }
-                if res["payload"][log.ticket_id.project_id.id]:
-                    log_ids = payload.filtered(lambda r: r.ticket_id.project_id == log.ticket_id.project_id)
+                if res["payload"][log.issue_id.project_id.id]:
+                    log_ids = payload.filtered(lambda r: r.issue_id.project_id == log.issue_id.project_id)
                     payload -= log_ids
                     if payload._name == "wt.time.log":
-                        res["payload"][log.ticket_id.project_id.id]["tickets"] = self._formatting_ticket_from_time_log(
+                        res["payload"][log.issue_id.project_id.id]["issues"] = self._formatting_issue_from_time_log(
                             log_ids)
                     elif payload._name == "wt.work.log":
-                        res["payload"][log.ticket_id.project_id.id]["tickets"] = self._formatting_ticket_from_work_log(
+                        res["payload"][log.issue_id.project_id.id]["issues"] = self._formatting_issue_from_work_log(
                             log_ids)
-                    record = res["payload"][log.ticket_id.project_id.id]
-                    total_duration = sum(list([v['total_duration'] for v in record['tickets'].values()]))
+                    record = res["payload"][log.issue_id.project_id.id]
+                    total_duration = sum(list([v['total_duration'] for v in record['issues'].values()]))
                     record['total_duration'] = total_duration
                     record['time_duration'] = convert_second_to_time_format(total_duration)
                     res["total_duration"] += total_duration

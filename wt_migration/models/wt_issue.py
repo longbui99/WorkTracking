@@ -24,8 +24,8 @@ class JiraProject(models.Model):
         for record in self:
             record.wt_migration_id.export_acceptance_criteria(record)
 
-    def import_ticket_wt(self):
-        res = {'ticket': self.mapped('ticket_key')}
+    def import_issue_wt(self):
+        res = {'issue': self.mapped('issue_key')}
         self.wt_migration_id._search_load(res)
 
     def action_done_work_log(self, values={}):
@@ -81,7 +81,7 @@ class JiraProject(models.Model):
             })
         return res
 
-    def export_ticket_to_server(self, values={}):
+    def export_issue_to_server(self, values={}):
         if values.get('mode', {}).get('worklog', False):
             self.export_time_log_to_wt()
         if values.get('mode', {}).get('ac', False):
@@ -93,11 +93,11 @@ class JiraProject(models.Model):
 
     def render_batch_update_wizard(self):
         action = self.env.ref("wt_migration.export_work_log_action_form").read()[0]
-        action["context"] = {'default_ticket_ids': self.ids}
+        action["context"] = {'default_issue_ids': self.ids}
         return action
 
-    def get_search_ticket_domain(self, res, employee):
+    def get_search_issue_domain(self, res, employee):
         if 'jql' in res:
             return []
         else:
-            return super().get_search_ticket_domain(res, employee)
+            return super().get_search_issue_domain(res, employee)

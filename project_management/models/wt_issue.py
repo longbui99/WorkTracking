@@ -12,36 +12,36 @@ import base64
 class JiraProject(models.Model):
     _name = "wt.issue"
     _description = "Task Ticket"
-    _order = 'ticket_sequence desc, sequence asc, create_date desc'
+    _order = 'issue_sequence desc, sequence asc, create_date desc'
 
     pin = fields.Boolean(string='Pin')
     sequence = fields.Integer(string='Sequence')
-    ticket_name = fields.Char(string='Name', required=True)
-    ticket_key = fields.Char(string='Ticket Key', required=True)
-    ticket_url = fields.Char(string='Task Ticket')
-    time_log_ids = fields.One2many('wt.time.log', 'ticket_id', string='Log Times')
+    issue_name = fields.Char(string='Name', required=True)
+    issue_key = fields.Char(string='Ticket Key', required=True)
+    issue_url = fields.Char(string='Task Ticket')
+    time_log_ids = fields.One2many('wt.time.log', 'issue_id', string='Log Times')
     story_point = fields.Float(string='Estimate')
     story_point_unit = fields.Selection([('general', 'Fibonanci'), ('hrs', 'Hour(s)')], string="Estimate Unit", default="general")
     project_id = fields.Many2one('wt.project', string='Project', required=True)
     assignee_id = fields.Many2one('res.users', string='Assignee')
     tester_id = fields.Many2one("res.users", string="Tester")
-    ticket_type_id = fields.Many2one("wt.type", string="Type")
-    ac_ids = fields.One2many("wt.ac", "ticket_id", string="Checklist")
+    issue_type_id = fields.Many2one("wt.type", string="Type")
+    ac_ids = fields.One2many("wt.ac", "issue_id", string="Checklist")
     suitable_assignee = fields.Many2many('res.users', store=False, compute='_compute_suitable_assignee',
                                          compute_sudo=True)
     status_value = fields.Char('Status Raw Value', related='status_id.key')
     status_id = fields.Many2one('wt.status', string='Status')
     duration = fields.Integer('Duration', compute='_compute_duration', store=True)
     progress_cluster_id = fields.Many2one('wt.work.log.cluster', string='Progress Cluster')
-    work_log_ids = fields.One2many('wt.work.log', 'ticket_id', string='Work Log Statuses')
+    work_log_ids = fields.One2many('wt.work.log', 'issue_id', string='Work Log Statuses')
     active_duration = fields.Integer("Active Duration", compute='_compute_active_duration')
     my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration")
     last_start = fields.Datetime("Last Start", compute="_compute_last_start")
-    ticket_sequence = fields.Integer('Ticket Sequence', compute='_compute_ticket_sequence', store=True)
+    issue_sequence = fields.Integer('Ticket Sequence', compute='_compute_issue_sequence', store=True)
     start_date = fields.Datetime("Start Date")
-    parent_ticket_id = fields.Many2one("wt.issue", string="Parent")
+    parent_issue_id = fields.Many2one("wt.issue", string="Parent")
     log_to_parent = fields.Boolean("Log to Parent?")
-    children_ticket_ids = fields.One2many("wt.issue", "parent_ticket_id", store=False)
+    children_issue_ids = fields.One2many("wt.issue", "parent_issue_id", store=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
@@ -56,7 +56,7 @@ class JiraProject(models.Model):
     def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
         if name and operator in ('=', 'ilike', '=ilike', 'like', '=like'):
             args = args or []
-            domain = ['|', ('ticket_name', operator, name), ('ticket_key', operator, name)]
+            domain = ['|', ('issue_name', operator, name), ('issue_key', operator, name)]
             return self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
         return super(JiraProject, self)._name_search(name=name, args=args, operator=operator, limit=limit,
                                                      name_get_uid=name_get_uid)
@@ -74,8 +74,8 @@ class JiraProject(models.Model):
 
     def name_get(self):
         # Prefetch the fields used by the `name_get`, so `browse` doesn't fetch other fields
-        self.browse(self.ids).read(['ticket_key', 'ticket_name'])
-        return [(template.id, '%s: %s' % (template.ticket_key and template.ticket_key or '', template.ticket_name))
+        self.browse(self.ids).read(['issue_key', 'issue_name'])
+        return [(template.id, '%s: %s' % (template.issue_key and template.issue_key or '', template.issue_name))
                 for template in self]
 
     @api.depends("duration")
@@ -88,11 +88,11 @@ class JiraProject(models.Model):
             record.my_total_duration = sum(
                 record.time_log_ids.filtered(lambda r: r.user_id.id == self.env.user.id).mapped('duration'))
 
-    @api.depends('ticket_key')
-    def _compute_ticket_sequence(self):
+    @api.depends('issue_key')
+    def _compute_issue_sequence(self):
         for record in self:
-            if record.ticket_key:
-                record.ticket_sequence = int(record.ticket_key.split('-')[1])
+            if record.issue_key:
+                record.issue_sequence = int(record.issue_key.split('-')[1])
 
     @api.depends('time_log_ids', 'time_log_ids.duration')
     def _compute_duration(self):
@@ -160,7 +160,7 @@ class JiraProject(models.Model):
                 lambda r: r.user_id.id == user_id and r.state == 'progress' and source == source)
             if not time_log_ids:
                 cluster = self.env['wt.work.log.cluster'].create({
-                    'name': self.ticket_key + "-" + str(len(record.time_log_ids) + 1)
+                    'name': self.issue_key + "-" + str(len(record.time_log_ids) + 1)
                 })
                 record.time_log_ids = [fields.Command.create({
                     'description': values.get('description', ''),
@@ -185,22 +185,22 @@ class JiraProject(models.Model):
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id("project_management.log_work_action_form_view")
         context = json.loads(action['context'])
-        context.update({'default_ticket_id': self.id})
+        context.update({'default_issue_id': self.id})
         action['context'] = context
         return action
 
     def _get_suitable_log(self):
         record = self
-        while record.parent_ticket_id and record.log_to_parent:
-            record = record.parent_ticket_id
+        while record.parent_issue_id and record.log_to_parent:
+            record = record.parent_issue_id
         return record
 
     def action_done_work_log(self, values={}):
         self.action_pause_work_log(values)
         source = values.get('source', 'Internal')
         change_records = self.env['wt.issue']
-        for ticket in self:
-            record = ticket._get_suitable_log()
+        for issue in self:
+            record = issue._get_suitable_log()
             suitable_time_log_pivot_id = record.time_log_ids.filtered(
                 lambda r: r.user_id == self.env.user
                           and r.state == 'progress'
@@ -235,14 +235,14 @@ class JiraProject(models.Model):
         if start_date:
             start_date = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S%z").astimezone(pytz.utc)
             start_date = start_date.replace(tzinfo=None)
-        for ticket in self:
-            record = ticket._get_suitable_log()
+        for issue in self:
+            record = issue._get_suitable_log()
             log_ids |= record.env['wt.time.log'].create({
                 'description': values.get('description', ''),
                 'time': values.get('time', ''),
                 'user_id': self.env.user.id,
                 'source': source,
-                'ticket_id': record.id,
+                'issue_id': record.id,
                 'state': 'done',
                 'start_date': start_date
             })
@@ -263,22 +263,22 @@ class JiraProject(models.Model):
         active_time_ids = self.env['wt.time.log'].search([('user_id', '=', self.env.user.id),
                                                             ('source', '=', source),
                                                             ('state', '=', 'progress')])
-        active_ticket_ids = (active_time_ids.mapped('ticket_id') - except_ids).ids
-        self.search([('id', 'in', active_ticket_ids)], order=employee.order_style,
+        active_issue_ids = (active_time_ids.mapped('issue_id') - except_ids).ids
+        self.search([('id', 'in', active_issue_ids)], order=employee.order_style,
                     limit=employee.maximum_relative_result)
         if values.get('limit', False):
-            active_ticket_ids = active_ticket_ids[:values['limit']]
-        return active_ticket_ids
+            active_issue_ids = active_issue_ids[:values['limit']]
+        return active_issue_ids
 
     def generate_special_search(self, res, employee):
         if 'chain' in res:
             pass
 
-    def get_search_ticket_domain(self, res, employee):
+    def get_search_issue_domain(self, res, employee):
         domain = []
         print(res)
-        if 'ticket' in res:
-            domain = expression.AND([domain, [('ticket_key', 'ilike', res['ticket'])]])
+        if 'issue' in res:
+            domain = expression.AND([domain, [('issue_key', 'ilike', res['issue'])]])
         if 'project' in res:
             project_domain = []
             if res['project'].isupper():
@@ -298,18 +298,18 @@ class JiraProject(models.Model):
         if 'mine' in res:
             domain = expression.AND([domain, [('assignee_id', '=', employee.user_id.id)]])
         if 'text' in res:
-            domain = expression.AND([domain, [('ticket_name', 'ilike', res['text'])]])
+            domain = expression.AND([domain, [('issue_name', 'ilike', res['text'])]])
         if 'name' in res:
             user_ids = self.env['res.users'].with_context(active_test=False).sudo().search(
                 ['|', ('login', 'ilike', res['name']), ('partner_id.email', 'ilike', res['name'])])
             domain = expression.AND([domain, ['|', ('assignee_id', 'in', user_ids.ids), ('tester_id', 'in', user_ids.ids)]])
         return domain
 
-    def search_ticket_by_criteria(self, payload):
+    def search_issue_by_criteria(self, payload):
         employee = self._get_result_management()
         res = get_search_request(payload)
         print(json.dumps(res, indent=4))
-        domain = self.get_search_ticket_domain(res, employee)
+        domain = self.get_search_issue_domain(res, employee)
         print(json.dumps(domain, indent=4))
         result = self.env["wt.issue"]
         offset = int(self._context.get('offset', 0))

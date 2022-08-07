@@ -11,13 +11,13 @@
     </record>
 
     <record id="action_server_wt_project_fetch_record" model="ir.actions.server">
-        <field name="name">Fetch tickets</field>
+        <field name="name">Fetch issues</field>
         <field name="groups_id" eval="[(4, ref('project_management.group_wt_manager'))]"/>
         <field name="type">ir.actions.server</field>
         <field name="model_id" ref="model_wt_project" />
         <field name="binding_model_id" ref="model_wt_project" />
         <field name="state">code</field>
-        <field name="code">records.cron_fetch_ticket()</field>
+        <field name="code">records.cron_fetch_issue()</field>
     </record>
 
     <record id="wt_project_form_view" model="ir.ui.view">

@@ -7,10 +7,10 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="sequence" widget="handle"/>
-                <field name="ticket_name"/>
-                <field name="ticket_key"/>
+                <field name="issue_name"/>
+                <field name="issue_key"/>
                 <field name="story_point"/>
-                <field name="ticket_url"/>
+                <field name="issue_url"/>
                 <field name="status_id"/>
                 <field name="duration_hrs"/>
             </tree>
@@ -32,19 +32,19 @@
                     <button name="action_done_work" string="Log Work" type="object" class="btn-primary"/>
                 </header>
                 <sheet>
-                    <label for="ticket_name" class="oe_edit_only"/>
+                    <label for="issue_name" class="oe_edit_only"/>
                     <h1>
-                        <field name="ticket_name"/>
+                        <field name="issue_name"/>
                     </h1>
                     <group>
                         <group>
-                            <field name="ticket_type_id"/>
-                            <field name="ticket_key"/>
-                            <field name="ticket_url" widget="url"/>
+                            <field name="issue_type_id"/>
+                            <field name="issue_key"/>
+                            <field name="issue_url" widget="url"/>
                             <field name="story_point"/>
                             <field name="story_point_unit"/>
                             <field name="project_id"/>
-                            <field name="parent_ticket_id" domain="[('project_id','=',project_id)]"
+                            <field name="parent_issue_id" domain="[('project_id','=',project_id)]"
                                    attrs="{'required':[('log_to_parent','=', True)]}"/>
                             <field name="log_to_parent" widget="boolean_toggle"/>
                         </group>
@@ -106,9 +106,9 @@
                             </field>
                         </page>
                         <page string="Subtasks">
-                            <field name="children_ticket_ids">
+                            <field name="children_issue_ids">
                                 <tree edit="0">
-                                    <field name="ticket_key"/>
+                                    <field name="issue_key"/>
                                     <field name="duration_hrs"/>
                                 </tree>
                             </field>
@@ -126,14 +126,14 @@
         <field name="arch" type="xml">
             <kanban default_group_by="status_id">
                 <field name="status_id" options="{'group_by_tooltip': {'name': 'Description'}}"/>
-                <field name="ticket_name"/>
-                <field name="ticket_key"/>
+                <field name="issue_name"/>
+                <field name="issue_key"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_card oe_kanban_global_click">
                             <div>
-                                [<field name="ticket_key"/>]:
-                                <field name="ticket_name"/>
+                                [<field name="issue_key"/>]:
+                                <field name="issue_name"/>
                             </div>
                         </div>
                     </t>
@@ -148,15 +148,15 @@
         <field name="model">wt.issue</field>
         <field name="arch" type="xml">
             <kanban class="o_kanban_mobile">
-                <field name="ticket_key"/>
-                <field name="ticket_name"/>
+                <field name="issue_key"/>
+                <field name="issue_name"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_content oe_kanban_global_click">
                             <div class="row">
                                 <div class="col-12">
-                                    [<field name="ticket_key"/>]:
-                                    <field name="ticket_name"/>
+                                    [<field name="issue_key"/>]:
+                                    <field name="issue_name"/>
                                 </div>
                             </div>
                         </div>
@@ -171,9 +171,9 @@
         <field name="model">wt.issue</field>
         <field name="arch" type="xml">
             <search>
-                <field name="ticket_key"/>
-                <field name="ticket_name"/>
-                <filter string="My tickets" name="filter_my_ticket" domain="[('assignee_id','=', uid)]"/>
+                <field name="issue_key"/>
+                <field name="issue_name"/>
+                <filter string="My issues" name="filter_my_issue" domain="[('assignee_id','=', uid)]"/>
                 <separator/>
                 <filter string="In Progress" name="filter_in_progress" domain="[('status_value','=', 'new')]"/>
                 <separator/>
@@ -187,7 +187,7 @@
         <field name="name">Sprints</field>
         <field name="res_model">wt.issue</field>
         <field name="view_mode">kanban,form</field>
-        <field name="context">{'search_default_filter_my_ticket': True}</field>
+        <field name="context">{'search_default_filter_my_issue': True}</field>
         <field name="view_id" ref="wt_issue_tree_view"/>
         <field name="search_view_id" ref="project_management.wt_issue_search_view"/>
     </record>
@@ -196,7 +196,7 @@
         <field name="name">Task Issues</field>
         <field name="res_model">wt.issue</field>
         <field name="view_mode">tree,kanban,form</field>
-        <field name="context">{'search_default_filter_my_ticket': True, 'search_default_group_by_project': True,
+        <field name="context">{'search_default_filter_my_issue': True, 'search_default_group_by_project': True,
             'search_default_filter_in_progress': True}
         </field>
         <field name="view_id" ref="wt_issue_tree_view"/>

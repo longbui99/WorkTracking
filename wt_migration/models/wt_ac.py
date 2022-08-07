@@ -21,9 +21,9 @@ class JiraACs(models.Model):
 
     def update_ac(self, values):
         res_id = super().update_ac(values)
-        ticket_id = self.browse(res_id).ticket_id
-        if ticket_id.exists():
-            for index, ac in enumerate(ticket_id.ac_ids):
+        issue_id = self.browse(res_id).issue_id
+        if issue_id.exists():
+            for index, ac in enumerate(issue_id.ac_ids):
                 ac.sequence = index
                 ac.float_sequence = 0
 

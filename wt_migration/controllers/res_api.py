@@ -2,7 +2,7 @@ import json
 from odoo import http, _
 from odoo.http import request
 from odoo import fields
-from odoo.addons.project_management.controllers.ticket import JiraTicket
+from odoo.addons.project_management.controllers.issue import JiraTicket
 from odoo.addons.project_management.controllers.auth import Auth
 from odoo.addons.project_management.utils.error_tracking import handling_req_res
 
@@ -12,37 +12,37 @@ class JiraTicketMigration(JiraTicket):
     @handling_req_res
     @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
                 auth='jwt', csrf=False)
-    def search_ticket(self, keyword, **kwargs):
+    def search_issue(self, keyword, **kwargs):
         try:
-            res = super().search_ticket(keyword, **kwargs)
+            res = super().search_issue(keyword, **kwargs)
             offset = int(kwargs.get('offset', 0))
             if res.data == b'[]' and offset == 0:
-                ticket_ids = request.env['wt.issue']
+                issue_ids = request.env['wt.issue']
                 for migrate in request.env['wt.migration'].sudo().search([]):
-                    ticket_ids |= migrate.sudo().search_ticket(keyword)
-                if ticket_ids:
-                    data = self._get_ticket(ticket_ids)
+                    issue_ids |= migrate.sudo().search_issue(keyword)
+                if issue_ids:
+                    data = self._get_issue(issue_ids)
                     return http.Response(json.dumps(data), content_type='application/json', status=200)
         except Exception as e:
             return http.Response(str(e), content_type='application/json', status=400)
         return res
 
     @handling_req_res
-    @http.route(['/management/issue/fetch/<int:ticket_id>'], type="http", cors="*", methods=["GET"],
+    @http.route(['/management/issue/fetch/<int:issue_id>'], type="http", cors="*", methods=["GET"],
                 auth="jwt", csrf=False)
-    def fetch_ticket_from_server(self, ticket_id, **kwargs):
-        if not ticket_id:
-            return Exception("Need to provide ticket id")
-        ticket_id = request.env['wt.issue'].browse(ticket_id)
-        res = {'ticket': [ticket_id.ticket_key]}
-        ticket_id.wt_migration_id._search_load(res)
+    def fetch_issue_from_server(self, issue_id, **kwargs):
+        if not issue_id:
+            return Exception("Need to provide issue id")
+        issue_id = request.env['wt.issue'].browse(issue_id)
+        res = {'issue': [issue_id.issue_key]}
+        issue_id.wt_migration_id._search_load(res)
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
     @http.route(['/management/issue/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
-    def export_ticket_to_server(self, **kwargs):
-        ticket_id = super().check_work_log_prerequisite()
-        data = ticket_id.export_ticket_to_server(request.params.get('payload', {}))
+    def export_issue_to_server(self, **kwargs):
+        issue_id = super().check_work_log_prerequisite()
+        data = issue_id.export_issue_to_server(request.params.get('payload', {}))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
 

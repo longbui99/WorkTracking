@@ -11,7 +11,7 @@ class JiraProject(models.Model):
     allow_to_fetch = fields.Boolean("Should Fetch?")
 
     @api.model
-    def cron_fetch_ticket(self, load_create=True):
+    def cron_fetch_issue(self, load_create=True):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
         last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
