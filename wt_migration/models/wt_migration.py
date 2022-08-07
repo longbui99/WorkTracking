@@ -37,7 +37,7 @@ class TaskMigration(models.Model):
                                    default="self_hosting")
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
-    is_load_acs = fields.Boolean(string="Import Acceptance Criteria?")
+    is_load_acs = fields.Boolean(string="Import Checklist?")
     wt_agile_url = fields.Char(string="Task Agile URL")
     admin_user_ids = fields.Many2many("res.users", string="Admins")
     active = fields.Boolean(string="Active?", default=True)

@@ -1,5 +1,5 @@
 from . import wt_project
-from . import wt_ticket
+from . import wt_issue
 from . import wt_status
 from . import wt_time_logging
 from . import wt_work_log

@@ -19,7 +19,7 @@
         'views/board_board_views.xml',
         'views/hr_employee_views.xml',
         'views/wt_project_views.xml',
-        'views/wt_ticket_views.xml',
+        'views/wt_issue_views.xml',
         'views/wt_status_views.xml',
         'views/wt_type_views.xml',
         'views/wt_time_logging_views.xml',

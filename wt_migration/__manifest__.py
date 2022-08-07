@@ -16,7 +16,7 @@
 
         'views/hr_employee_views.xml',
         'views/wt_migration_views.xml',
-        'views/wt_ticket_views.xml',
+        'views/wt_issue_views.xml',
         'views/wt_project_views.xml',
 
         'views/menus.xml',

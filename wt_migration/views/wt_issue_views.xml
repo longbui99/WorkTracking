@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="wt_ticket_search_view" model="ir.ui.view">
+    <record id="wt_issue_search_view" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="model">wt.issue</field>
-        <field name="inherit_id" ref="project_management.wt_ticket_search_view"/>
+        <field name="inherit_id" ref="project_management.wt_issue_search_view"/>
         <field name="arch" type="xml">
             <filter name="filter_in_progress" position="replace">
                 <filter string="In Progress" name="filter_in_progress"
@@ -12,15 +12,15 @@
         </field>
     </record>
 
-    <record id="wt_ticket_form_view_inherited" model="ir.ui.view">
+    <record id="wt_issue_form_view_inherited" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="model">wt.issue</field>
-        <field name="inherit_id" ref="project_management.wt_ticket_form_view"/>
+        <field name="inherit_id" ref="project_management.wt_issue_form_view"/>
         <field name="arch" type="xml">
             <button name="action_done_work" position="after">
                 <button name="import_ticket_wt" string="Import Ticket" type="object" class="btn-secondary"/>
                 <button name="export_time_log_to_wt" string="Export Work Log" type="object" class="btn-secondary"/>
-                <button name="export_ac_to_wt" string="Export Acceptance Criteria" type="object" class="btn-secondary"/>
+                <button name="export_ac_to_wt" string="Export Checklist" type="object" class="btn-secondary"/>
             </button>
             <field name="project_id" position="after">
                 <field name="last_export"/>
@@ -37,11 +37,11 @@
         </field>
     </record>
     
-    <record id="action_server_wt_ticket_batch_update" model="ir.actions.server">
+    <record id="action_server_wt_issue_batch_update" model="ir.actions.server">
         <field name="name">Export Work Logs</field>
         <field name="type">ir.actions.server</field>
-        <field name="model_id" ref="model_wt_ticket" />
-        <field name="binding_model_id" ref="model_wt_ticket" />
+        <field name="model_id" ref="model_wt_issue" />
+        <field name="binding_model_id" ref="model_wt_issue" />
         <field name="state">code</field>
         <field name="code">action = records.render_batch_update_wizard()</field>
     </record>

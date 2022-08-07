@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 
 class JiraACs(models.Model):
     _name = "wt.ac"
-    _description = "Task Acceptance Criteria"
+    _description = "Task Checklist"
     _order = 'sequence, float_sequence, id desc'
 
     sequence = fields.Integer(string="Sequence")

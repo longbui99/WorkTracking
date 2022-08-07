@@ -1,8 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_wt_project_user,wt.project,model_wt_project,project_management.group_wt_user,1,0,0,0
 access_wt_project_manager,wt.project,model_wt_project,project_management.group_wt_manager,1,1,1,1
-access_wt_ticket_user,wt.issue,model_wt_ticket,project_management.group_wt_user,1,1,0,0
-access_wt_ticket_manager,wt.issue,model_wt_ticket,project_management.group_wt_manager,1,1,1,1
+access_wt_issue_user,wt.issue,model_wt_issue,project_management.group_wt_user,1,1,0,0
+access_wt_issue_manager,wt.issue,model_wt_issue,project_management.group_wt_manager,1,1,1,1
 access_wt_status_user,wt.status,model_wt_status,project_management.group_wt_user,1,0,0,0
 access_wt_status_manager,wt.status,model_wt_status,project_management.group_wt_manager,1,1,1,1
 access_wt_type_user,wt.type,model_wt_type,project_management.group_wt_user,1,0,0,0

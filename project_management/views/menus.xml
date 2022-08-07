@@ -11,10 +11,10 @@
                 action="project_management.action_wt_project"
                 sequence="1"/>
         <menuitem
-                id="project_management.menu_wt_ticket"
+                id="project_management.menu_wt_issue"
                 sequence="2"
                 name="Issues"
-                action="project_management.action_wt_ticket"/>
+                action="project_management.action_wt_issue"/>
         <menuitem
                 id="project_management.menu_work_log"
                 sequence="3"

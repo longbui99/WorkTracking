@@ -26,7 +26,7 @@ class JiraProject(models.Model):
     assignee_id = fields.Many2one('res.users', string='Assignee')
     tester_id = fields.Many2one("res.users", string="Tester")
     ticket_type_id = fields.Many2one("wt.type", string="Type")
-    ac_ids = fields.One2many("wt.ac", "ticket_id", string="Acceptance Criteria")
+    ac_ids = fields.One2many("wt.ac", "ticket_id", string="Checklist")
     suitable_assignee = fields.Many2many('res.users', store=False, compute='_compute_suitable_assignee',
                                          compute_sudo=True)
     status_value = fields.Char('Status Raw Value', related='status_id.key')

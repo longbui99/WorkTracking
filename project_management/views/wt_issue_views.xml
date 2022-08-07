@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record id="wt_ticket_tree_view" model="ir.ui.view">
+    <record id="wt_issue_tree_view" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="priority">1</field>
         <field name="model">wt.issue</field>
@@ -17,7 +17,7 @@
         </field>
     </record>
 
-    <record id="wt_ticket_form_view" model="ir.ui.view">
+    <record id="wt_issue_form_view" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="priority">1</field>
         <field name="model">wt.issue</field>
@@ -74,7 +74,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Acceptance Criteria">
+                        <page string="Checklist">
                             <field name="ac_ids" widget="section_and_note_one2many_html">
                                 <tree editable="bottom">
                                     <control>
@@ -119,7 +119,7 @@
         </field>
     </record>
 
-    <record id="wt_ticket_kanban_view" model="ir.ui.view">
+    <record id="wt_issue_kanban_view" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="priority">1</field>
         <field name="model">wt.issue</field>
@@ -142,7 +142,7 @@
         </field>
     </record>
 
-    <record id="wt_ticket_kanban_mobile_view" model="ir.ui.view">
+    <record id="wt_issue_kanban_mobile_view" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="priority">1</field>
         <field name="model">wt.issue</field>
@@ -166,7 +166,7 @@
         </field>
     </record>
 
-    <record id="wt_ticket_search_view" model="ir.ui.view">
+    <record id="wt_issue_search_view" model="ir.ui.view">
         <field name="name">Task Issues</field>
         <field name="model">wt.issue</field>
         <field name="arch" type="xml">
@@ -188,18 +188,18 @@
         <field name="res_model">wt.issue</field>
         <field name="view_mode">kanban,form</field>
         <field name="context">{'search_default_filter_my_ticket': True}</field>
-        <field name="view_id" ref="wt_ticket_tree_view"/>
-        <field name="search_view_id" ref="project_management.wt_ticket_search_view"/>
+        <field name="view_id" ref="wt_issue_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_issue_search_view"/>
     </record>
 
-    <record id="action_wt_ticket" model="ir.actions.act_window">
+    <record id="action_wt_issue" model="ir.actions.act_window">
         <field name="name">Task Issues</field>
         <field name="res_model">wt.issue</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="context">{'search_default_filter_my_ticket': True, 'search_default_group_by_project': True,
             'search_default_filter_in_progress': True}
         </field>
-        <field name="view_id" ref="wt_ticket_tree_view"/>
-        <field name="search_view_id" ref="project_management.wt_ticket_search_view"/>
+        <field name="view_id" ref="wt_issue_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_issue_search_view"/>
     </record>
 </odoo>
