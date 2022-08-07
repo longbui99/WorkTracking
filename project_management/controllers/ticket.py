@@ -22,7 +22,7 @@ class NotFound(Exception):
     pass
 
 
-class JiraTicket(http.Controller):
+class JiraIssue(http.Controller):
 
     def _get_issue(self, issue_ids):
         if issue_ids and isinstance(issue_ids, list) or isinstance(issue_ids, int):
@@ -115,7 +115,7 @@ class JiraTicket(http.Controller):
         id = request.params.get('id')
         key = request.params.get('key')
         if not key and not id:
-            raise MissingParams("Ticket's ID or KEY must be specific!")
+            raise MissingParams("Issue's ID or KEY must be specific!")
         issue_id = request.env['wt.issue'].search(['|', ('id', '=', id), ('issue_key', '=', key)])
         if not issue_id.exists():
             raise NotFound("Cannot found issue")
@@ -187,7 +187,7 @@ class JiraTicket(http.Controller):
     def __check_ac_prequisite(self, **kwargs):
         id = request.params.get('id')
         if not isinstance(id, int):
-            raise MissingParams("Ticket's ID must be specific!")
+            raise MissingParams("Issue's ID must be specific!")
         ac_id = request.env['wt.ac'].browse(int(id))
         return ac_id
     
@@ -209,7 +209,7 @@ class JiraTicket(http.Controller):
     def __check_ac_prequisite(self, **kwargs):
         id = request.params.get('id')
         if not isinstance(id, int):
-            raise MissingParams("Ticket's ID must be specific!")
+            raise MissingParams("Issue's ID must be specific!")
         ac_id = request.env['wt.ac'].browse(int(id))
         return ac_id
 

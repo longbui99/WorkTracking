@@ -18,7 +18,7 @@ class KickOffSession(models.TransientModel):
 
     name = fields.Char(string="Name")
     project_id = fields.Many2one('wt.project', string="Project")
-    issue_id = fields.Many2one('wt.issue', string="Ticket")
+    issue_id = fields.Many2one('wt.issue', string="Issue")
     start = fields.Datetime(string="Start At")
     issue_chain_work_ids = fields.One2many('wt.chain.work.session.line', 'chain_work_id', string="Issues")
     state = fields.Selection([('draft', 'Draft'),
@@ -30,7 +30,7 @@ class KickOffSession(models.TransientModel):
     description = fields.Char(string="Description")
     logging_type = fields.Selection([('issue', 'To the specific issue'),
                                      ('separate', 'In separated')], default='separate')
-    log_to_issue_id = fields.Many2one('wt.issue', string="Ticket")
+    log_to_issue_id = fields.Many2one('wt.issue', string="Issue")
 
     @api.depends('issue_chain_work_ids', 'issue_chain_work_ids.state')
     def _compute_state(self):
@@ -124,7 +124,7 @@ class KickOffSessionLine(models.TransientModel):
 
     sequence = fields.Integer(string="Sequence")
     chain_work_id = fields.Many2one('wt.chain.work.session', string="Kick Off")
-    issue_id = fields.Many2one("wt.issue", string="Ticket")
+    issue_id = fields.Many2one("wt.issue", string="Issue")
     state = fields.Selection([('draft', 'Draft'),
                               ('progress', 'In Progress'),
                               ('done', 'Done')], default="draft")

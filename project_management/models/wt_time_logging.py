@@ -17,7 +17,7 @@ class JiraTimeLog(models.Model):
 
     time = fields.Char(string='Time Logging', compute='_compute_time_data', store=True)
     description = fields.Text(string='Description', required=True)
-    issue_id = fields.Many2one('wt.issue', string='Ticket', ondelete="cascade")
+    issue_id = fields.Many2one('wt.issue', string='Issue', ondelete="cascade")
     duration = fields.Integer(string='Duration', required=True)
     cluster_id = fields.Many2one('wt.work.log.cluster')
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')

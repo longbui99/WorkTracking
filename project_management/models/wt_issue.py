@@ -11,14 +11,14 @@ import base64
 
 class JiraProject(models.Model):
     _name = "wt.issue"
-    _description = "Task Ticket"
+    _description = "Task Issue"
     _order = 'issue_sequence desc, sequence asc, create_date desc'
 
     pin = fields.Boolean(string='Pin')
     sequence = fields.Integer(string='Sequence')
     issue_name = fields.Char(string='Name', required=True)
-    issue_key = fields.Char(string='Ticket Key', required=True)
-    issue_url = fields.Char(string='Task Ticket')
+    issue_key = fields.Char(string='Issue Key', required=True)
+    issue_url = fields.Char(string='Task Issue')
     time_log_ids = fields.One2many('wt.time.log', 'issue_id', string='Log Times')
     story_point = fields.Float(string='Estimate')
     story_point_unit = fields.Selection([('general', 'Fibonanci'), ('hrs', 'Hour(s)')], string="Estimate Unit", default="general")
@@ -37,7 +37,7 @@ class JiraProject(models.Model):
     active_duration = fields.Integer("Active Duration", compute='_compute_active_duration')
     my_total_duration = fields.Integer("My Total Duration", compute="_compute_my_total_duration")
     last_start = fields.Datetime("Last Start", compute="_compute_last_start")
-    issue_sequence = fields.Integer('Ticket Sequence', compute='_compute_issue_sequence', store=True)
+    issue_sequence = fields.Integer('Issue Sequence', compute='_compute_issue_sequence', store=True)
     start_date = fields.Datetime("Start Date")
     parent_issue_id = fields.Many2one("wt.issue", string="Parent")
     log_to_parent = fields.Boolean("Log to Parent?")

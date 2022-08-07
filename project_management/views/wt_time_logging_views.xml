@@ -54,7 +54,7 @@
                 <separator/>
                 <filter string="Project" name="group_by_project_id" context="{'group_by':'project_id'}"/>
                 <filter string="User" name="group_by_user_id" context="{'group_by':'user_id'}"/>
-                <filter string="Ticket" name="group_by_issue_id" context="{'group_by':'issue_id'}"/>
+                <filter string="Issue" name="group_by_issue_id" context="{'group_by':'issue_id'}"/>
             </search>
         </field>
     </record>
