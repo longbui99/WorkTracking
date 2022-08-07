@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <menuitem id="project_management.menu_application"
-              name="JIRA"
+              name="Task"
               action="project_management.action_board_board"
               sequence="10"
               web_icon="project_management,static/description/icon.png">

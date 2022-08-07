@@ -8,12 +8,12 @@ _logger = logging.getLogger(__name__)
 class JiraProject(models.Model):
     _inherit = "wt.ticket"
 
-    wt_migration_id = fields.Many2one('wt.migration', string='Tasks Migration')
+    wt_migration_id = fields.Many2one('wt.migration', string='Task Migration')
     status_value = fields.Char(related='status_id.wt_key', store=True)
     last_export = fields.Datetime("Last Export Time")
     auto_export_success = fields.Boolean(string="Export Successful?", default=True)
     sprint_key = fields.Integer(related='sprint_id.id_on_wt', store=True, default=0.0)
-    wt_id = fields.Integer(string="Tasks ID")
+    wt_id = fields.Integer(string="Task ID")
 
     def export_time_log_to_wt(self):
         for record in self:

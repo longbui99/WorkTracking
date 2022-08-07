@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="wt_hr_form_view_inherited" model="ir.ui.view">
-        <field name="name">Tasks Configurations</field>
+        <field name="name">Task Configurations</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="project_management.wt_hr_form_view_inherited"/>
         <field name="arch" type="xml">

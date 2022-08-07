@@ -6,7 +6,7 @@ from odoo.addons.wt_migration.utils.ac_parsing import unparsing
 class JiraACs(models.Model):
     _inherit = "wt.ac"
 
-    wt_raw_name = fields.Char(string="Tasks Name")
+    wt_raw_name = fields.Char(string="Task Name")
 
     @api.model
     def create(self, values):

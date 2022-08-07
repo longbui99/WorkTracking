@@ -6,13 +6,13 @@ from odoo.exceptions import UserError
 class JiraStatus(models.Model):
     _inherit = "wt.status"
 
-    wt_key = fields.Char(string='Tasks Key')
+    wt_key = fields.Char(string='Task Key')
 
 
 class JiraTimeLog(models.Model):
     _inherit = "wt.time.log"
 
-    id_on_wt = fields.Integer(string='ID on JIRA')
+    id_on_wt = fields.Integer(string='ID on Task')
 
     def batch_export(self, pivot_time):
         ticket_ids = self.mapped('ticket_id')

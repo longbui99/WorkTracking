@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="wt_project_tree_view" model="ir.ui.view">
-        <field name="name">Tasks Projects</field>
+        <field name="name">Task Projects</field>
         <field name="priority">1</field>
         <field name="model">wt.project</field>
         <field name="arch" type="xml">
@@ -14,7 +14,7 @@
     </record>
 
     <record id="wt_project_kanban_view" model="ir.ui.view">
-        <field name="name">Tasks Projects</field>
+        <field name="name">Task Projects</field>
         <field name="priority">1</field>
         <field name="model">wt.project</field>
         <field name="arch" type="xml">
@@ -35,7 +35,7 @@
     </record>
 
     <record id="wt_project_form_view" model="ir.ui.view">
-        <field name="name">Tasks Projects</field>
+        <field name="name">Task Projects</field>
         <field name="priority">1</field>
         <field name="model">wt.project</field>
         <field name="arch" type="xml">
@@ -88,7 +88,7 @@
     </record>
 
     <record id="wt_project_search_view" model="ir.ui.view">
-        <field name="name">Tasks Projects</field>
+        <field name="name">Task Projects</field>
         <field name="model">wt.project</field>
         <field name="arch" type="xml">
             <search>
@@ -100,7 +100,7 @@
     </record>
 
     <record id="action_wt_project" model="ir.actions.act_window">
-        <field name="name">Tasks Projects</field>
+        <field name="name">Task Projects</field>
         <field name="res_model">wt.project</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="context">{'search_default_filter_my_project': True}</field>

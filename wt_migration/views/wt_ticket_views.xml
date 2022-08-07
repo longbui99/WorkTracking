@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="wt_ticket_search_view" model="ir.ui.view">
-        <field name="name">Tasks Tickets</field>
+        <field name="name">Task Tickets</field>
         <field name="model">wt.ticket</field>
         <field name="inherit_id" ref="project_management.wt_ticket_search_view"/>
         <field name="arch" type="xml">
@@ -13,7 +13,7 @@
     </record>
 
     <record id="wt_ticket_form_view_inherited" model="ir.ui.view">
-        <field name="name">Tasks Tickets</field>
+        <field name="name">Task Tickets</field>
         <field name="model">wt.ticket</field>
         <field name="inherit_id" ref="project_management.wt_ticket_form_view"/>
         <field name="arch" type="xml">

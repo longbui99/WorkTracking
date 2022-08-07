@@ -2,11 +2,11 @@
 <odoo>
     <data noupdate="0">
         <record model="ir.module.category" id="module_category_wt">
-            <field name="name">JIRA</field>
+            <field name="name">Task</field>
         </record>
 
         <record id="group_wt_user" model="res.groups">
-            <field name="name">Tasks User</field>
+            <field name="name">Task User</field>
             <field name="category_id" ref="project_management.module_category_wt"/>
         </record>
 

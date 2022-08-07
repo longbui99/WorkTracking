@@ -11,7 +11,7 @@ import json
 
 class JiraTimeLog(models.Model):
     _name = "wt.time.log"
-    _description = "Tasks Time Log"
+    _description = "Task Time Log"
     _order = 'start_date desc'
     _rec_name = 'ticket_id'
 

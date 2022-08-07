@@ -2,8 +2,8 @@
 # See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Tasks Migration',
-    'summary': 'Tasks Migration',
+    'name': 'Task Migration',
+    'summary': 'Task Migration',
     'category': 'Project',
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",
