@@ -3,7 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
 from odoo import fields, models, _, api
-from odoo.addons.project_management.utils.time_parsing import convert_second_to_time_format, get_date_range
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_time_format, get_date_range, get_week_start
 
 class Digest(models.Model):
     _inherit = "digest.digest"
@@ -42,9 +42,6 @@ class Digest(models.Model):
 
     def get_logged_time_normal_addition_domain(self):
         return []
-
-    def get_week_start(self):
-        return -(int(self.env['res.lang']._lang_get(self.env.user.lang).week_start) % 7) + 1
 
     def get_user_data(self, user_id):
         user_data = []

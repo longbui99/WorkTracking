@@ -14,6 +14,9 @@
                     </group>
                 </page>
             </xpath>
+            <field name="lang" position="after">
+                <field name="week_start" require="1"/>
+            </field>
         </field>
     </record>
     
