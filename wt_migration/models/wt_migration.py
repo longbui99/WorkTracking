@@ -86,11 +86,16 @@ class TaskMigration(models.Model):
         headers = self.__get_request_headers()
         result = requests.get(f"{self.wt_server_url}/project/{project_key}", headers=headers)
         record = json.loads(result.text)
-        return self.env['wt.project'].sudo().create({
+        if self.env.context.get('employee_id'):
+            user_id = self._context['employee_id'].user_id
+        res = {
             'project_name': record['name'],
             'project_key': record['key'],
             'wt_migration_id': self.id
-        }).id
+        }
+        if user_id:
+            res['allowed_user_ids'] = [(4, user_id.id, False)]
+        return self.env['wt.project'].sudo().create(res).id
 
     def _get_current_employee(self):
         return {
@@ -120,15 +125,25 @@ class TaskMigration(models.Model):
         # _logger.info(headers)
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
-        existing_project_dict = {f"{r.project_key}": True for r in existing_project}
+        existing_project_dict = {f"{r.project_key}": r for r in existing_project}
+        user_id = False
+        if self.env.context.get('employee_id'):
+            user_id = self._context['employee_id'].user_id
         new_project = []
         for record in json.loads(result.text):
             if not existing_project_dict.get(record.get('key', False), False):
-                new_project.append({
+                res = {
                     'project_name': record['name'],
                     'project_key': record['key'],
                     'wt_migration_id': self.id
-                })
+                }
+                if user_id:
+                    res['allowed_user_ids'] = [(4, user_id.id, False)]
+                new_project.append(res)
+            else:
+                project = existing_project_dict.get(record.get('key', False), False)
+                if user_id:
+                    project.allowed_user_ids = [(4, user_id.id, False)]
 
         if new_project:
             self.env['wt.project'].sudo().create(new_project)
