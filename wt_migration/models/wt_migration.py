@@ -593,8 +593,8 @@ class TaskMigration(models.Model):
                         continue
                 if len(to_create):
                     self.env["wt.time.log"].create(to_create)
-                self.env['ir.config_parameter'].set_param('latest_unix',
-                                                        body.get('until', datetime.now().timestamp() * 1000))
+            self.env['ir.config_parameter'].set_param('latest_unix',
+                                                    body.get('until', datetime.now().timestamp() * 1000))
 
     def delete_work_logs_by_unix(self, unix, employee_ids, batch=900):
         if self.import_work_log:
