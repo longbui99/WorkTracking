@@ -1,3 +1,4 @@
+from email import header
 from math import fabs
 from threading import local
 from turtle import end_poly
@@ -357,6 +358,7 @@ class TaskMigration(models.Model):
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
         existing_record = self.env['wt.issue']
         headers = self.__get_request_headers()
+        _logger.info(headers)
         start_index = 0
         total_response = paging
         response = []
