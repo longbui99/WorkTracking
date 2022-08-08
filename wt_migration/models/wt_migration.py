@@ -59,14 +59,17 @@ class TaskMigration(models.Model):
 
     def __get_request_headers(self):
         self.ensure_one()
-        wt_private_key = self._context.get('access_token')
-        user = self.env.user or self.admin_user_ids
-        if not wt_private_key:
+        employee_id = self._context.get('employee_id')
+        if not employee_id:
+            user = self.env.user or self.admin_user_ids
             employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
             if not employee_id:
                 raise UserError(_("Don't have any related Employee, please set up on Employee Application"))
             if not employee_id.wt_private_key:
                 raise UserError(_("Missing the Access token in the related Employee"))
+            wt_private_key = employee_id.wt_private_key
+        else:
+            user = employee_id.user_id
             wt_private_key = employee_id.wt_private_key
         if self.auth_type == 'api_token':
             wt_private_key = "Basic " + base64.b64encode(
@@ -714,8 +717,8 @@ class TaskMigration(models.Model):
         self.add_time_logs(issue_id, time_log_to_create_ids)
         self.update_time_logs(issue_id, time_log_to_update_ids)
 
-    def _update_project(self, project_id, access_token):
-        self = self.with_context(access_token=access_token)
+    def _update_project(self, project_id, employee_id):
+        self = self.with_context(employee_id=employee_id)
         updated_date = datetime(1970, 1, 1, 1, 1, 1, 1)
         if project_id.last_update:
             updated_date = self.convert_utc_to_usertz(project_id.last_update)
@@ -729,7 +732,7 @@ class TaskMigration(models.Model):
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
-        self.with_delay()._update_project(project_id, access_token)
+        self._update_project(project_id, access_token)
 
     def update_boards(self):
         project_ids = self.env["wt.project"].search([])

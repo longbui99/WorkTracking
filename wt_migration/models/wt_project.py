@@ -19,12 +19,11 @@ class JiraProject(models.Model):
             user_ids = project.allowed_user_ids.ids
             if len(user_ids) == 0 and project.wt_migration_id:
                 user_ids = project.wt_migration_id.admin_user_ids.ids
-            access_token = self.env['hr.employee'].search(
+            employee_id = self.env['hr.employee'].search(
                 [('user_id', 'in', user_ids),
-                 ('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped(
-                'wt_private_key')
-            if any(access_token) and project.wt_migration_id:
-                project.wt_migration_id.update_project(project, access_token[0])
+                 ('wt_private_key', '!=', False)], order='is_wt_admin desc', limit=1)
+            if any(employee_id) and project.wt_migration_id:
+                project.wt_migration_id.update_project(project, employee_id)
         if not last_update:
             last_update = datetime(1969, 1, 1, 1, 1, 1, 1)
         time.sleep(3)
