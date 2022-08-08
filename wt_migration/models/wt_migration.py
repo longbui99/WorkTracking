@@ -147,7 +147,7 @@ class TaskMigration(models.Model):
             else:
                 project = existing_project_dict.get(record.get('key', False), False)
                 if user_id:
-                    project.allowed_user_ids = [(4, user_id.id, False)]
+                    project.sudo().allowed_user_ids = [(4, user_id.id, False)]
 
         if new_project:
             self.env['wt.project'].sudo().create(new_project)
