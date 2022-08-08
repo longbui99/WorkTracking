@@ -1,6 +1,9 @@
 from odoo import api, fields, models, _
 from datetime import datetime
 import time
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class WtProject(models.Model):
@@ -12,8 +15,10 @@ class WtProject(models.Model):
  
     @api.model
     def cron_fetch_issue(self, load_create=True):
+        _logger.info(self)
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
+        _logger.warning(self)
         allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)]).mapped('user_id')
         last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
         migration_dict = dict()

@@ -748,9 +748,9 @@ class TaskMigration(models.Model):
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
         issue_ids = self.do_request(request_data, load_all=True)
-        _logger.info(f"=====================================================================")
+        # _logger.info(f"=====================================================================")
         _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
-        _logger.info(f"_____________________________________________________________________")
+        # _logger.info(f"_____________________________________________________________________")
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
@@ -763,12 +763,12 @@ class TaskMigration(models.Model):
             self.with_delay().update_board(project_id)
 
     def update_board(self, project_id):
-        _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        _logger.info(f"Load Work Log")
+        # _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        # _logger.info(f"Load Work Log")
         self.load_sprints(project_id.board_ids)
-        _logger.info(f"Load Sprint")
+        # _logger.info(f"Load Sprint")
         self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
-        _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        # _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     # Agile Connection
     def load_boards(self, project_ids=False):
