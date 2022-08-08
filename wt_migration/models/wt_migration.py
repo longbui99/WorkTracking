@@ -59,7 +59,7 @@ class TaskMigration(models.Model):
     def __get_request_headers(self):
         self.ensure_one()
         wt_private_key = self._context.get('access_token')
-        user = self.admin_user_ids and self.admin_user_ids[0] or self.env.user
+        user = self.env.user or self.admin_user_ids
         if not wt_private_key:
             employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
             if not employee_id:
