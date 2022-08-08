@@ -70,7 +70,7 @@ class TaskMigration(models.Model):
             wt_private_key = employee_id.wt_private_key
         if self.auth_type == 'api_token':
             wt_private_key = "Basic " + base64.b64encode(
-                f"{user.partner_id.email}:{wt_private_key}".encode('utf-8')).decode('utf-8')
+                f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
         else:
             wt_private_key = "Bearer " + wt_private_key
 
