@@ -142,6 +142,7 @@ class TaskMigration(models.Model):
                 new_project.append(res)
             else:
                 project = existing_project_dict.get(record.get('key', False), False)
+                _logger.info(f"Existing project: {project}")
                 if user_id:
                     project.allowed_user_ids = [(4, user_id.id, False)]
 
