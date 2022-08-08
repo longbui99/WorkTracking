@@ -18,8 +18,8 @@ class JiraProject(models.Model):
         migration_dict = dict()
         for project in self:
             if project.wt_migration_id not in migration_dict:
-                migration_dict[project.wt_migration_id]  = self.env['res.users']
-            if project.allowed_manager_ids:
+                migration_dict[project.wt_migration_id] = self.env['res.users']
+            if project.allowed_user_ids:
                 migration_dict[project.wt_migration_id] |= project.allowed_user_ids[0]
             user_ids = project.allowed_user_ids.ids
             if len(user_ids) == 0 and project.wt_migration_id:
