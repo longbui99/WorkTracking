@@ -1,7 +1,6 @@
 import json
 from odoo import http, _
 from odoo.http import request
-from odoo import fields
 from odoo.addons.project_management.controllers.issue import JiraIssue
 from odoo.addons.project_management.controllers.auth import Auth
 from odoo.addons.project_management.utils.error_tracking import handling_req_res
