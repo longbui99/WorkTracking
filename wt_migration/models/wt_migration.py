@@ -273,7 +273,7 @@ class TaskMigration(models.Model):
                 if local['project_key_dict'].get(project, False):
                     res['project_id'] = local['project_key_dict'][project]
                 else:
-                    local['project_key_dict'][project] = self._get_single_project(project)
+                    local['project_key_dict'][project] = self.sudo()._get_single_project(project)
                     res['project_id'] = local['project_key_dict'][project]
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
