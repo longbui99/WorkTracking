@@ -43,6 +43,7 @@ class JiraIssue(http.Controller):
                 "assigneeEmail": issue_id.assignee_id.partner_id.email,
                 "tester": issue_id.tester_id.partner_id.name,
                 "status": issue_id.status_id.name,
+                "status_key": issue_id.status_id.wt_key,
                 "total_duration": issue_id.duration,
                 "my_total_duration": issue_id.my_total_duration,
                 "active_duration": issue_id.active_duration,
