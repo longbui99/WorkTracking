@@ -83,7 +83,7 @@ class TaskMigration(models.Model):
         headers = self.__get_request_headers()
         result = requests.get(f"{self.wt_server_url}/project/{project_key}", headers=headers)
         record = json.loads(result.text)
-        return self.env['wt.project'].create({
+        return self.env['wt.project'].sudo().create({
             'project_name': record['name'],
             'project_key': record['key'],
             'wt_migration_id': self.id
@@ -106,7 +106,7 @@ class TaskMigration(models.Model):
         users = self.env["res.users"].sudo()
         for record in records:
             if record["name"] not in current_employee_data["user_email"]:
-                users |= self.env["res.users"].create({
+                users |= self.env["res.users"].sudo().create({
                     "name": record["displayName"],
                     "login": record["name"],
                     'active': False
@@ -128,7 +128,7 @@ class TaskMigration(models.Model):
                 })
 
         if new_project:
-            self.env['wt.project'].create(new_project)
+            self.env['wt.project'].sudo().create(new_project)
 
     @api.model
     def make_request(self, request_data, headers):
@@ -278,7 +278,7 @@ class TaskMigration(models.Model):
                 if local['dict_user'].get(assignee, False):
                     res['assignee_id'] = local['dict_user'][assignee]
                 elif assignee:
-                    new_user = self.env['res.users'].create({
+                    new_user = self.env['res.users'].sudo().create({
                         'name': self.__load_from_key_paths(issue_fields, issue_mapping.assignee_name),
                         'login': assignee,
                         'active': False
@@ -288,7 +288,7 @@ class TaskMigration(models.Model):
                 if local['dict_user'].get(tester, False):
                     res['tester_id'] = local['dict_user'][tester]
                 elif tester:
-                    new_user = self.env['res.users'].create({
+                    new_user = self.env['res.users'].sudo().create({
                         'name': self.__load_from_key_paths(issue_fields, issue_mapping.tester_name),
                         'login': tester,
                         'active': False
@@ -298,7 +298,7 @@ class TaskMigration(models.Model):
                 if local['dict_status'].get(status, False):
                     res['status_id'] = local['dict_status'][status]
                 else:
-                    status_id = self.env['wt.status'].create({
+                    status_id = self.env['wt.status'].sudo().create({
                         'name': new_status['name'],
                         'key': new_status['id'],
                         'wt_key': wt_key
@@ -308,7 +308,7 @@ class TaskMigration(models.Model):
                 if local["dict_type"].get(issue_type, False):
                     res['issue_type_id'] = local['dict_type'][issue_type]
                 else:
-                    new_issue_type_id = self.env['wt.type'].create({
+                    new_issue_type_id = self.env['wt.type'].sudo().create({
                         'name': new_issue_type['name'],
                         'img_url': new_issue_type['iconUrl'],
                         'key': issue_type
@@ -329,7 +329,7 @@ class TaskMigration(models.Model):
                     update_dict['issue_name'] = summary
                 if existing_record.status_id.id != local['dict_status'].get(status):
                     if status not in local['dict_status']:
-                        status_id = self.env['wt.status'].create({
+                        status_id = self.env['wt.status'].sudo().create({
                             'name': new_status['name'],
                             'key': new_status['id'],
                             'wt_key': wt_key
@@ -389,7 +389,7 @@ class TaskMigration(models.Model):
                     new_issues.pop(0)
             response.extend(new_issues)
         print(json.dumps(response, indent=4))
-        return existing_record | self.env['wt.issue'].create(response)
+        return existing_record | self.env['wt.issue'].sudo().create(response)
 
     def load_issues(self, extra_jql="", domain=[], load_all=False):
         request_data = {
@@ -762,7 +762,7 @@ class TaskMigration(models.Model):
                 data = self.make_request(request_data, headers)
                 for board in data['values']:
                     if board['id'] not in current_boards:
-                        self.env["board.board"].create({
+                        self.env["board.board"].sudo().create({
                             'id_on_wt': board['id'],
                             'name': board['name'],
                             'type': board['type'],
@@ -790,7 +790,7 @@ class TaskMigration(models.Model):
                 data = self.make_request(request_data, headers)
                 for sprint in data['values']:
                     if sprint['id'] not in current_sprints:
-                        self.env["agile.sprint"].create({
+                        self.env["agile.sprint"].sudo().create({
                             'id_on_wt': sprint['id'],
                             'name': sprint['name'],
                             'state': sprint['state'],
