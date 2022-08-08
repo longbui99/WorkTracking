@@ -732,7 +732,7 @@ class TaskMigration(models.Model):
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
-        self._update_project(project_id, access_token)
+        self.with_delay()._update_project(project_id, access_token)
 
     def update_boards(self):
         project_ids = self.env["wt.project"].search([])
