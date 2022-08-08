@@ -114,6 +114,7 @@ class TaskMigration(models.Model):
 
     def load_projects(self):
         headers = self.__get_request_headers()
+        _logger.info(header)
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
         existing_project_dict = {f"{r.project_key}": True for r in existing_project}
