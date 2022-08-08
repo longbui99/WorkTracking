@@ -114,7 +114,7 @@ class TaskMigration(models.Model):
 
     def load_projects(self):
         headers = self.__get_request_headers()
-        _logger.info(headers)
+        # _logger.info(headers)
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
         existing_project_dict = {f"{r.project_key}": True for r in existing_project}
@@ -359,7 +359,7 @@ class TaskMigration(models.Model):
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
         existing_record = self.env['wt.issue']
         headers = self.__get_request_headers()
-        _logger.info(headers)
+        # _logger.info(headers)
         start_index = 0
         total_response = paging
         response = []
