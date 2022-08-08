@@ -9,7 +9,7 @@ class JiraProject(models.Model):
     wt_migration_id = fields.Many2one("wt.migration", string="Task Migration Credentials")
     last_update = fields.Datetime("Last Update Cron")
     allow_to_fetch = fields.Boolean("Should Fetch?")
-
+ 
     @api.model
     def cron_fetch_issue(self, load_create=True):
         if not self:
