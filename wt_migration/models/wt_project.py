@@ -3,7 +3,7 @@ from datetime import datetime
 import time
 
 
-class JiraProject(models.Model):
+class WtProject(models.Model):
     _inherit = "wt.project"
 
     wt_migration_id = fields.Many2one("wt.migration", string="Task Migration Credentials")

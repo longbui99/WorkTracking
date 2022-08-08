@@ -1,7 +1,7 @@
 from odoo import api, fields, models, _
 
 
-class JiraProject(models.Model):
+class WtProject(models.Model):
     _name = "wt.project"
     _description = "Task Project"
     _order = 'pin desc, sequence asc, create_date desc'

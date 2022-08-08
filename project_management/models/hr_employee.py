@@ -7,7 +7,7 @@ class HREmployee(models.Model):
     maximum_search_result = fields.Integer(string="# Search Result", default=11)
     maximum_relative_result = fields.Integer(string="# Relative Active", default=4)
     order_style = fields.Char(string="Order Result")
-    favorite_issue_ids = fields.Many2many("jira.issue", string="Favorite Issues")
+    favorite_issue_ids = fields.Many2many("wt.issue", string="Favorite Issues")
     week_start = fields.Selection([('1', 'Monday'),
                                    ('2', 'Tuesday'),
                                    ('3', 'Wednesday'),

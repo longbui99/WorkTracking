@@ -3,13 +3,13 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 
-class JiraStatus(models.Model):
+class WtStatus(models.Model):
     _inherit = "wt.status"
 
     wt_key = fields.Char(string='Task Key')
 
 
-class JiraTimeLog(models.Model):
+class WtTimeLog(models.Model):
     _inherit = "wt.time.log"
 
     id_on_wt = fields.Integer(string='ID on Task')

@@ -9,7 +9,7 @@ from Crypto.Cipher import AES
 import base64
 
 
-class JiraProject(models.Model):
+class WtProject(models.Model):
     _name = "wt.issue"
     _description = "Task Issue"
     _order = 'issue_sequence desc, sequence asc, create_date desc'
@@ -58,7 +58,7 @@ class JiraProject(models.Model):
             args = args or []
             domain = ['|', ('issue_name', operator, name), ('issue_key', operator, name)]
             return self._search(expression.AND([domain, args]), limit=limit, access_rights_uid=name_get_uid)
-        return super(JiraProject, self)._name_search(name=name, args=args, operator=operator, limit=limit,
+        return super(WtProject, self)._name_search(name=name, args=args, operator=operator, limit=limit,
                                                      name_get_uid=name_get_uid)
 
     def _compute_last_start(self):

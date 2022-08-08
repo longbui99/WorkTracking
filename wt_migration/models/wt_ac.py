@@ -3,7 +3,7 @@ from odoo import api, fields, models, _
 from odoo.addons.wt_migration.utils.ac_parsing import unparsing
 
 
-class JiraACs(models.Model):
+class WtACs(models.Model):
     _inherit = "wt.ac"
 
     wt_raw_name = fields.Char(string="Task Name")
@@ -30,7 +30,7 @@ class JiraACs(models.Model):
         return res_id
 
 
-class JiraACParsing(models.Model):
+class WtACParsing(models.Model):
     _name = "wt.ac.parsing"
     _description = "Parser for AC"
     _order = "sequence, id desc"

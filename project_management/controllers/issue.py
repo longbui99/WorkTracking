@@ -22,7 +22,7 @@ class NotFound(Exception):
     pass
 
 
-class JiraIssue(http.Controller):
+class WtIssue(http.Controller):
 
     def _get_issue(self, issue_ids):
         if issue_ids and isinstance(issue_ids, list) or isinstance(issue_ids, int):
@@ -89,7 +89,7 @@ class JiraIssue(http.Controller):
         data = self._get_issue(active_issue_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
-    @handling_req_res
+    # @handling_req_res
     @http.route(['/management/issue/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_favorite_issues(self, **kwargs):
         issue_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_issue_ids

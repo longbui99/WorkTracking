@@ -2,7 +2,7 @@ from datetime import datetime
 from odoo import api, fields, models, _
 
 
-class JiraACs(models.Model):
+class WtACs(models.Model):
     _name = "wt.ac"
     _description = "Task Checklist"
     _order = 'sequence, float_sequence, id desc'

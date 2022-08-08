@@ -9,7 +9,7 @@ import base64
 import json
 
 
-class JiraTimeLog(models.Model):
+class WtTimeLog(models.Model):
     _name = "wt.time.log"
     _description = "Task Time Log"
     _order = 'start_date desc'

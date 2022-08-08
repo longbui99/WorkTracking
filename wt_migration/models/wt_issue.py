@@ -5,7 +5,7 @@ from odoo import api, fields, models, _
 _logger = logging.getLogger(__name__)
 
 
-class JiraProject(models.Model):
+class WtProject(models.Model):
     _inherit = "wt.issue"
 
     wt_migration_id = fields.Many2one('wt.migration', string='Task Migration')
