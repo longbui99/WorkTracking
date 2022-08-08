@@ -88,6 +88,8 @@ class TaskMigration(models.Model):
         record = json.loads(result.text)
         if self.env.context.get('employee_id'):
             user_id = self._context['employee_id'].user_id
+        else:
+            user_id = self.env['hr.employee'].seach([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
         res = {
             'project_name': record['name'],
             'project_key': record['key'],
@@ -129,6 +131,8 @@ class TaskMigration(models.Model):
         user_id = False
         if self.env.context.get('employee_id'):
             user_id = self._context['employee_id'].user_id
+        else:
+            user_id = self.env['hr.employee'].seach([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
         new_project = []
         for record in json.loads(result.text):
             if not existing_project_dict.get(record.get('key', False), False):
