@@ -34,7 +34,7 @@ class JiraProject(models.Model):
 
         for wt in migration_dict.keys():
             employee_ids = self.env['hr.employee'].search(
-                    [('user_id', 'in', migration_dict[wt]),
+                    [('user_id', 'in', migration_dict[wt].ids),
                     ('wt_private_key', '!=', False)], order='is_wt_admin desc')
             wt.with_delay(eta=29).delete_work_logs_by_unix(int(last_update.timestamp() * 1000), employee_ids)
             wt.with_delay(eta=30).load_work_logs_by_unix(int(last_update.timestamp() * 1000), employee_ids)
