@@ -29,7 +29,7 @@ class WtProject(models.Model):
                 if len(user_ids) == 0 and project.wt_migration_id:
                     user_ids = project.wt_migration_id.admin_user_ids.ids
                 employee_id = self.env['hr.employee'].search(
-                    [('user_id', 'in', user_ids),
+                    [('user_id', 'in', user_ids.ids),
                     ('wt_private_key', '!=', False)], order='is_wt_admin desc', limit=1)
                 if any(employee_id) and project.wt_migration_id:
                     project.wt_migration_id.update_project(project, employee_id)
