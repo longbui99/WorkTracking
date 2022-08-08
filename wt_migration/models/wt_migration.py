@@ -534,95 +534,98 @@ class TaskMigration(models.Model):
 
         return new_issues
 
-    def load_work_logs_by_unix(self, unix, batch=900):
+    def load_work_logs_by_unix(self, unix, employee_ids, batch=900):
         if self.import_work_log:
-            unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
-            last_page = False
-            mapping = WorkLogMapping(self.wt_server_url, self.server_type)
-            headers = self.__get_request_headers()
-            issue_ids = self.env['wt.issue'].search(
-                [('wt_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
-            local_data = {
-                'work_logs': {x.id_on_wt: x for x in issue_ids.mapped('time_log_ids') if x.id_on_wt},
-                'issues': {issue_id.wt_id: issue_id.id for issue_id in issue_ids},
-                'dict_user': self.with_context(active_test=False).get_user()
-            }
-            flush = []
-            to_create = []
-            request_data = {
-                'endpoint': f"{self.wt_server_url}/worklog/updated?since={unix}",
-            }
-            page_failed_count = 0
-            while not last_page and page_failed_count < 6:
-                body = self.make_request(request_data, headers)
-                if isinstance(body, dict):
-                    page_failed_count = 0
-                    request_data['endpoint'] = body.get('nextPage', '')
-                    last_page = body.get('lastPage', True)
-                    ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
-                    flush.extend(ids)
-                    log_failed_count = 0
-                    while log_failed_count < 6:
-                        if len(flush) > batch or last_page:
-                            request = {
-                                'endpoint': f"{self.wt_server_url}/worklog/list",
-                                'method': 'post',
-                                'body': {'ids': flush}
-                            }
-                            logs = self.make_request(request, headers)
-                            if isinstance(logs, list):
-                                log_failed_count = 0
-                                data = {'worklogs': logs}
-                                new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
-                                to_create.extend(new_logs)
-                                flush = []
-                                break
-                            else:
-                                _logger.warning(f"WORK LOG LOAD FAILED COUNT: {log_failed_count}")
-                                log_failed_count += 1
-                                time.sleep(30)
-                                continue
-                    del body['values']
-                    _logger.info(json.dumps(body, indent=4))
-                else:
-                    _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
-                    page_failed_count += 1
-                    time.sleep(30)
-                    continue
-            if len(to_create):
-                self.env["wt.time.log"].create(to_create)
-            self.env['ir.config_parameter'].set_param('latest_unix',
-                                                      body.get('until', datetime.now().timestamp() * 1000))
+            for employee_id in employee_ids:
+                self = self.with_context(employee_id=employee_id)
+                unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
+                last_page = False
+                mapping = WorkLogMapping(self.wt_server_url, self.server_type)
+                headers = self.__get_request_headers()
+                issue_ids = self.env['wt.issue'].search(
+                    [('wt_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
+                local_data = {
+                    'work_logs': {x.id_on_wt: x for x in issue_ids.mapped('time_log_ids') if x.id_on_wt},
+                    'issues': {issue_id.wt_id: issue_id.id for issue_id in issue_ids},
+                    'dict_user': self.with_context(active_test=False).get_user()
+                }
+                flush = []
+                to_create = []
+                request_data = {
+                    'endpoint': f"{self.wt_server_url}/worklog/updated?since={unix}",
+                }
+                page_failed_count = 0
+                while not last_page and page_failed_count < 6:
+                    body = self.make_request(request_data, headers)
+                    if isinstance(body, dict):
+                        page_failed_count = 0
+                        request_data['endpoint'] = body.get('nextPage', '')
+                        last_page = body.get('lastPage', True)
+                        ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
+                        flush.extend(ids)
+                        log_failed_count = 0
+                        while log_failed_count < 6:
+                            if len(flush) > batch or last_page:
+                                request = {
+                                    'endpoint': f"{self.wt_server_url}/worklog/list",
+                                    'method': 'post',
+                                    'body': {'ids': flush}
+                                }
+                                logs = self.make_request(request, headers)
+                                if isinstance(logs, list):
+                                    log_failed_count = 0
+                                    data = {'worklogs': logs}
+                                    new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
+                                    to_create.extend(new_logs)
+                                    flush = []
+                                    break
+                                else:
+                                    _logger.warning(f"WORK LOG LOAD FAILED COUNT: {log_failed_count}")
+                                    log_failed_count += 1
+                                    time.sleep(30)
+                                    continue
+                        del body['values']
+                        _logger.info(json.dumps(body, indent=4))
+                    else:
+                        _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
+                        page_failed_count += 1
+                        time.sleep(30)
+                        continue
+                if len(to_create):
+                    self.env["wt.time.log"].create(to_create)
+                self.env['ir.config_parameter'].set_param('latest_unix',
+                                                        body.get('until', datetime.now().timestamp() * 1000))
 
-    def delete_work_logs_by_unix(self, unix, batch=900):
+    def delete_work_logs_by_unix(self, unix, employee_ids, batch=900):
         if self.import_work_log:
-            unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
-            last_page = False
-            headers = self.__get_request_headers()
-            flush = []
-            request_data = {
-                'endpoint': f"{self.wt_server_url}/worklog/deleted?since={unix}",
-            }
-            page_failed_count = 0
-            while not last_page and page_failed_count < 6:
-                body = self.make_request(request_data, headers)
-                if isinstance(body, dict):
-                    page_failed_count = 0
-                    request_data['endpoint'] = body.get('nextPage', '')
-                    last_page = body.get('lastPage', True)
-                    ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
-                    flush.extend(ids)
-                    log_failed_count = 0
-                    if len(flush) > batch or last_page:
-                        self.env['wt.time.log'].search([('id_on_wt', 'in', flush)]).unlink()
-                        flush = []
-                    del body['values']
-                    _logger.info(json.dumps(body, indent=4))
-                else:
-                    _logger.warning(f"PAGE DELETED FAILED COUNT: {page_failed_count}")
-                    page_failed_count += 1
-                    time.sleep(30)
-                    continue
+            for employee_id in employee_ids:
+                self = self.with_context(employee_id=employee_id)
+                unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
+                last_page = False
+                headers = self.__get_request_headers()
+                flush = []
+                request_data = {
+                    'endpoint': f"{self.wt_server_url}/worklog/deleted?since={unix}",
+                }
+                page_failed_count = 0
+                while not last_page and page_failed_count < 6:
+                    body = self.make_request(request_data, headers)
+                    if isinstance(body, dict):
+                        page_failed_count = 0
+                        request_data['endpoint'] = body.get('nextPage', '')
+                        last_page = body.get('lastPage', True)
+                        ids = list(map(lambda r: r['worklogId'], body.get('values', [])))
+                        flush.extend(ids)
+                        if len(flush) > batch or last_page:
+                            self.env['wt.time.log'].search([('id_on_wt', 'in', flush)]).unlink()
+                            flush = []
+                        del body['values']
+                        _logger.info(json.dumps(body, indent=4))
+                    else:
+                        _logger.warning(f"PAGE DELETED FAILED COUNT: {page_failed_count}")
+                        page_failed_count += 1
+                        time.sleep(30)
+                        continue
 
     def load_work_logs(self, issue_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:

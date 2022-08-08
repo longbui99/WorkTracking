@@ -15,7 +15,12 @@ class JiraProject(models.Model):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
         last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
+        migration_dict = dict()
         for project in self:
+            if project.wt_migration_id not in migration_dict:
+                migration_dict[project.wt_migration_id]  = self.env['res.users']
+            if project.allowed_manager_ids:
+                migration_dict[project.wt_migration_id] |= project.allowed_user_ids[0]
             user_ids = project.allowed_user_ids.ids
             if len(user_ids) == 0 and project.wt_migration_id:
                 user_ids = project.wt_migration_id.admin_user_ids.ids
@@ -26,11 +31,13 @@ class JiraProject(models.Model):
                 project.wt_migration_id.update_project(project, employee_id)
         if not last_update:
             last_update = datetime(1969, 1, 1, 1, 1, 1, 1)
-        time.sleep(3)
-        self._cr.commit()
-        for wt in project.mapped('wt_migration_id'):
-            wt.with_delay(eta=29).delete_work_logs_by_unix(int(last_update.timestamp() * 1000))
-            wt.with_delay(eta=30).load_work_logs_by_unix(int(last_update.timestamp() * 1000))
+
+        for wt in migration_dict.keys():
+            employee_ids = self.env['hr.employee'].search(
+                    [('user_id', 'in', migration_dict),
+                    ('wt_private_key', '!=', False)], order='is_wt_admin desc')
+            wt.with_delay(eta=29).delete_work_logs_by_unix(int(last_update.timestamp() * 1000), employee_ids)
+            wt.with_delay(eta=30).load_work_logs_by_unix(int(last_update.timestamp() * 1000), employee_ids)
 
     def reset_state(self):
         for record in self:
