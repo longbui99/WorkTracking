@@ -173,6 +173,7 @@ class WtIssue(http.Controller):
                 "duration": log.duration,
                 "project": log.project_id.id,
                 "issue": log.issue_id.id,
+                "issueName": log.issue_id.issue_name,
                 "description": log.description,
                 "start_date": log.start_date.isoformat()
             })
