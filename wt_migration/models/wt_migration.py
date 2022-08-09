@@ -86,11 +86,18 @@ class TaskMigration(models.Model):
         headers = self.__get_request_headers()
         result = requests.get(f"{self.wt_server_url}/project/{project_key}", headers=headers)
         record = json.loads(result.text)
-        return self.env['wt.project'].sudo().create({
+        if self.env.context.get('employee_id'):
+            user_id = self._context['employee_id'].user_id
+        else:
+            user_id = self.env['hr.employee'].search([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
+        res = {
             'project_name': record['name'],
             'project_key': record['key'],
             'wt_migration_id': self.id
-        }).id
+        }
+        if user_id:
+            res['allowed_user_ids'] = [(4, user_id.id, False)]
+        return self.env['wt.project'].sudo().create(res).id
 
     def _get_current_employee(self):
         return {
@@ -120,15 +127,27 @@ class TaskMigration(models.Model):
         # _logger.info(headers)
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
-        existing_project_dict = {f"{r.project_key}": True for r in existing_project}
+        existing_project_dict = {f"{r.project_key}": r for r in existing_project}
+        user_id = False
+        if self.env.context.get('employee_id'):
+            user_id = self._context['employee_id'].user_id
+        else:
+            user_id = self.env['hr.employee'].search([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
         new_project = []
         for record in json.loads(result.text):
             if not existing_project_dict.get(record.get('key', False), False):
-                new_project.append({
+                res = {
                     'project_name': record['name'],
                     'project_key': record['key'],
                     'wt_migration_id': self.id
-                })
+                }
+                if user_id:
+                    res['allowed_user_ids'] = [(4, user_id.id, False)]
+                new_project.append(res)
+            else:
+                project = existing_project_dict.get(record.get('key', False), False)
+                if user_id:
+                    project.sudo().allowed_user_ids = [(4, user_id.id, False)]
 
         if new_project:
             self.env['wt.project'].sudo().create(new_project)
@@ -729,9 +748,9 @@ class TaskMigration(models.Model):
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
         issue_ids = self.do_request(request_data, load_all=True)
-        _logger.info(f"=====================================================================")
+        # _logger.info(f"=====================================================================")
         _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
-        _logger.info(f"_____________________________________________________________________")
+        # _logger.info(f"_____________________________________________________________________")
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
@@ -744,12 +763,12 @@ class TaskMigration(models.Model):
             self.with_delay().update_board(project_id)
 
     def update_board(self, project_id):
-        _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        _logger.info(f"Load Work Log")
+        # _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        # _logger.info(f"Load Work Log")
         self.load_sprints(project_id.board_ids)
-        _logger.info(f"Load Sprint")
+        # _logger.info(f"Load Sprint")
         self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
-        _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        # _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     # Agile Connection
     def load_boards(self, project_ids=False):
