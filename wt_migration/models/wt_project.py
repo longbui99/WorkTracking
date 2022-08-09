@@ -17,7 +17,7 @@ class WtProject(models.Model):
     def cron_fetch_issue(self, load_create=True):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
-        allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)]).mapped('user_id')
+        allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
         last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
         migration_dict = dict()
         for project in self:
