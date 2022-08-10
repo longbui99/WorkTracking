@@ -35,7 +35,7 @@ class WtTimeLog(models.Model):
         return res
 
     def force_export(self):
-        issues = {}
+        issues = dict()
         for record in self:
             if record.issue_id in issues:
                 issues[record.issue_id] |= record
