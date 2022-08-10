@@ -24,8 +24,14 @@ class NotFound(Exception):
 
 class WtIssue(http.Controller):
 
-    def _get_issue(self, issue_id):
-        return {
+    def _get_issue(self, issue_ids):
+        if issue_ids and isinstance(issue_ids, list) or isinstance(issue_ids, int):
+            issue_ids = request.env['wt.issue'].browse(issue_ids)
+            if not issue_ids.exists():
+                return str(MissingError("Cannot found issue in our system!"))
+        res = []
+        for issue_id in issue_ids:
+            res.append({
                 "id": issue_id.id,
                 "name": issue_id.issue_name,
                 "key": issue_id.issue_key,
@@ -46,29 +52,20 @@ class WtIssue(http.Controller):
                 'type_url': issue_id.issue_type_id.img_url,
                 'type_name': issue_id.issue_type_id.name,
                 'sprint': issue_id.sprint_id.name
-            }
-
-    def _get_issues(self, issue_ids):
-        if issue_ids and isinstance(issue_ids, list) or isinstance(issue_ids, int):
-            issue_ids = request.env['wt.issue'].browse(issue_ids)
-            if not issue_ids.exists():
-                return str(MissingError("Cannot found issue in our system!"))
-        res = []
-        for issue_id in issue_ids:
-            res.append(self._get_issue(issue_id))
+            })
         return res
 
     @handling_req_res
     @http.route(['/management/issue/get/<int:issue_id>'], type="http", cors="*", methods=['GET'], csrf=False, auth='jwt')
     def get_issue(self, issue_id, **kwargs):
-        data = self._get_issues(issue_id)
+        data = self._get_issue(issue_id)
         return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
 
     @handling_req_res
     @http.route(['/management/issue/get-my-all'], type="http", methods=['GET'], csrf=False, auth='jwt')
     def get_all_issue(self, **kwargs):
         issue_ids = request.env['wt.issue'].search([('assignee_id', '=', request.env.user.id)])
-        data = self._get_issues(issue_ids)
+        data = self._get_issue(issue_ids)
         res = {
             "status": 200,
             "message": "Success",
@@ -82,21 +79,21 @@ class WtIssue(http.Controller):
     def search_issue(self, keyword, **kwargs):
         offset = int(kwargs.get('offset', 0))
         issue_ids = request.env['wt.issue'].with_context(offset=offset).search_issue_by_criteria(keyword)
-        data = self._get_issues(issue_ids)
+        data = self._get_issue(issue_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
     
     @handling_req_res
     @http.route(['/management/issue/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_related_active(self, **kwargs):
         active_issue_ids = request.env['wt.issue'].get_all_active(json.loads(request.params.get("payload", '{}')))
-        data = self._get_issues(active_issue_ids)
+        data = self._get_issue(active_issue_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     # @handling_req_res
     @http.route(['/management/issue/favorite'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_favorite_issues(self, **kwargs):
         issue_ids = request.env["hr.employee"].search([('user_id', '=', request.env.user.id)], limit=1).favorite_issue_ids
-        data = self._get_issues(issue_ids)
+        data = self._get_issue(issue_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     @handling_req_res
@@ -130,7 +127,7 @@ class WtIssue(http.Controller):
     def add_issue_work_log(self, **kwargs):
         issue_id = self.check_work_log_prerequisite()
         issue_id.generate_progress_work_log(request.params.get('payload', {}))
-        data = self._get_issues(issue_id)
+        data = self._get_issue(issue_id)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     @handling_req_res
@@ -163,8 +160,14 @@ class WtIssue(http.Controller):
         issue_id.action_cancel_progress(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
     
-    def _get_work_log(self, log):
-        return {
+    def _get_work_log(self, log_ids):
+        if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
+            log_ids = request.env['wt.issue'].browse(log_ids)
+            if not log_ids.exists():
+                return str(MissingError("Cannot found issue in our system!"))
+        res = []
+        for log in log_ids:
+            res.append({
                 "id": log.id,
                 "key": log.issue_id.issue_key,
                 "duration": log.duration,
@@ -173,16 +176,7 @@ class WtIssue(http.Controller):
                 "issueName": log.issue_id.issue_name,
                 "description": log.description,
                 "start_date": log.start_date.isoformat()
-            }
-
-    def _get_work_logs(self, log_ids):
-        if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
-            log_ids = request.env['wt.issue'].browse(log_ids)
-            if not log_ids.exists():
-                return str(MissingError("Cannot found issue in our system!"))
-        res = []
-        for log in log_ids:
-            res.append(self._get_work_log(log))
+            })
         return res
     
     @handling_req_res
