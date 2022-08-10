@@ -5,7 +5,6 @@ from odoo.addons.project_management.controllers.issue import WtIssue
 from odoo.addons.project_management.controllers.auth import Auth
 from odoo.addons.project_management.utils.error_tracking import handling_req_res
 
-
 class WtIssueMigration(WtIssue):
 
     @handling_req_res

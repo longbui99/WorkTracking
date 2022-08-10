@@ -186,7 +186,7 @@ class WtIssue(http.Controller):
     @http.route(['/management/issue/work-log/history'], type="http", cors="*", methods=['GET'], auth='jwt')
     def get_history_work_logs(self, **kwargs):
         log_ids = request.env['wt.time.log'].with_context(kwargs).load_history()
-        data = self._get_work_log(log_ids)
+        data = self._get_work_logs(log_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
