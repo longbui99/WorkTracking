@@ -4,6 +4,8 @@ from odoo.http import request
 from odoo.addons.project_management.controllers.issue import WtIssue
 from odoo.addons.project_management.controllers.auth import Auth
 from odoo.addons.project_management.utils.error_tracking import handling_req_res
+import logging
+_logger = logging.getLogger(__name__)
 
 class WtIssueMigration(WtIssue):
 
@@ -44,7 +46,10 @@ class WtIssueMigration(WtIssue):
     @handling_req_res
     @http.route(['/management/issue/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_issue_to_server(self, **kwargs):
+        request.params = json.loads(request.httprequest.data)
         request.env['wt.time.log'].browse(kwargs.get('exportIDS', [])).force_export()
+        _logger.info(kwargs)
+        _logger.info(request.params)
         return http.Response("", content_type='application/json', status=200)
 
 
