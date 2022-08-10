@@ -8,9 +8,9 @@ from odoo.addons.project_management.utils.error_tracking import handling_req_res
 
 class WtIssueMigration(WtIssue):
     
-    def _get_issue(self, issue_id):
-        res = super()._get_issue(issue_id)
-        res['unexported'] = not issue_id.id_on_wt
+    def _get_work_log(self, log):
+        res = super()._get_work_log(log)
+        res['unexported'] = not log.id_on_wt
         return res
 
     @handling_req_res
@@ -49,7 +49,7 @@ class WtIssueMigration(WtIssue):
         data = issue_id.export_issue_to_server(request.params.get('payload', {}))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
-WtIssue._get_issue = WtIssueMigration._get_issue
+WtIssue._get_work_log = WtIssueMigration._get_work_log
 
 class AuthInherited(Auth):
 
