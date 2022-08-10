@@ -31,7 +31,7 @@ class WtTimeLog(models.Model):
         res = super().write(values)
         employee_id = self.env['hr.employee'].search([('user_id','=', self.env.user.id)], limit=1)
         if self.issue_id.wt_migration_id.auto_export_work_log and employee_id.auto_export_work_log:
-            self.issue_id.wt_migration_id.update_time_logs(self.issue_id, self)
+            self.issue_id.wt_migration_id.export_time_log(self.issue_id, self)
         return res
 
     def force_export(self):
@@ -41,9 +41,8 @@ class WtTimeLog(models.Model):
                 issues[record.issue_id] |= record
             else:
                 issues[record.issue_id] = record
-        _logger.info(json.dumps(issues, indent=4))
         for issue in issues.keys():
-            issue.wt_migration_id.update_time_logs(issues[issue], issue)
+            issue.wt_migration_id.export_time_log(issues[issue], issue)
 
     def unlink(self):
         try:
