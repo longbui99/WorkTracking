@@ -159,15 +159,9 @@ class WtIssue(http.Controller):
         issue_id = self.check_work_log_prerequisite()
         issue_id.action_cancel_progress(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
-    
-    def _get_work_log(self, log_ids):
-        if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
-            log_ids = request.env['wt.issue'].browse(log_ids)
-            if not log_ids.exists():
-                return str(MissingError("Cannot found issue in our system!"))
-        res = []
-        for log in log_ids:
-            res.append({
+
+    def _get_work_log(self, log): 
+        return {
                 "id": log.id,
                 "key": log.issue_id.issue_key,
                 "duration": log.duration,
@@ -176,7 +170,16 @@ class WtIssue(http.Controller):
                 "issueName": log.issue_id.issue_name,
                 "description": log.description,
                 "start_date": log.start_date.isoformat()
-            })
+            }
+    
+    def _get_work_logs(self, log_ids):
+        if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
+            log_ids = request.env['wt.issue'].browse(log_ids)
+            if not log_ids.exists():
+                return str(MissingError("Cannot found issue in our system!"))
+        res = []
+        for log in log_ids:
+            res.append(self._get_work_log(log))
         return res
     
     @handling_req_res
