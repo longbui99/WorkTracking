@@ -1,6 +1,9 @@
 import datetime
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import json
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class WtStatus(models.Model):
@@ -38,6 +41,7 @@ class WtTimeLog(models.Model):
                 issues[record.issue_id] |= record
             else:
                 issues[record.issue_id] = record
+        _logger.info(json.dumps(issue, indent=4))
         for issue in issues.keys():
             issue.wt_migration_id.update_time_logs(issues[issue], issue)
 
