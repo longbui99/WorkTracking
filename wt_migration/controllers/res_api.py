@@ -9,7 +9,7 @@ class WtIssueMigration(WtIssue):
 
     def _get_work_log(self, log): 
         res = super()._get_work_log(log)
-        res['unexported'] = not log.id_on_wt
+        res['exported'] = bool(log.id_on_wt)
         return res
 
     @handling_req_res
