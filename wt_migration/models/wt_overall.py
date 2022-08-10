@@ -42,7 +42,7 @@ class WtTimeLog(models.Model):
             else:
                 issues[record.issue_id] = record
         for issue in issues.keys():
-            issue.wt_migration_id.export_specific_log(issues[issue], issue)
+            issue.wt_migration_id.export_specific_log(issue, issues[issue])
 
     def unlink(self):
         try:
