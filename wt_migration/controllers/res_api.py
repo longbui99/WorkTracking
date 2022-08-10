@@ -7,6 +7,11 @@ from odoo.addons.project_management.utils.error_tracking import handling_req_res
 
 class WtIssueMigration(WtIssue):
 
+    def _get_work_log(self, log): 
+        res = super()._get_work_log(log)
+        res['unexported'] = not log.id_on_wt
+        return res
+
     @handling_req_res
     @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
                 auth='jwt', csrf=False)
