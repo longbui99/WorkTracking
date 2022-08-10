@@ -44,7 +44,7 @@ class WtIssueMigration(WtIssue):
     @handling_req_res
     @http.route(['/management/issue/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_issue_to_server(self, **kwargs):
-        request.env['jira.time.log'].browse(kwargs.get('exportIDS', [])).force_export()
+        request.env['wt.time.log'].browse(kwargs.get('exportIDS', [])).force_export()
         return http.Response("", content_type='application/json', status=200)
 
 
