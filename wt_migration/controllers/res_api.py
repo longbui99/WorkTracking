@@ -42,11 +42,10 @@ class WtIssueMigration(WtIssue):
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/issue/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
+    @http.route(['/management/issue/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_issue_to_server(self, **kwargs):
-        issue_id = super().check_work_log_prerequisite()
-        data = issue_id.export_issue_to_server(request.params.get('payload', {}))
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
+        request.env['jira.time.log'].browse(kwargs.get('exportIDS', [])).force_export()
+        return http.Response("", content_type='application/json', status=200)
 
 
 class AuthInherited(Auth):
