@@ -49,8 +49,6 @@ class WtIssueMigration(WtIssue):
         data = issue_id.export_issue_to_server(request.params.get('payload', {}))
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
-WtIssue._get_work_log = WtIssueMigration._get_work_log
-
 class AuthInherited(Auth):
 
     @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
