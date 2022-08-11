@@ -11,6 +11,7 @@
                         <field name="maximum_search_result"/>
                         <field name="maximum_relative_result"/>
                         <field name="order_style"/>
+                        <field name="rouding_half_up_minute"/>
                     </group>
                 </page>
             </xpath>

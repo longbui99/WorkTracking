@@ -54,16 +54,27 @@ class WtTimeLog(models.Model):
         work_log_ids.filtered(lambda r: not r.end).write({'end': datetime.now()})
         return super().unlink()
 
+    @api.model
+    def rouding_log(self, duration):
+        employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
+        if employee_id:
+            total_seconds = 60*employee_id.rouding_half_up_minute
+            residual = duration%total_seconds
+            duration -= residual
+            if residual > total_seconds/2:
+                duration += total_seconds
+        return duration
+
     def write(self, values):
         if 'time' in values:
-            values['duration'] = convert_log_format_to_second(values['time'])
+            values['duration'] = self.rouding_log(convert_log_format_to_second(values['time']))
             values.pop('time')
         return super().write(values)
 
     @api.model
     def create(self, values):
         if 'time' in values:
-            values['duration'] = convert_log_format_to_second(values['time'])
+            values['duration'] = self.rouding_log(convert_log_format_to_second(values['time']))
             values.pop('time')
         if 'start_date' not in values:
             values['start_date'] = datetime.now()

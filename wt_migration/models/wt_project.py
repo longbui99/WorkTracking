@@ -27,7 +27,6 @@ class WtProject(models.Model):
                 user_ids = allowed_user_ids & project.allowed_user_ids
                 if not (user_ids & migration_dict[project.wt_migration_id]):
                     migration_dict[project.wt_migration_id] |= user_ids[0]
-                # user_ids = project.allowed_user_ids.ids
                 if len(user_ids) == 0 and project.wt_migration_id:
                     user_ids = project.wt_migration_id.admin_user_ids.ids
                 employee_id = self.env['hr.employee'].search(
