@@ -63,6 +63,8 @@ class WtTimeLog(models.Model):
             duration -= residual
             if residual > total_seconds/2:
                 duration += total_seconds
+            elif residual / total_seconds < 2.0:
+                duration += residual
         return duration
 
     def write(self, values):
