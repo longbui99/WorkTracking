@@ -57,7 +57,7 @@ class WtTimeLog(models.Model):
     @api.model
     def rouding_log(self, duration):
         employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
-        if employee_id:
+        if employee_id and employee_id.rouding_half_up_minute:
             total_seconds = 60*employee_id.rouding_half_up_minute
             residual = duration%total_seconds
             duration -= residual

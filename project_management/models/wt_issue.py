@@ -310,12 +310,9 @@ class WtProject(models.Model):
     def search_issue_by_criteria(self, payload):
         employee = self._get_result_management()
         res = get_search_request(payload)
-        _logger.info(json.dumps(res, indent=4))
         domain = self.get_search_issue_domain(res, employee)
-        _logger.info(json.dumps(domain, indent=4))
         result = self.env["wt.issue"]
         offset = int(self._context.get('offset', 0))
-        _logger.info(json.dumps(offset, indent=4))
         if len(domain):
             result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result, offset=offset)
         return result
