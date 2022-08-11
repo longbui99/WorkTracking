@@ -1,6 +1,9 @@
 import datetime
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import json
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class WtStatus(models.Model):
@@ -26,8 +29,20 @@ class WtTimeLog(models.Model):
 
     def write(self, values):
         res = super().write(values)
-        self.issue_id.wt_migration_id.update_time_logs(self.issue_id, self)
+        employee_id = self.env['hr.employee'].search([('user_id','=', self.env.user.id)], limit=1)
+        if self.issue_id.wt_migration_id.auto_export_work_log and employee_id.auto_export_work_log:
+            self.issue_id.wt_migration_id.export_specific_log(self.issue_id, self)
         return res
+
+    def force_export(self):
+        issues = dict()
+        for record in self:
+            if record.issue_id in issues:
+                issues[record.issue_id] |= record
+            else:
+                issues[record.issue_id] = record
+        for issue in issues.keys():
+            issue.wt_migration_id.export_specific_log(issue, issues[issue])
 
     def unlink(self):
         try:

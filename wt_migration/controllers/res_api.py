@@ -4,9 +4,15 @@ from odoo.http import request
 from odoo.addons.project_management.controllers.issue import WtIssue
 from odoo.addons.project_management.controllers.auth import Auth
 from odoo.addons.project_management.utils.error_tracking import handling_req_res
-
+import logging
+_logger = logging.getLogger(__name__)
 
 class WtIssueMigration(WtIssue):
+
+    def _get_work_log(self, log): 
+        res = super()._get_work_log(log)
+        res['exported'] = bool(log.id_on_wt)
+        return res
 
     @handling_req_res
     @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
@@ -38,11 +44,10 @@ class WtIssueMigration(WtIssue):
         return http.Response("", content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/issue/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
+    @http.route(['/management/issue/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_issue_to_server(self, **kwargs):
-        issue_id = super().check_work_log_prerequisite()
-        data = issue_id.export_issue_to_server(request.params.get('payload', {}))
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
+        request.env['wt.time.log'].browse(kwargs.get('exportIds', [])).force_export()
+        return http.Response("", content_type='application/json', status=200)
 
 
 class AuthInherited(Auth):

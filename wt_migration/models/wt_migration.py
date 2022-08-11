@@ -726,6 +726,11 @@ class TaskMigration(models.Model):
             request_clone['endpoint'] += f"/{log.id_on_wt}"
             res = self.make_request(request_clone, headers)
             
+    def export_specific_log(self, issue_id, log_ids):
+        time_log_to_create_ids = log_ids.filtered(lambda x: not x.id_on_wt and x.state == 'done')
+        time_log_to_update_ids = log_ids.filtered(lambda x: x.id_on_wt and x.state == 'done')
+        self.add_time_logs(issue_id, time_log_to_create_ids)
+        self.update_time_logs(issue_id, time_log_to_update_ids)
 
     def export_time_log(self, issue_id):
         current_user_id = self.env.user.id

@@ -159,30 +159,34 @@ class WtIssue(http.Controller):
         issue_id = self.check_work_log_prerequisite()
         issue_id.action_cancel_progress(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
+
+    def _get_work_log(self, log): 
+        return {
+                "id": log.id,
+                "key": log.issue_id.issue_key,
+                "duration": log.duration,
+                "project": log.project_id.id,
+                "issue": log.issue_id.id,
+                "issueName": log.issue_id.issue_name,
+                "description": log.description,
+                "start_date": log.start_date.isoformat()
+            }
     
-    def _get_work_log(self, log_ids):
+    def _get_work_logs(self, log_ids):
         if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
             log_ids = request.env['wt.issue'].browse(log_ids)
             if not log_ids.exists():
                 return str(MissingError("Cannot found issue in our system!"))
         res = []
         for log in log_ids:
-            res.append({
-                "id": log.id,
-                "key": log.issue_id.issue_key,
-                "duration": log.duration,
-                "project": log.project_id.id,
-                "issue": log.issue_id.id,
-                "description": log.description,
-                "start_date": log.start_date.isoformat()
-            })
+            res.append(self._get_work_log(log))
         return res
     
     @handling_req_res
     @http.route(['/management/issue/work-log/history'], type="http", cors="*", methods=['GET'], auth='jwt')
     def get_history_work_logs(self, **kwargs):
         log_ids = request.env['wt.time.log'].with_context(kwargs).load_history()
-        data = self._get_work_log(log_ids)
+        data = self._get_work_logs(log_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     def __check_ac_prequisite(self, **kwargs):
