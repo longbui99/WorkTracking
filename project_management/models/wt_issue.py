@@ -315,6 +315,7 @@ class WtProject(models.Model):
         _logger.info(json.dumps(domain, indent=4))
         result = self.env["wt.issue"]
         offset = int(self._context.get('offset', 0))
+        _logger.info(json.dumps(offset, indent=4))
         if len(domain):
             result |= self.search(domain, order=employee.order_style, limit=employee.maximum_search_result, offset=offset)
         return result
