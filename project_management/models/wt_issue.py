@@ -1,12 +1,14 @@
 import datetime
 import json
 import pytz
+import logging
 from odoo import api, fields, models, _
 from odoo.osv import expression
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format
 from Crypto.Cipher import AES
 import base64
+_logger = logging.getLogger(__name__)
 
 
 class WtProject(models.Model):
@@ -308,9 +310,9 @@ class WtProject(models.Model):
     def search_issue_by_criteria(self, payload):
         employee = self._get_result_management()
         res = get_search_request(payload)
-        print(json.dumps(res, indent=4))
+        _logger.info(json.dumps(res, indent=4))
         domain = self.get_search_issue_domain(res, employee)
-        print(json.dumps(domain, indent=4))
+        _logger.info(json.dumps(domain, indent=4))
         result = self.env["wt.issue"]
         offset = int(self._context.get('offset', 0))
         if len(domain):
