@@ -15,3 +15,4 @@ class HREmployee(models.Model):
                                    ('5', 'Friday'),
                                    ('6', 'Saturday'),
                                    ('7', 'Sunday')], string='First Day of Week', required=True, default='1')
+    rouding_half_up_minute = fields.Integer(string="Rounding HU (minutes)", default=0)
