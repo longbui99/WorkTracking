@@ -3,6 +3,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import json
 import logging
+
 _logger = logging.getLogger(__name__)
 
 
@@ -16,6 +17,7 @@ class WtTimeLog(models.Model):
     _inherit = "wt.time.log"
 
     id_on_wt = fields.Integer(string='ID on Task')
+    is_exported = fields.Boolean(string="Is Exported?", default=False)
 
     def batch_export(self, pivot_time):
         issue_ids = self.mapped('issue_id')
@@ -29,9 +31,12 @@ class WtTimeLog(models.Model):
 
     def write(self, values):
         res = super().write(values)
-        employee_id = self.env['hr.employee'].search([('user_id','=', self.env.user.id)], limit=1)
+        employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
         if self.issue_id.wt_migration_id.auto_export_work_log and employee_id.auto_export_work_log:
             self.issue_id.wt_migration_id.export_specific_log(self.issue_id, self)
+            self.is_exported = True
+        else:
+            self.is_exported = False
         return res
 
     def force_export(self):
@@ -43,6 +48,7 @@ class WtTimeLog(models.Model):
                 issues[record.issue_id] = record
         for issue in issues.keys():
             issue.wt_migration_id.export_specific_log(issue, issues[issue])
+        self.is_exported = True
 
     def unlink(self):
         try:

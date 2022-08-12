@@ -696,6 +696,7 @@ class TaskMigration(models.Model):
             request_data['body'] = payload
             res = self.make_request(request_data, headers)
             log.id_on_wt = res['id']
+        time_log_ids.is_exported = True
 
     def update_time_logs(self, issue_id, time_log_ids):
         headers = self.__get_request_headers()
@@ -712,6 +713,7 @@ class TaskMigration(models.Model):
                 res = self.make_request(request_clone, headers)
             except:
                 continue
+        time_log_ids.is_exported = True
 
     def delete_time_logs(self, issue_id, time_log_ids):
         headers = self.__get_request_headers()
