@@ -541,7 +541,8 @@ class TaskMigration(models.Model):
                         'issue_id': issues.get(int(work_log['issueId']), False),
                         'id_on_wt': id_on_wt,
                         'start_date': self.convert_server_tz_to_utc(start_date),
-                        'user_id': data['dict_user'].get(logging_email, False)
+                        'user_id': data['dict_user'].get(logging_email, False),
+                        'is_exported': True
                     }
                     new_issues.append(to_create)
             else:
