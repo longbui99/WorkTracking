@@ -37,7 +37,8 @@ class WtTimeLog(models.Model):
                 try:
                     self.issue_id.wt_migration_id.export_specific_log(self.issue_id, self)
                     self.is_exported = True
-                except:
+                except Exception as e:
+                    _logger.error(e)
                     self.is_exported = False
             else:
                 self.is_exported = False
