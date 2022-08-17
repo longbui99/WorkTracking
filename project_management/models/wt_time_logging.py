@@ -100,11 +100,11 @@ class WtTimeLog(models.Model):
     @api.model
     def load_history(self):
         tz = pytz.timezone(self.env.user.tz or 'UTC')
-        unix = int(self._context.get('unix', 0))
+        unix = int(float(self._context.get('unix', 0)))
         utc_end_time = (unix and datetime.fromtimestamp(unix) or datetime.now())
         user_end_time = utc_end_time.astimezone(tz) + relativedelta(hour=23, minute=59, second=59)
         end_time = user_end_time.astimezone(pytz.utc)
-        if int(self._context.get('from_unix')):
+        if int(float(self._context.get('from_unix'))):
             user_start_time = datetime.fromtimestamp(int(self._context['from_unix'])).astimezone(tz) + relativedelta(hour=0, minute=0, second=0)
             start_time = user_start_time.astimezone(pytz.utc)
         else:
