@@ -40,7 +40,7 @@ class WtTimeLog(models.Model):
                 except Exception as e:
                     _logger.error(e)
                     self.is_exported = False
-            else:
+            elif self.is_exported:
                 self.is_exported = False
         return res
 
