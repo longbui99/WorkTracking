@@ -61,10 +61,10 @@ class WtTimeLog(models.Model):
             total_seconds = 60*employee_id.rouding_half_up_minute
             residual = duration%total_seconds
             duration -= residual
-            if residual > total_seconds/2:
-                duration += total_seconds
-            elif residual / total_seconds < 2.0:
+            if duration < total_seconds:
                 duration += residual
+            elif residual > total_seconds/2:
+                duration += total_seconds
         return duration
 
     def write(self, values):
