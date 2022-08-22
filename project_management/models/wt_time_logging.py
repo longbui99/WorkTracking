@@ -3,7 +3,8 @@ import pytz
 from dateutil.relativedelta import relativedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, convert_log_format_to_second, get_date_range
+from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format, \
+    convert_log_format_to_second, get_date_range
 from Crypto.Cipher import AES
 import base64
 import json
@@ -39,7 +40,7 @@ class WtTimeLog(models.Model):
     @api.depends("duration")
     def _compute_duration_hrs(self):
         for record in self:
-            record.duration_hrs = record.duration/3600
+            record.duration_hrs = record.duration / 3600
 
     @api.depends('duration')
     def _compute_time_data(self):
@@ -58,24 +59,29 @@ class WtTimeLog(models.Model):
     def rouding_log(self, duration):
         employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
         if employee_id and employee_id.rouding_half_up_minute:
-            total_seconds = 60*employee_id.rouding_half_up_minute
+            total_seconds = 60 * employee_id.rouding_half_up_minute
             hour_seconds = 86400
-            residual = duration%hour_seconds
-            residual = residual%total_seconds
-            duration += total_seconds - residual
+            residual = duration % hour_seconds
+            residual = residual % total_seconds
+            if residual > 0:
+                duration += total_seconds - residual
         return duration
 
-    def write(self, values):
+    @api.model
+    def rounding(self, values):
         if 'time' in values:
             values['duration'] = self.rouding_log(convert_log_format_to_second(values['time']))
             values.pop('time')
+        elif 'duration' in values:
+            values['duration'] = self.rouding_log(values['duration'])
+
+    def write(self, values):
+        self.rouding(values)
         return super().write(values)
 
     @api.model
     def create(self, values):
-        if 'time' in values:
-            values['duration'] = self.rouding_log(convert_log_format_to_second(values['time']))
-            values.pop('time')
+        self.rouding(values)
         if 'start_date' not in values:
             values['start_date'] = datetime.now()
         return super().create(values)
@@ -103,9 +109,11 @@ class WtTimeLog(models.Model):
         user_end_time = utc_end_time.astimezone(tz) + relativedelta(hour=23, minute=59, second=59)
         end_time = user_end_time.astimezone(pytz.utc)
         if int(float(self._context.get('from_unix'))):
-            user_start_time = datetime.fromtimestamp(int(self._context['from_unix'])).astimezone(tz) + relativedelta(hour=0, minute=0, second=0)
+            user_start_time = datetime.fromtimestamp(int(self._context['from_unix'])).astimezone(tz) + relativedelta(
+                hour=0, minute=0, second=0)
             start_time = user_start_time.astimezone(pytz.utc)
         else:
             user_start_time = end_time.astimezone(tz) - relativedelta(days=1, hour=0, minute=0, second=0)
-            start_time  = user_start_time.astimezone(pytz.utc)
-        return self.search([('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time), ('user_id', '=', self.env.user.id)], order='start_date desc')
+            start_time = user_start_time.astimezone(pytz.utc)
+        return self.search([('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time),
+                            ('user_id', '=', self.env.user.id)], order='start_date desc')
