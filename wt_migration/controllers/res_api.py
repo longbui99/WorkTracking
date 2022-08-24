@@ -41,7 +41,8 @@ class WtIssueMigration(WtIssue):
         issue_id = request.env['wt.issue'].browse(issue_id)
         res = {'issue': [issue_id.issue_key]}
         issue_id.wt_migration_id._search_load(res)
-        return http.Response("", content_type='application/json', status=200)
+        data = self._get_issue(issue_id)
+        return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
 
     @handling_req_res
     @http.route(['/management/issue/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
