@@ -204,7 +204,7 @@ class WtIssue(http.Controller):
         params.pop('jwt')
         request.env['wt.time.log'].browse(time_id).write(params)
         data = self._get_work_logs(time_id)
-        return http.Response(json.dumps(data), content_type='application/json', status=200)
+        return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
     
     @handling_req_res
     @http.route(['/management/issue/work-log/delete/<int:log_id>'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
