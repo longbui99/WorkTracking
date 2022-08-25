@@ -174,9 +174,9 @@ class WtIssue(http.Controller):
     
     def _get_work_logs(self, log_ids):
         if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
-            log_ids = request.env['wt.issue'].browse(log_ids)
+            log_ids = request.env['wt.time.log'].browse(log_ids)
             if not log_ids.exists():
-                return str(MissingError("Cannot found issue in our system!"))
+                return str(MissingError("Cannot found log in our system!"))
         res = []
         for log in log_ids:
             res.append(self._get_work_log(log))
