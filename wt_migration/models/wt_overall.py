@@ -54,6 +54,7 @@ class WtTimeLog(models.Model):
         for issue in issues.keys():
             issue.wt_migration_id.export_specific_log(issue, issues[issue])
         self.is_exported = True
+        return self
 
     def unlink(self):
         try:
