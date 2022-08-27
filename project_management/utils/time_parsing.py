@@ -42,7 +42,7 @@ def convert_log_format_to_second(log_data, employee_id):
             unit = employee_id.default_unit
         except:
             operand = float(log[:-1])
-            unit = float(log[-1])
+            unit = log[-1]
         if not data.get(unit):
             raise AttributeError("Your format is incorrect")
         total_time += operand * data.get(unit, 0)
