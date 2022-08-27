@@ -56,8 +56,7 @@ class WtTimeLog(models.Model):
         return super().unlink()
 
     @api.model
-    def rouding_log(self, duration):
-        employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
+    def rouding_log(self, duration, employee_id=False):
         if employee_id and employee_id.rouding_up:
             total_seconds = 60 * employee_id.rouding_up
             hour_seconds = 86400
@@ -70,7 +69,8 @@ class WtTimeLog(models.Model):
     @api.model
     def rounding(self, values):
         if 'time' in values:
-            values['duration'] = self.rouding_log(convert_log_format_to_second(values['time']))
+            employee_id = self.env['hr.employee'].search([('user_id', '=', self.env.user.id)], limit=1)
+            values['duration'] = self.rouding_log(convert_log_format_to_second(values['time'], employee_id), employee_id)
             values.pop('time')
         elif 'duration' in values:
             values['duration'] = self.rouding_log(values['duration'])
