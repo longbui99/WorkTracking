@@ -15,4 +15,8 @@ class HREmployee(models.Model):
                                    ('5', 'Friday'),
                                    ('6', 'Saturday'),
                                    ('7', 'Sunday')], string='First Day of Week', required=True, default='1')
-    rouding_half_up_minute = fields.Integer(string="Rounding HU (minutes)", default=0)
+    rouding_up = fields.Integer(string="Rounding Up (minutes)", default=0)
+    default_unit = fields.Selection([('Minute', 'm'),
+                                     ('Hour', 'h'),
+                                     ('Day', 'd'),
+                                     ('Week', 'w')], string="Default Log Unit", required=True, default="m")

@@ -8,10 +8,11 @@
             <xpath expr="//notebook[1]" position="inside">
                 <page string="Task Configurations">
                     <group>
+                        <field name="default_unit"/>
                         <field name="maximum_search_result"/>
                         <field name="maximum_relative_result"/>
                         <field name="order_style"/>
-                        <field name="rouding_half_up_minute"/>
+                        <field name="rouding_up"/>
                     </group>
                 </page>
             </xpath>
