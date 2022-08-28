@@ -90,7 +90,6 @@ class TaskMigration(models.Model):
             user_id = self._context['employee_id'].user_id
         else:
             user_id = self.env['hr.employee'].search([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
-        _logger.info(record)
         res = {
             'project_name': record['name'],
             'project_key': record['key'],
@@ -274,7 +273,6 @@ class TaskMigration(models.Model):
         new_status = self.__load_from_key_paths(issue_fields, issue_mapping.new_status)
         wt_key = self.__load_from_key_paths(issue_fields, issue_mapping.wt_status)
         new_issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.new_issue_key)
-        _logger.info(json.dumps(issue, indent=4))
         if issue.get('key', '-') not in local['dict_issue_key']:
             if not issue_fields:
                 return
