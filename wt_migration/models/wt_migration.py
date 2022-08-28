@@ -259,6 +259,7 @@ class TaskMigration(models.Model):
         }
 
     def mapping_issue(self, local, issue, issue_mapping, response,load_ac):
+        _logger.info(json.dumps(issue, indent=4))
         issue_fields = issue['fields']
         status = self.__load_from_key_paths(issue_fields, issue_mapping.status)
         story_point = self.__load_from_key_paths(issue_fields, issue_mapping.story_point)
