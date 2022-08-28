@@ -285,11 +285,11 @@ class TaskMigration(models.Model):
                 'create_date': created_date,
                 'wt_id': issue['id']
             }
-            if issue.get('parent'):
-                if issue['parent']['key'] not in local['dict_issue_key']:
+            if issue_fields.get('parent'):
+                if issue_fields['parent']['key'] not in local['dict_issue_key']:
                     epic = []
-                    self.mapping_issue(local, issue['parent'], issue_mapping, epic, load_ac)
-                    local['dict_issue_key'][issue['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
+                    self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
+                    local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
             if estimate_hour:
                 res['story_point_unit'] = 'hrs'
             if local['project_key_dict'].get(project, False):
@@ -345,13 +345,13 @@ class TaskMigration(models.Model):
             update_dict = {
                 'story_point': estimate_hour and estimate_hour or story_point,
             }
-            if issue.get('parent'):
-                if issue['parent']['key'] != existing_record.epic_id.issue_key:
-                    if issue['parent']['key'] not in local['dict_issue_key']:
+            if issue_fields.get('parent'):
+                if issue_fields['parent']['key'] != existing_record.epic_id.issue_key:
+                    if issue_fields['parent']['key'] not in local['dict_issue_key']:
                         epic = []
-                        self.mapping_issue(local, issue['parent'], issue_mapping, epic, load_ac)
-                        local['dict_issue_key'][issue['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
-                    update_dict['epic_id'] = local['dict_issue_key'][issue['parent']['key']].id
+                        self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
+                        local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
+                    update_dict['epic_id'] = local['dict_issue_key'][issue_fields['parent']['key']].id
             if estimate_hour:
                 update_dict['story_point_unit'] = 'hrs'
             if existing_record.issue_name != summary:
