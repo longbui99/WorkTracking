@@ -287,7 +287,7 @@ class TaskMigration(models.Model):
             }
             if issue_fields.get('parent'):
                 if issue_fields['parent']['key'] not in local['dict_issue_key']:
-                    issue_fields['parent']['project'] = {'key': project}
+                    issue_fields['parent']['project'] = issue_fields['project']
                     epic = []
                     self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
                     local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
@@ -349,7 +349,7 @@ class TaskMigration(models.Model):
             if issue_fields.get('parent'):
                 if issue_fields['parent']['key'] != existing_record.epic_id.issue_key:
                     if issue_fields['parent']['key'] not in local['dict_issue_key']:
-                        issue_fields['parent']['project'] = {'key': project}
+                        issue_fields['parent']['project'] = issue_fields['project']
                         epic = []
                         self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
                         local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
