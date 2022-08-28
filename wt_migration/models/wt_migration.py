@@ -287,6 +287,7 @@ class TaskMigration(models.Model):
                 'wt_id': issue['id']
             }
             if issue_fields.get('parent'):
+                _logger.info(local['dict_issue_key'][issue_fields['parent']['key']])
                 if issue_fields['parent']['key'] not in local['dict_issue_key']:
                     issue_fields['parent']['fields']['project'] = issue_fields['project']
                     epic = []
