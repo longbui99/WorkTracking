@@ -22,6 +22,7 @@ class WtProject(models.Model):
     issue_key = fields.Char(string='Issue Key', required=True)
     issue_url = fields.Char(string='Task Issue')
     epic_id = fields.Many2one("wt.issue", string="Epic")
+    epic_ok = fields.Boolean(string="Epic?")
     time_log_ids = fields.One2many('wt.time.log', 'issue_id', string='Log Times')
     story_point = fields.Float(string='Estimate')
     story_point_unit = fields.Selection([('general', 'Fibonanci'), ('hrs', 'Hour(s)')], string="Estimate Unit", default="general")
