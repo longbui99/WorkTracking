@@ -24,7 +24,7 @@ class WtTimeLog(models.Model):
     state = fields.Selection([('progress', 'In Progress'), ('done', 'Done')], string='Status', default='progress')
     source = fields.Char(string='Source')
     user_id = fields.Many2one('res.users', string='User')
-    epic_id = fields.Many2one("wt.issue", string="Epic")
+    epic_id = fields.Many2one("wt.issue", string="Epic", related="issue_id.epic_id")
     start_date = fields.Datetime("Start Date")
     encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
     project_id = fields.Many2one(string='Project', related="issue_id.project_id", store=True)
