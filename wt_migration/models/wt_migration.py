@@ -90,6 +90,7 @@ class TaskMigration(models.Model):
             user_id = self._context['employee_id'].user_id
         else:
             user_id = self.env['hr.employee'].search([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
+        _logger.info(record)
         res = {
             'project_name': record['name'],
             'project_key': record['key'],
