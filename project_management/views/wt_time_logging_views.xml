@@ -53,8 +53,9 @@
                 </group>
                 <separator/>
                 <filter string="Project" name="group_by_project_id" context="{'group_by':'project_id'}"/>
-                <filter string="User" name="group_by_user_id" context="{'group_by':'user_id'}"/>
                 <filter string="Issue" name="group_by_issue_id" context="{'group_by':'issue_id'}"/>
+                <filter string="Epic" name="group_by_user_id" context="{'group_by':'epic_id'}"/>
+                <filter string="User" name="group_by_user_id" context="{'group_by':'user_id'}"/>
             </search>
         </field>
     </record>
