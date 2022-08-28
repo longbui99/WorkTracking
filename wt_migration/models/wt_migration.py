@@ -291,6 +291,7 @@ class TaskMigration(models.Model):
                     epic = []
                     self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
                     local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
+                res['epic_id'] = local['dict_issue_key'][issue_fields['parent']['key']].id
             if estimate_hour:
                 res['story_point_unit'] = 'hrs'
             if local['project_key_dict'].get(project, False):
