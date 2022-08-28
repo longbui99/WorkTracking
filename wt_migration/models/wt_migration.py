@@ -258,124 +258,138 @@ class TaskMigration(models.Model):
             'dict_type': {r.key: r.id for r in self.env["wt.type"].sudo().search([])}
         }
 
-    def processing_issue_raw_data(self, local, raw):
-        issue_mapping = IssueMapping(self.wt_server_url, self.server_type)
-        response = []
-        load_ac = self.is_load_acs
-        for issue in raw.get('issues', [raw]):
-            issue_fields = issue['fields']
-            status = self.__load_from_key_paths(issue_fields, issue_mapping.status)
-            story_point = self.__load_from_key_paths(issue_fields, issue_mapping.story_point)
-            estimate_hour = self.__load_from_key_paths(issue_fields, issue_mapping.estimate_hour) or 0.0
-            assignee = self.__load_from_key_paths(issue_fields, issue_mapping.assignee)
-            tester = self.__load_from_key_paths(issue_fields, issue_mapping.tester)
-            project = self.__load_from_key_paths(issue_fields, issue_mapping.project)
-            issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.issue_type)
-            summary = self.__load_from_key_paths(issue_fields, issue_mapping.summary)
-            acceptance_criteria = self.__load_from_key_paths(issue_fields, issue_mapping.acceptance_criteria)
-            created_date = self.__load_from_key_paths(issue_fields, issue_mapping.created_date)
-            new_status = self.__load_from_key_paths(issue_fields, issue_mapping.new_status)
-            wt_key = self.__load_from_key_paths(issue_fields, issue_mapping.wt_status)
-            new_issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.new_issue_key)
-            if issue.get('key', '-') not in local['dict_issue_key']:
-                # _logger.info(f"Loading for issue: {issue['key']}")
-                if not issue_fields:
-                    continue
-                res = {
-                    'issue_name': summary,
-                    'issue_key': issue['key'],
-                    'issue_url': issue_mapping.map_url(issue['key']),
-                    'story_point': estimate_hour and estimate_hour or story_point,
-                    'wt_migration_id': self.id,
-                    'create_date': created_date,
-                    'wt_id': issue['id']
-                }
-                if estimate_hour:
-                    res['story_point_unit'] = 'hrs'
-                if local['project_key_dict'].get(project, False):
-                    res['project_id'] = local['project_key_dict'][project]
-                else:
-                    local['project_key_dict'][project] = self.sudo()._get_single_project(project)
-                    res['project_id'] = local['project_key_dict'][project]
-                if local['dict_user'].get(assignee, False):
-                    res['assignee_id'] = local['dict_user'][assignee]
-                elif assignee:
-                    new_user = self.env['res.users'].sudo().create({
-                        'name': self.__load_from_key_paths(issue_fields, issue_mapping.assignee_name),
-                        'login': assignee,
-                        'active': False
-                    })
-                    res['assignee_id'] = new_user.id
-                    local['dict_user'][assignee] = new_user.id
-                if local['dict_user'].get(tester, False):
-                    res['tester_id'] = local['dict_user'][tester]
-                elif tester:
-                    new_user = self.env['res.users'].sudo().create({
-                        'name': self.__load_from_key_paths(issue_fields, issue_mapping.tester_name),
-                        'login': tester,
-                        'active': False
-                    })
-                    res['tester_id'] = new_user.id
-                    local['dict_user'][tester] = new_user.id
-                if local['dict_status'].get(status, False):
-                    res['status_id'] = local['dict_status'][status]
-                else:
+    def mapping_issue(self, local, issue, issue_mapping, response,load_ac):
+        issue_fields = issue['fields']
+        status = self.__load_from_key_paths(issue_fields, issue_mapping.status)
+        story_point = self.__load_from_key_paths(issue_fields, issue_mapping.story_point)
+        estimate_hour = self.__load_from_key_paths(issue_fields, issue_mapping.estimate_hour) or 0.0
+        assignee = self.__load_from_key_paths(issue_fields, issue_mapping.assignee)
+        tester = self.__load_from_key_paths(issue_fields, issue_mapping.tester)
+        project = self.__load_from_key_paths(issue_fields, issue_mapping.project)
+        issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.issue_type)
+        summary = self.__load_from_key_paths(issue_fields, issue_mapping.summary)
+        acceptance_criteria = self.__load_from_key_paths(issue_fields, issue_mapping.acceptance_criteria)
+        created_date = self.__load_from_key_paths(issue_fields, issue_mapping.created_date)
+        new_status = self.__load_from_key_paths(issue_fields, issue_mapping.new_status)
+        wt_key = self.__load_from_key_paths(issue_fields, issue_mapping.wt_status)
+        new_issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.new_issue_key)
+        if issue.get('key', '-') not in local['dict_issue_key']:
+            if not issue_fields:
+                return
+            res = {
+                'issue_name': summary,
+                'issue_key': issue['key'],
+                'issue_url': issue_mapping.map_url(issue['key']),
+                'story_point': estimate_hour and estimate_hour or story_point,
+                'wt_migration_id': self.id,
+                'create_date': created_date,
+                'wt_id': issue['id']
+            }
+            if issue.get('parent'):
+                if issue['parent']['key'] not in local['dict_issue_key']:
+                    epic = []
+                    self.mapping_issue(local, issue['parent'], issue_mapping, epic, load_ac)
+                    local['dict_issue_key'][issue['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
+            if estimate_hour:
+                res['story_point_unit'] = 'hrs'
+            if local['project_key_dict'].get(project, False):
+                res['project_id'] = local['project_key_dict'][project]
+            else:
+                local['project_key_dict'][project] = self.sudo()._get_single_project(project)
+                res['project_id'] = local['project_key_dict'][project]
+            if local['dict_user'].get(assignee, False):
+                res['assignee_id'] = local['dict_user'][assignee]
+            elif assignee:
+                new_user = self.env['res.users'].sudo().create({
+                    'name': self.__load_from_key_paths(issue_fields, issue_mapping.assignee_name),
+                    'login': assignee,
+                    'active': False
+                })
+                res['assignee_id'] = new_user.id
+                local['dict_user'][assignee] = new_user.id
+            if local['dict_user'].get(tester, False):
+                res['tester_id'] = local['dict_user'][tester]
+            elif tester:
+                new_user = self.env['res.users'].sudo().create({
+                    'name': self.__load_from_key_paths(issue_fields, issue_mapping.tester_name),
+                    'login': tester,
+                    'active': False
+                })
+                res['tester_id'] = new_user.id
+                local['dict_user'][tester] = new_user.id
+            if local['dict_status'].get(status, False):
+                res['status_id'] = local['dict_status'][status]
+            else:
+                status_id = self.env['wt.status'].sudo().create({
+                    'name': new_status['name'],
+                    'key': new_status['id'],
+                    'wt_key': wt_key
+                }).id
+                local['dict_status'][status] = status_id
+                res['status_id'] = local['dict_status'][status]
+            if local["dict_type"].get(issue_type, False):
+                res['issue_type_id'] = local['dict_type'][issue_type]
+            else:
+                new_issue_type_id = self.env['wt.type'].sudo().create({
+                    'name': new_issue_type['name'],
+                    'img_url': new_issue_type['iconUrl'],
+                    'key': issue_type
+                }).id
+                local['dict_type'][issue_type] = new_issue_type_id
+                res['issue_type_id'] = local['dict_type'][issue_type]
+            if load_ac:
+                res["ac_ids"] = self._create_new_acs(acceptance_criteria)
+            response.append(res)
+        else:
+            existing_record = local['dict_issue_key'][issue.get('key', '-')]
+            update_dict = {
+                'story_point': estimate_hour and estimate_hour or story_point,
+            }
+            if issue.get('parent'):
+                if issue['parent']['key'] != existing_record.epic_id.issue_key:
+                    if issue['parent']['key'] not in local['dict_issue_key']:
+                        epic = []
+                        self.mapping_issue(local, issue['parent'], issue_mapping, epic, load_ac)
+                        local['dict_issue_key'][issue['parent']['key']] = self.env["wt.issue"].sudo().create(epic)
+                    update_dict['epic_id'] = local['dict_issue_key'][issue['parent']['key']].id
+            if estimate_hour:
+                update_dict['story_point_unit'] = 'hrs'
+            if existing_record.issue_name != summary:
+                update_dict['issue_name'] = summary
+            if existing_record.status_id.id != local['dict_status'].get(status):
+                if status not in local['dict_status']:
                     status_id = self.env['wt.status'].sudo().create({
                         'name': new_status['name'],
                         'key': new_status['id'],
                         'wt_key': wt_key
                     }).id
                     local['dict_status'][status] = status_id
-                    res['status_id'] = local['dict_status'][status]
-                if local["dict_type"].get(issue_type, False):
-                    res['issue_type_id'] = local['dict_type'][issue_type]
-                else:
-                    new_issue_type_id = self.env['wt.type'].sudo().create({
-                        'name': new_issue_type['name'],
-                        'img_url': new_issue_type['iconUrl'],
-                        'key': issue_type
-                    }).id
-                    local['dict_type'][issue_type] = new_issue_type_id
-                    res['issue_type_id'] = local['dict_type'][issue_type]
-                if load_ac:
-                    res["ac_ids"] = self._create_new_acs(acceptance_criteria)
-                response.append(res)
-            else:
-                existing_record = local['dict_issue_key'][issue.get('key', '-')]
-                update_dict = {
-                    'story_point': estimate_hour and estimate_hour or story_point,
-                }
-                if estimate_hour:
-                    update_dict['story_point_unit'] = 'hrs'
-                if existing_record.issue_name != summary:
-                    update_dict['issue_name'] = summary
-                if existing_record.status_id.id != local['dict_status'].get(status):
-                    if status not in local['dict_status']:
-                        status_id = self.env['wt.status'].sudo().create({
-                            'name': new_status['name'],
-                            'key': new_status['id'],
-                            'wt_key': wt_key
-                        }).id
-                        local['dict_status'][status] = status_id
-                    update_dict['status_id'] = local['dict_status'][status]
-                if existing_record.issue_type_id.id != local['dict_type'].get(issue_type):
-                    update_dict['issue_type_id'] = local['dict_type'][issue_type]
-                if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
-                    assignee]:
-                    update_dict['assignee_id'] = local['dict_user'][assignee]
-                if tester and tester in local['dict_user'] and existing_record.tester_id.id != local['dict_user'][
-                    tester]:
-                    update_dict['tester_id'] = local['dict_user'][tester]
-                if load_ac:
-                    res = self._update_acs(existing_record.ac_ids, acceptance_criteria)
-                    if res:
-                        update_dict['ac_ids'] = res
-                existing_record.write(update_dict)
+                update_dict['status_id'] = local['dict_status'][status]
+            if existing_record.issue_type_id.id != local['dict_type'].get(issue_type):
+                update_dict['issue_type_id'] = local['dict_type'][issue_type]
+            if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
+                assignee]:
+                update_dict['assignee_id'] = local['dict_user'][assignee]
+            if tester and tester in local['dict_user'] and existing_record.tester_id.id != local['dict_user'][
+                tester]:
+                update_dict['tester_id'] = local['dict_user'][tester]
+            if load_ac:
+                res = self._update_acs(existing_record.ac_ids, acceptance_criteria)
+                if res:
+                    update_dict['ac_ids'] = res
+            existing_record.write(update_dict)
 
-                if response and not isinstance(response[0], dict):
-                    response[0] |= existing_record
-                else:
-                    response.insert(0, existing_record)
+            if response and not isinstance(response[0], dict):
+                response[0] |= existing_record
+            else:
+                response.insert(0, existing_record)
+
+    def processing_issue_raw_data(self, local, raw):
+        issue_mapping = IssueMapping(self.wt_server_url, self.server_type)
+        response = []
+        load_ac = self.is_load_acs
+        for issue in raw.get('issues', [raw]):
+            self.mapping_issue(local, issue, issue_mapping, response, load_ac)
         return response
 
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
