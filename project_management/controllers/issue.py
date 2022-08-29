@@ -55,6 +55,19 @@ class WtIssue(http.Controller):
             })
         return res
 
+    def _get_work_log(self, log): 
+        return {
+                "id": log.id,
+                "key": log.issue_id.issue_key,
+                "duration": log.duration,
+                "project": log.project_id.id,
+                "issue": log.issue_id.id,
+                "issueName": log.issue_id.issue_name,
+                "description": log.description,
+                "start_date": log.start_date.isoformat(),
+                'type_url': log.issue_id.issue_type_id.img_url
+            }
+
     @handling_req_res
     @http.route(['/management/issue/get/<int:issue_id>'], type="http", cors="*", methods=['GET'], csrf=False, auth='jwt')
     def get_issue(self, issue_id, **kwargs):
@@ -159,18 +172,6 @@ class WtIssue(http.Controller):
         issue_id = self.check_work_log_prerequisite()
         issue_id.action_cancel_progress(request.params.get('payload', {}))
         return http.Response("", content_type='application/json', status=200)
-
-    def _get_work_log(self, log): 
-        return {
-                "id": log.id,
-                "key": log.issue_id.issue_key,
-                "duration": log.duration,
-                "project": log.project_id.id,
-                "issue": log.issue_id.id,
-                "issueName": log.issue_id.issue_name,
-                "description": log.description,
-                "start_date": log.start_date.isoformat()
-            }
     
     def _get_work_logs(self, log_ids):
         if log_ids and isinstance(log_ids, list) or isinstance(log_ids, int):
