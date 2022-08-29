@@ -1,4 +1,3 @@
-from contextlib import nullcontext
 from datetime import datetime
 import pytz
 from dateutil.relativedelta import relativedelta
@@ -9,6 +8,8 @@ from odoo.addons.project_management.utils.time_parsing import convert_second_to_
 from Crypto.Cipher import AES
 import base64
 import json
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class WtTimeLog(models.Model):
@@ -59,6 +60,8 @@ class WtTimeLog(models.Model):
 
     @api.model
     def rouding_log(self, duration, employee_id=False):
+        _logger.info('DURATION START: ' + str(duration))
+        _logger.info('EMPLOYEE START: ' + employee_id)
         if employee_id and employee_id.rouding_up:
             total_seconds = 60 * employee_id.rouding_up
             hour_seconds = 86400
@@ -66,6 +69,7 @@ class WtTimeLog(models.Model):
             residual = residual % total_seconds
             if residual > 0:
                 duration += total_seconds - residual
+        _logger.info('DURATION END: ' + str(duration))
         return duration
 
     @api.model
@@ -75,7 +79,7 @@ class WtTimeLog(models.Model):
             values['duration'] = self.rouding_log(convert_log_format_to_second(values['time'], employee_id), employee_id)
             values.pop('time')
         elif 'duration' in values:
-            values['duration'] = self.rouding_log(values['duration'])
+            values['duration'] = self.rouding_log(values['duration'], employee_id)
 
     def write(self, values):
         self.rounding(values)
