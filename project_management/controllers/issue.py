@@ -170,7 +170,7 @@ class WtIssue(http.Controller):
                 "issueName": log.issue_id.issue_name,
                 "description": log.description,
                 "start_date": log.start_date.isoformat(),
-                'type_url': log.issue_id
+                'type_url': log.issue_id.issue_type_id.img_url
             }
     
     def _get_work_logs(self, log_ids):
@@ -197,7 +197,6 @@ class WtIssue(http.Controller):
         ac_id = request.env['wt.ac'].browse(int(id))
         return ac_id
     
-    @handling_req_res
     @http.route(['/management/issue/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def update_done_work_logs(self, **kwargs):
         params = json.loads(request.httprequest.data)
