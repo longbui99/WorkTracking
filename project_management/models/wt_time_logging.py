@@ -60,8 +60,6 @@ class WtTimeLog(models.Model):
 
     @api.model
     def rouding_log(self, duration, employee_id=False):
-        _logger.info('DURATION START: ' + str(duration))
-        _logger.info('EMPLOYEE START: ' + employee_id.__str__())
         if employee_id and employee_id.rouding_up:
             total_seconds = 60 * employee_id.rouding_up
             hour_seconds = 86400
@@ -69,7 +67,6 @@ class WtTimeLog(models.Model):
             residual = residual % total_seconds
             if residual > 0:
                 duration += total_seconds - residual
-        _logger.info('DURATION END: ' + str(duration))
         return duration
 
     @api.model
