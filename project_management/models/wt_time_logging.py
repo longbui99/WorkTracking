@@ -82,7 +82,7 @@ class WtTimeLog(models.Model):
     def write(self, values):
         self.rounding(values)
         if isinstance(values.get('start_date', None), int):
-            values['start_date'] = datetime.fromtimestamp(values['start_date'])
+            values['start_date'] = datetime.fromtimestamp(int(values['start_date']))
         return super().write(values)
 
     @api.model
