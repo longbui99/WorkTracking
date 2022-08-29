@@ -196,7 +196,6 @@ class WtIssue(http.Controller):
         ac_id = request.env['wt.ac'].browse(int(id))
         return ac_id
     
-    @handling_req_res
     @http.route(['/management/issue/work-log/update'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def update_done_work_logs(self, **kwargs):
         params = json.loads(request.httprequest.data)
