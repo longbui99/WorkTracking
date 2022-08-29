@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from datetime import datetime
 import pytz
 from dateutil.relativedelta import relativedelta
@@ -78,6 +79,8 @@ class WtTimeLog(models.Model):
 
     def write(self, values):
         self.rounding(values)
+        if isinstance(values.get('start_date', None), int):
+            values['start_date'] = datetime.fromtimestamp(values['start_date'])
         return super().write(values)
 
     @api.model
@@ -85,6 +88,8 @@ class WtTimeLog(models.Model):
         self.rounding(values)
         if 'start_date' not in values:
             values['start_date'] = datetime.now()
+        elif isinstance(values['start_date'], int):
+            values['start_date'] = datetime.fromtimestamp(values['start_date'])
         return super().create(values)
 
     def _compute_encode_string(self):
