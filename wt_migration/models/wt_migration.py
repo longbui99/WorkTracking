@@ -124,7 +124,6 @@ class TaskMigration(models.Model):
 
     def load_projects(self):
         headers = self.__get_request_headers()
-        # _logger.info(headers)
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
         existing_project_dict = {f"{r.project_key}": r for r in existing_project}
@@ -286,8 +285,6 @@ class TaskMigration(models.Model):
         }
         if issue.epic:
             curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key)
-        if not local['dict_project_key'].get(issue.project_key):
-            _logger.info("Data: " + str(issue))
         curd_data['project_id'] = local['dict_project_key'].get(issue.project_key)
         curd_data['assignee_id'] = local['dict_user'].get(issue.assignee_email)
         curd_data['tester_id'] = local['dict_user'].get(issue.tester_email)
@@ -309,10 +306,9 @@ class TaskMigration(models.Model):
 
     def create_missing_projects(self, issues, local):
         to_create_projects = [issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']]
-        _logger.info(to_create_projects)
         if len(to_create_projects):
             for project in to_create_projects:
-                self._get_single_project(project_key=project)
+                local['dict_project_key'][project] = self._get_single_project(project_key=project)
 
     def create_missing_users(self, issues, local):
         to_create_users = [(issue.assignee_email, issue.assignee_name) for issue in issues if
@@ -731,7 +727,6 @@ class TaskMigration(models.Model):
         for employee_id in employee_ids:
             self = self.with_context(employee_id=employee_id)
             str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix/1000)).strftime('%Y-%m-%d %H:%M')
-            _logger.info(str_updated_date)
             params = f"""jql=updated >= '{str_updated_date}'"""
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
             issue_ids = self.do_request(request_data, load_all=True)
@@ -745,12 +740,8 @@ class TaskMigration(models.Model):
             self.with_delay().update_board(project_id)
 
     def update_board(self, project_id):
-        # _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-        # _logger.info(f"Load Work Log")
         self.load_sprints(project_id.board_ids)
-        # _logger.info(f"Load Sprint")
         self.with_context(force=True).update_issue_for_sprints(project_id.sprint_ids)
-        # _logger.info(f"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
     # Agile Connection
     def load_boards(self, project_ids=False):
