@@ -86,7 +86,8 @@ class TaskMigration(models.Model):
         if self.env.context.get('employee_id'):
             user_id = self._context['employee_id'].user_id
         else:
-            user_id = self.env['hr.employee'].search([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
+            user_id = self.env['hr.employee'].search(
+                [('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
         res = {
             'project_name': record['name'],
             'project_key': record['key'],
@@ -129,7 +130,8 @@ class TaskMigration(models.Model):
         if self.env.context.get('employee_id'):
             user_id = self._context['employee_id'].user_id
         else:
-            user_id = self.env['hr.employee'].search([('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
+            user_id = self.env['hr.employee'].search(
+                [('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
         new_project = []
         for record in json.loads(result.text):
             if not existing_project_dict.get(record.get('key', False), False):
@@ -236,10 +238,9 @@ class TaskMigration(models.Model):
         res = self.make_request(request_data, headers)
         return res
 
-
     def get_local_issue_data(self, domain=[]):
         return {
-            'project_key_dict': {r.project_key: r.id for r in self.env['wt.project'].sudo().search([])},
+            'dict_project_key': {r.project_key: r.id for r in self.env['wt.project'].sudo().search([])},
             'dict_user': self.with_context(active_test=False).get_user(),
             'dict_issue_key': {r.issue_key: r for r in self.env['wt.issue'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['wt.status'].sudo().search([])},
@@ -247,128 +248,60 @@ class TaskMigration(models.Model):
         }
 
     def mapping_issue(self, local, issue, response):
-        if issue.summary not in local['dict_issue_key']:
-            res = {
-                'issue_name': summary,
-                'issue_key': issue['key'],
-                'issue_url': issue_mapping.map_url(issue['key']),
-                'story_point': estimate_hour and estimate_hour or story_point,
-                'wt_migration_id': self.id,
-                'create_date': created_date,
-                'wt_id': issue['id']
-            }
-            if issue_fields.get('parent'):
-                if issue_fields['parent']['key'] not in local['dict_issue_key']:
-                    issue_fields['parent']['fields']['project'] = issue_fields['project']
-                    epic = []
-                    self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
-                    local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().with_context(
-                        default_epic_ok=True).create(epic)
-                res['epic_id'] = local['dict_issue_key'][issue_fields['parent']['key']].id
-            if estimate_hour:
-                res['story_point_unit'] = 'hrs'
-            if local['project_key_dict'].get(project, False):
-                res['project_id'] = local['project_key_dict'][project]
-            else:
-                local['project_key_dict'][project] = self.sudo()._get_single_project(project)
-                res['project_id'] = local['project_key_dict'][project]
-            if local['dict_user'].get(assignee, False):
-                res['assignee_id'] = local['dict_user'][assignee]
-            elif assignee:
-                new_user = self.env['res.users'].sudo().create({
-                    'name': self.__load_from_key_paths(issue_fields, issue_mapping.assignee_name),
-                    'login': assignee,
-                    'active': False
-                })
-                res['assignee_id'] = new_user.id
-                local['dict_user'][assignee] = new_user.id
-            if local['dict_user'].get(tester, False):
-                res['tester_id'] = local['dict_user'][tester]
-            elif tester:
-                new_user = self.env['res.users'].sudo().create({
-                    'name': self.__load_from_key_paths(issue_fields, issue_mapping.tester_name),
-                    'login': tester,
-                    'active': False
-                })
-                res['tester_id'] = new_user.id
-                local['dict_user'][tester] = new_user.id
-            if local['dict_status'].get(status, False):
-                res['status_id'] = local['dict_status'][status]
-            else:
-                status_id = self.env['wt.status'].sudo().create({
-                    'name': new_status['name'],
-                    'key': new_status['id'],
-                    'wt_key': wt_key
-                }).id
-                local['dict_status'][status] = status_id
-                res['status_id'] = local['dict_status'][status]
-            if local["dict_type"].get(issue_type, False):
-                res['issue_type_id'] = local['dict_type'][issue_type]
-            else:
-                new_issue_type_id = self.env['wt.type'].sudo().create({
-                    'name': new_issue_type['name'],
-                    'img_url': new_issue_type['iconUrl'],
-                    'key': issue_type
-                }).id
-                local['dict_type'][issue_type] = new_issue_type_id
-                res['issue_type_id'] = local['dict_type'][issue_type]
-            if load_ac:
-                res["ac_ids"] = self._create_new_acs(acceptance_criteria)
-            response.append(res)
-        else:
-            existing_record = local['dict_issue_key'][issue.get('key', '-')]
-            update_dict = {
-                'story_point': estimate_hour and estimate_hour or story_point,
-            }
-            if issue_fields.get('parent'):
-                if issue_fields['parent']['key'] != existing_record.epic_id.issue_key:
-                    if issue_fields['parent']['key'] not in local['dict_issue_key']:
-                        issue_fields['parent']['fields']['project'] = issue_fields['project']
-                        epic = []
-                        self.mapping_issue(local, issue_fields['parent'], issue_mapping, epic, load_ac)
-                        local['dict_issue_key'][issue_fields['parent']['key']] = self.env["wt.issue"].sudo().with_context(
-                            default_epic_ok=True).create(epic)
-                    update_dict['epic_id'] = local['dict_issue_key'][issue_fields['parent']['key']].id
-            if estimate_hour:
-                update_dict['story_point_unit'] = 'hrs'
-            if existing_record.issue_name != summary:
-                update_dict['issue_name'] = summary
-            if existing_record.status_id.id != local['dict_status'].get(status):
-                if status not in local['dict_status']:
-                    status_id = self.env['wt.status'].sudo().create({
-                        'name': new_status['name'],
-                        'key': new_status['id'],
-                        'wt_key': wt_key
-                    }).id
-                    local['dict_status'][status] = status_id
-                update_dict['status_id'] = local['dict_status'][status]
-            if existing_record.issue_type_id.id != local['dict_type'].get(issue_type):
-                update_dict['issue_type_id'] = local['dict_type'][issue_type]
-            if assignee and assignee in local['dict_user'] and existing_record.assignee_id.id != local['dict_user'][
-                assignee]:
-                update_dict['assignee_id'] = local['dict_user'][assignee]
-            if tester and tester in local['dict_user'] and existing_record.tester_id.id != local['dict_user'][
-                tester]:
-                update_dict['tester_id'] = local['dict_user'][tester]
-            if load_ac:
-                res = self._update_acs(existing_record.ac_ids, acceptance_criteria)
-                if res:
-                    update_dict['ac_ids'] = res
-            existing_record.write(update_dict)
+        curd_data = {
+            'issue_name': issue.summary,
+            'issue_key': issue.issue_key,
+            'issue_url': issue.issue_url,
+            'story_point': issue.hour_point and issue.hour_point or issue.fibonacci_point,
+            'story_point_unit': issue.hour_point and 'hrs' or 'general',
+            'wt_migration_id': self.id,
+            'create_date': issue.create_date,
+            'wt_id': issue.remote_id
+        }
+        if issue.epic:
+            curd_data['epic_id'] = local['dict_issue_key'][issue.epic.issue_key]
+        curd_data['project_id'] = local['project_key_dict'][issue.project_key]
+        curd_data['assignee_id'] = local['dict_user'][issue.assignee_email]
+        curd_data['tester_id'] = local['dict_user'][issue.tester_email]
 
-            if response and not isinstance(response[0], dict):
-                response[0] |= existing_record
-            else:
-                response.insert(0, existing_record)
+    def create_missing_projects(self, issues, local):
+        to_create_projects = [issue.project_key for issue in issues if
+                              issue.project_key not in local['dict_project_key']]
+        if len(to_create_projects):
+            self.load_projects()
+
+    def create_missing_users(self, issues, local):
+        to_create_users = [(issue.assignee_email, issue.assignee_name) for issue in issues if
+                           issue.assignee_email not in local['dict_user']]
+        to_create_users += [(issue.tester_email, issue.tester_name) for issue in issues if
+                            issue.tester_email not in local['dict_user']]
+        for user in to_create_users:
+            local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
+                'login': user[0],
+                'name': user[1],
+                'active': False
+            }).id
+
+    def create_missing_status(self, issues, local):
+        to_create_status_issues = list(filter(lambda r: r.status_key not in local['dict_status'], issues))
+        for issue in to_create_status_issues:
+            local['dict_status'][issue.remote_status_id] = self.env['wt.status'].sudo().create({
+                'name': issue.new_status['name'],
+                'key': issue.new_status['id'],
+                'wt_key': issue.remote_status_id
+            })
 
     def processing_issue_raw_data(self, local, raw):
         importing_base = ImportingJiraIssue(self.server_type, self.wt_server_url)
         response = {
-            'new': []
+            'new': [],
             'updated': self.env['wt.issue']
         }
         raw_issues = raw.get('issues', [raw])
         issues = importing_base.parse_issues(raw_issues)
+        self.create_missing_projects(issues, local)
+        self.create_missing_users(issues, local)
+        self.create_missing_status(issues, local)
         for issue in issues:
             self.mapping_issue(local, issue, response)
         return response
@@ -376,7 +309,6 @@ class TaskMigration(models.Model):
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
         existing_record = self.env['wt.issue']
         headers = self.__get_request_headers()
-        # _logger.info(headers)
         start_index = 0
         total_response = paging
         response = []
@@ -610,7 +542,7 @@ class TaskMigration(models.Model):
                 if len(to_create):
                     self.env["wt.time.log"].create(to_create)
             self.env['ir.config_parameter'].set_param('latest_unix',
-                                                    body.get('until', datetime.now().timestamp() * 1000))
+                                                      body.get('until', datetime.now().timestamp() * 1000))
 
     def delete_work_logs_by_unix(self, unix, employee_ids, batch=900):
         if self.import_work_log:
@@ -669,7 +601,8 @@ class TaskMigration(models.Model):
                     if body.get('total', 0) > total_response and load_all:
                         total_response = body['total']
                     start_index += paging
-                    new_issues = self.with_context(force_delete=True).processing_worklog_raw_data(local_data, body, mapping)
+                    new_issues = self.with_context(force_delete=True).processing_worklog_raw_data(local_data, body,
+                                                                                                  mapping)
                     to_create.extend(new_issues)
                 if to_create:
                     self.env['wt.time.log'].create(to_create)
@@ -724,7 +657,7 @@ class TaskMigration(models.Model):
             request_clone = request_data.copy()
             request_clone['endpoint'] += f"/{log.id_on_wt}"
             res = self.make_request(request_clone, headers)
-            
+
     def export_specific_log(self, issue_id, log_ids):
         time_log_to_create_ids = log_ids.filtered(lambda x: not x.id_on_wt and x.state == 'done')
         time_log_to_update_ids = log_ids.filtered(lambda x: x.id_on_wt and x.state == 'done')

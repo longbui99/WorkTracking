@@ -10,8 +10,8 @@ _logger = logging.getLogger(__name__)
 
 class ImportJiraCloudIssue:
 
-    def __init__(self):
-        self.status = ['status', 'id']
+    def __init__(self, server_type, server_url):
+        self.status_id = ['status', 'id']
         self.story_point = ['customfield_10041']
         self.estimate_hour = ['customfield_10052']
         self.assignee = ['assignee', 'emailAddress']
@@ -24,15 +24,15 @@ class ImportJiraCloudIssue:
         self.acceptance_criteria = ['customfield_10034']
         self.created_date = ['created']
         self.new_status = ['status']
-        self.wt_status = ['status', 'statusCategory', 'key']
+        self.status_key = ['status', 'statusCategory', 'key']
         self.new_issue_key = ['issuetype']
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
 
 class ImportJiraSelfHostedIssue:
 
-    def __init__(self):
-        self.status = ['status', 'id']
+    def __init__(self, server_type, server_url):
+        self.status_id = ['status', 'id']
         self.story_point = ['customfield_10008']
         self.estimate_hour = ['customfield_11102']
         self.assignee = ['assignee', 'name']
@@ -45,7 +45,7 @@ class ImportJiraSelfHostedIssue:
         self.acceptance_criteria = ['customfield_10206']
         self.created_date = ['created']
         self.new_status = ['status']
-        self.wt_status = ['status', 'statusCategory', 'key']
+        self.status_key = ['status', 'statusCategory', 'key']
         self.new_issue_key = ['issuetype']
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
@@ -56,9 +56,9 @@ class ImportingJiraIssue(ImportingIssue):
     def __init__(self, server_type, server_url, source):
         self.source = source
         if server_type == "self_hosting":
-            self.map = ImportJiraSelfHostedIssue()
+            self.map = ImportJiraSelfHostedIssue(server_type, server_url)
         elif server_type == "cloud":
-            self.map = ImportJiraCloudIssue()
+            self.map = ImportJiraCloudIssue(server_type, server_url)
         else:
             raise TypeError("Doesn't support type: " + server_type)
     
