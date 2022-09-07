@@ -729,12 +729,12 @@ class TaskMigration(models.Model):
     def update_projects(self, latest_unix, employee_ids):
         for employee_id in employee_ids:
             self = self.with_context(employee_id=employee_id)
-            str_updated_date = datetime.fromtimestamp(latest_unix/1000).strftime('%Y-%m-%d %H:%M')
+            str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix/1000)).strftime('%Y-%m-%d %H:%M')
             _logger.info(str_updated_date)
             params = f"""jql=updated >= '{str_updated_date}'"""
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
             issue_ids = self.do_request(request_data, load_all=True)
-            _logger.info(f"Batch Load: {len(issue_ids)}")
+            _logger.info(f"Batch Load Of User {employee_id.name}: {len(issue_ids)}")
             issue_ids.mapped('project_id').last_update = datetime.now()
 
     def update_boards(self):
