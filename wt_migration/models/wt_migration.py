@@ -239,15 +239,6 @@ class TaskMigration(models.Model):
         res = self.make_request(request_data, headers)
         return res
 
-    @api.model
-    def __load_from_key_paths(self, object, paths):
-        res = object
-        for key in paths:
-            if key in res and res.get(key) is not None:
-                res = res[key]
-            else:
-                return None
-        return res
 
     def get_local_issue_data(self, domain=[]):
         return {
