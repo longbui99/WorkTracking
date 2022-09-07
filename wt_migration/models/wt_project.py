@@ -32,6 +32,7 @@ class WtProject(models.Model):
                 employee_id = self.env['hr.employee'].search(
                     [('user_id', 'in', user_ids.ids),
                     ('wt_private_key', '!=', False)], order='is_wt_admin desc', limit=1)
+                _logger.info(project.last_update.timestamp() * 1000)
                 if project.last_update.timestamp() * 1000 < latest_unix and any(employee_id) and project.wt_migration_id:
                     project.wt_migration_id.update_project(project, employee_id)
 
