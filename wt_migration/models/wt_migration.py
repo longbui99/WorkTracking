@@ -497,8 +497,9 @@ class TaskMigration(models.Model):
             'issue_id': issue.get(int(log.remote_issue_id), False),
             'is_exported': True
         }
-        if log.remote_id not in local['dict_log'] and log.duration > 0 and issue.get(int(log.remote_issue_id), False):
-            response['new'].append(curd_data)
+        if log.remote_id not in local['dict_log']:
+            if log.duration > 0 and issue.get(int(log.remote_issue_id), False):
+                response['new'].append(curd_data)
         else:
             existing_log = local['dict_log'].get(log.remote_id)
             curd_data = self.minify_with_existing_record(curd_data, existing_log)
