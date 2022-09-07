@@ -336,7 +336,7 @@ class TaskMigration(models.Model):
     def create_missing_types(self, issues, local):
         for issue in issues:
             if issue.issue_type_key not in local['dict_type']:
-                local['dict_type'][issue.remote_status_id] = self.env['wt.type'].sudo().create({
+                local['dict_type'][issue.issue_type_key] = self.env['wt.type'].sudo().create({
                     'name': issue.raw_type['name'],
                     'img_url': issue.raw_type['iconUrl'],
                     'key': issue.issue_type_key
