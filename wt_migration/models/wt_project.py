@@ -17,6 +17,7 @@ class WtProject(models.Model):
     def cron_fetch_issue(self, load_create=True):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
+        latest_unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
         allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
         last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
         migration_dict = dict()
@@ -32,17 +33,18 @@ class WtProject(models.Model):
                 employee_id = self.env['hr.employee'].search(
                     [('user_id', 'in', user_ids.ids),
                     ('wt_private_key', '!=', False)], order='is_wt_admin desc', limit=1)
-                if any(employee_id) and project.wt_migration_id:
+                if project.last_update.timestamp() * 1000 < latest_unix and any(employee_id) and project.wt_migration_id:
                     project.wt_migration_id.update_project(project, employee_id)
-        if not last_update:
-            last_update = datetime(1969, 1, 1, 1, 1, 1, 1)
 
         for wt in migration_dict.keys():
             employee_ids = self.env['hr.employee'].search(
                     [('user_id', 'in', migration_dict[wt].ids),
                     ('wt_private_key', '!=', False)], order='is_wt_admin desc')
-            wt.with_delay(eta=29).delete_work_logs_by_unix(int(last_update.timestamp() * 1000), employee_ids)
-            wt.with_delay(eta=30).load_work_logs_by_unix(int(last_update.timestamp() * 1000), employee_ids)
+            wt.with_delay().update_projects(latest_unix, employee_ids)
+            wt.with_delay(eta=29).delete_work_logs_by_unix(latest_unix, employee_ids)
+            wt.with_delay(eta=30).load_work_logs_by_unix(latest_unix, employee_ids)
+        
+        self.env['ir.config_parameter'].set_param('latest_unix', datetime.now().timestamp() * 1000)
 
     def reset_state(self):
         for record in self:

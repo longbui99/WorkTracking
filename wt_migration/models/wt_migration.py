@@ -525,7 +525,6 @@ class TaskMigration(models.Model):
         if self.import_work_log:
             for employee_id in employee_ids:
                 self = self.with_context(employee_id=employee_id)
-                unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
                 last_page = False
                 mapping = ImportingJiraWorkLog(self.server_type, self.wt_server_url)
                 headers = self.__get_request_headers()
@@ -580,14 +579,11 @@ class TaskMigration(models.Model):
                         continue
                 if len(to_create):
                     self.env["wt.time.log"].create(to_create)
-            self.env['ir.config_parameter'].set_param('latest_unix',
-                                                      body.get('until', datetime.now().timestamp() * 1000))
 
     def delete_work_logs_by_unix(self, unix, employee_ids, batch=900):
         if self.import_work_log:
             for employee_id in employee_ids:
                 self = self.with_context(employee_id=employee_id)
-                unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
                 last_page = False
                 headers = self.__get_request_headers()
                 flush = []
@@ -724,13 +720,20 @@ class TaskMigration(models.Model):
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
         issue_ids = self.do_request(request_data, load_all=True)
-        # _logger.info(f"=====================================================================")
-        _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
-        # _logger.info(f"_____________________________________________________________________")
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
+    
+    def update_projects(self, latest_unix, employee_ids):
+        for employee_id in employee_ids:
+            self = self.with_context(employee_id=employee_id)
+            str_updated_date = datetime.utcfromtimestamp(latest_unix).strftime('%Y-%m-%d %H:%M')
+            _logger.info(str_updated_date)
+            params = f"""jql=updated >= '{str_updated_date}'"""
+            request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
+            issue_ids = self.do_request(request_data, load_all=True)
+            issue_ids.mapped('project_id').last_update = datetime.now()
 
     def update_boards(self):
         project_ids = self.env["wt.project"].search([])
