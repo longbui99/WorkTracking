@@ -62,14 +62,14 @@ class ImportingJiraIssue(ImportingIssue):
         else:
             raise TypeError("Doesn't support type: " + server_type)
     
-    def load_batch_issues(self, issues):
+    def parse_issues(self, issues):
         response = []
         for issue in issues:
-            res = self.load_single_issue(issue)
+            res = self.parse_issue(issue)
             response.append(res)
         return response
 
-    def load_single_issue(self, issue):
+    def parse_issue(self, issue):
         return Issue(issue)
     
     def load_batch_work_logs(self, logs):

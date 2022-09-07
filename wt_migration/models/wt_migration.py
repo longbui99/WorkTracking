@@ -1,20 +1,17 @@
-from email import header
-from math import fabs
-from threading import local
-from turtle import end_poly
 import requests
 import json
 import pytz
 import logging
 import base64
 import time
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.wt_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.wt_migration.models.mapping_table import IssueMapping, WorkLogMapping, ACMapping
+from odoo.addons.wt_sdk.jira.import_jira_formatter import ImportingJiraIssue
 from odoo.addons.base.models.res_partner import _tz_get
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -249,24 +246,8 @@ class TaskMigration(models.Model):
             'dict_type': {r.key: r.id for r in self.env["wt.type"].sudo().search([])}
         }
 
-    def mapping_issue(self, local, issue, issue_mapping, response,load_ac):
-        issue_fields = issue['fields']
-        status = self.__load_from_key_paths(issue_fields, issue_mapping.status)
-        story_point = self.__load_from_key_paths(issue_fields, issue_mapping.story_point)
-        estimate_hour = self.__load_from_key_paths(issue_fields, issue_mapping.estimate_hour) or 0.0
-        assignee = self.__load_from_key_paths(issue_fields, issue_mapping.assignee)
-        tester = self.__load_from_key_paths(issue_fields, issue_mapping.tester)
-        project = self.__load_from_key_paths(issue_fields, issue_mapping.project)
-        issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.issue_type)
-        summary = self.__load_from_key_paths(issue_fields, issue_mapping.summary)
-        acceptance_criteria = self.__load_from_key_paths(issue_fields, issue_mapping.acceptance_criteria)
-        created_date = self.__load_from_key_paths(issue_fields, issue_mapping.created_date)
-        new_status = self.__load_from_key_paths(issue_fields, issue_mapping.new_status)
-        wt_key = self.__load_from_key_paths(issue_fields, issue_mapping.wt_status)
-        new_issue_type = self.__load_from_key_paths(issue_fields, issue_mapping.new_issue_key)
-        if issue.get('key', '-') not in local['dict_issue_key']:
-            if not issue_fields:
-                return
+    def mapping_issue(self, local, issue, response):
+        if issue.summary not in local['dict_issue_key']:
             res = {
                 'issue_name': summary,
                 'issue_key': issue['key'],
@@ -381,11 +362,15 @@ class TaskMigration(models.Model):
                 response.insert(0, existing_record)
 
     def processing_issue_raw_data(self, local, raw):
-        issue_mapping = IssueMapping(self.wt_server_url, self.server_type)
-        response = []
-        load_ac = self.is_load_acs
-        for issue in raw.get('issues', [raw]):
-            self.mapping_issue(local, issue, issue_mapping, response, load_ac)
+        importing_base = ImportingJiraIssue(self.server_type, self.wt_server_url)
+        response = {
+            'new': []
+            'updated': self.env['wt.issue']
+        }
+        raw_issues = raw.get('issues', [raw])
+        issues = importing_base.parse_issues(raw_issues)
+        for issue in issues:
+            self.mapping_issue(local, issue, response)
         return response
 
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
