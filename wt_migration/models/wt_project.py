@@ -46,7 +46,7 @@ class WtProject(models.Model):
             wt.with_delay(eta=1).delete_work_logs_by_unix(latest_unix, employee_ids)
             wt.with_delay(eta=2).load_work_logs_by_unix(latest_unix, employee_ids)
         
-        self.env['ir.config_parameter'].set_param('latest_unix', int(datetime.now().timestamp() * 1000))
+        self.env['ir.config_parameter'].set_param('latest_unix', int(checkpoint_unix.timestamp() * 1000))
 
     def reset_state(self):
         for record in self:
