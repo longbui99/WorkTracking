@@ -720,7 +720,7 @@ class TaskMigration(models.Model):
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
         issue_ids = self.do_request(request_data, load_all=True)
-        _logger.info(f"Batch Load: {len(issue_ids)}")
+        _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
         project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
