@@ -734,6 +734,7 @@ class TaskMigration(models.Model):
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
             issue_ids = self.do_request(request_data, load_all=True)
             _logger.info(f"Batch Load Of User {employee_id.name}: {len(issue_ids)}")
+            _logger.info(",".join(issue_ids.mapped('issue_key')))
 
     def update_boards(self):
         project_ids = self.env["wt.project"].search([])
