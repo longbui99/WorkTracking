@@ -309,6 +309,7 @@ class TaskMigration(models.Model):
 
     def create_missing_projects(self, issues, local):
         to_create_projects = [issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']]
+        _logger.info(to_create_projects)
         if len(to_create_projects):
             for project in to_create_projects:
                 self._get_single_project(project_key=project)
