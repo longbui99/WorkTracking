@@ -102,8 +102,9 @@ class ImportingJiraIssue(ImportingIssue):
     def parse_issues(self, issues):
         response = []
         for issue in issues:
-            res = self.parse_issue(issue)
-            response.append(res)
+            if issue.get('fields'):
+                res = self.parse_issue(issue)
+                response.append(res)
         return response
 
     def parse_issue(self, issue):
