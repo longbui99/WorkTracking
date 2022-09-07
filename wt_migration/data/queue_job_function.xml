@@ -11,7 +11,7 @@
         <field name="channel_id" ref="wt_migration.channel_single"/>
         <field name="retry_pattern" eval="{1: 60, 2: 180, 3: 10, 5: 300}"/>
     </record>
-    <record id="job_function_update_project_action_done" model="queue.job.function">
+    <record id="job_function_update_projects_action_done" model="queue.job.function">
         <field name="model_id" ref="wt_migration.model_wt_migration"/>
         <field name="method">update_projects</field>
         <field name="channel_id" ref="wt_migration.channel_single"/>
