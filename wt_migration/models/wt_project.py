@@ -41,8 +41,8 @@ class WtProject(models.Model):
                     [('user_id', 'in', migration_dict[wt].ids),
                     ('wt_private_key', '!=', False)], order='is_wt_admin desc')
             wt.with_delay().update_projects(latest_unix, employee_ids)
-            wt.with_delay(eta=29).delete_work_logs_by_unix(latest_unix, employee_ids)
-            wt.with_delay(eta=30).load_work_logs_by_unix(latest_unix, employee_ids)
+            wt.with_delay(eta=1).delete_work_logs_by_unix(latest_unix, employee_ids)
+            wt.with_delay(eta=2).load_work_logs_by_unix(latest_unix, employee_ids)
         
         self.env['ir.config_parameter'].set_param('latest_unix', int(datetime.now().timestamp() * 1000))
 
