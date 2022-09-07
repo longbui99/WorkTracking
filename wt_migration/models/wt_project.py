@@ -19,7 +19,6 @@ class WtProject(models.Model):
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
         latest_unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
         allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
-        last_update = min(self.mapped(lambda r: r.last_update or datetime(1969, 1, 1, 1, 1, 1, 1)))
         migration_dict = dict()
         for project in self:
             if project.wt_migration_id not in migration_dict:
@@ -44,7 +43,7 @@ class WtProject(models.Model):
             wt.with_delay(eta=29).delete_work_logs_by_unix(latest_unix, employee_ids)
             wt.with_delay(eta=30).load_work_logs_by_unix(latest_unix, employee_ids)
         
-        self.env['ir.config_parameter'].set_param('latest_unix', datetime.now().timestamp() * 1000)
+        self.env['ir.config_parameter'].set_param('latest_unix', int(datetime.now().timestamp() * 1000))
 
     def reset_state(self):
         for record in self:
