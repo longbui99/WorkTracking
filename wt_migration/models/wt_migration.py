@@ -10,13 +10,15 @@ from dateutil.relativedelta import relativedelta
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.wt_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.wt_migration.models.mapping_table import IssueMapping, WorkLogMapping, ACMapping
-from odoo.addons.wt_sdk.jira.import_jira_formatter import ImportingJiraIssue
+from odoo.addons.wt_sdk.jira.import_jira_formatter import ImportingJiraIssue, ImportingJiraWorkLog
 from odoo.addons.base.models.res_partner import _tz_get
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
+
+SPECIAL_FIELDS = {'write_date', 'create_date', 'write_uid', 'create_uid'}
 
 
 class TaskMigration(models.Model):
@@ -169,12 +171,37 @@ class TaskMigration(models.Model):
             return ""
         try:
             body = result.json()
+            return body
         except Exception as e:
             _logger.error(e)
             _logger.warning(result.text)
         if isinstance(body, dict) and body.get('errorMessages', False):
             raise UserError("Task Server: \n" + "\n".join(body['errorMessages']))
-        return body
+
+    def get_user(self):
+        return {r.partner_id.email or r.login: r.id for r in self.env['res.users'].sudo().search([])}
+
+    @api.model
+    def minify_with_existing_record(self, curd_data, existing_record):
+        index, length, keys = 0, len(curd_data.keys()), list(curd_data.keys())
+        while index < length:
+            if keys[index] not in SPECIAL_FIELDS:
+                value = getattr(existing_record, keys[index])
+                if isinstance(value, models.Model):
+                    if value.id == curd_data[keys[index]]:
+                        del curd_data[keys[index]]
+                elif isinstance(value, datetime):
+                    if value and value.isoformat()[:16] == curd_data[keys[index]].isoformat()[:16]:
+                        del curd_data[keys[index]]
+                elif isinstance(value, str):
+                    if value == curd_data[keys[index]]:
+                        del curd_data[keys[index]]
+                elif float(value) == float(curd_data[keys[index]]):
+                    del curd_data[keys[index]]
+            else:
+                del curd_data[keys[index]]
+            index += 1
+        return curd_data
 
     # ===========================================  Section for loading issues/issues =============================================
     @api.model
@@ -255,14 +282,29 @@ class TaskMigration(models.Model):
             'story_point': issue.hour_point and issue.hour_point or issue.fibonacci_point,
             'story_point_unit': issue.hour_point and 'hrs' or 'general',
             'wt_migration_id': self.id,
-            'create_date': issue.create_date,
+            # 'create_date': self.convert_server_tz_to_utc(issue.create_date),
             'wt_id': issue.remote_id
         }
         if issue.epic:
-            curd_data['epic_id'] = local['dict_issue_key'][issue.epic.issue_key]
-        curd_data['project_id'] = local['project_key_dict'][issue.project_key]
-        curd_data['assignee_id'] = local['dict_user'][issue.assignee_email]
-        curd_data['tester_id'] = local['dict_user'][issue.tester_email]
+            curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key).id
+        curd_data['project_id'] = local['dict_project_key'].get(issue.project_key)
+        curd_data['assignee_id'] = local['dict_user'].get(issue.assignee_email)
+        curd_data['tester_id'] = local['dict_user'].get(issue.tester_email)
+        curd_data['status_id'] = local['dict_status'].get(issue.status_key)
+        curd_data['issue_type_id'] = local['dict_type'].get(issue.issue_type_key)
+        index, length, keys = 0, len(curd_data.keys()), list(curd_data.keys())
+        while index < length:
+            if curd_data[keys[index]] is None:
+                del curd_data[keys[index]]
+            index += 1
+        if issue.issue_key not in local['dict_issue_key']:
+            response['new'].append(curd_data)
+        else:
+            existing_issue = local['dict_issue_key'].get(issue.issue_key)
+            curd_data = self.minify_with_existing_record(curd_data, existing_issue)
+            response['updated'] |= existing_issue
+            if len(curd_data.keys()):
+                existing_issue.write(curd_data)
 
     def create_missing_projects(self, issues, local):
         to_create_projects = [issue.project_key for issue in issues if
@@ -272,9 +314,9 @@ class TaskMigration(models.Model):
 
     def create_missing_users(self, issues, local):
         to_create_users = [(issue.assignee_email, issue.assignee_name) for issue in issues if
-                           issue.assignee_email not in local['dict_user']]
+                           issue.assignee_email and issue.assignee_email not in local['dict_user']]
         to_create_users += [(issue.tester_email, issue.tester_name) for issue in issues if
-                            issue.tester_email not in local['dict_user']]
+                            issue.tester_email and issue.tester_email not in local['dict_user']]
         for user in to_create_users:
             local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
                 'login': user[0],
@@ -282,14 +324,31 @@ class TaskMigration(models.Model):
                 'active': False
             }).id
 
-    def create_missing_status(self, issues, local):
-        to_create_status_issues = list(filter(lambda r: r.status_key not in local['dict_status'], issues))
-        for issue in to_create_status_issues:
-            local['dict_status'][issue.remote_status_id] = self.env['wt.status'].sudo().create({
-                'name': issue.new_status['name'],
-                'key': issue.new_status['id'],
-                'wt_key': issue.remote_status_id
-            })
+    def create_missing_statuses(self, issues, local):
+        for issue in issues:
+            if issue.remote_status_id not in local['dict_status']:
+                local['dict_status'][issue.remote_status_id] = self.env['wt.status'].sudo().create({
+                    'name': issue.raw_status_key['name'],
+                    'key': issue.status_key,
+                    'wt_key': issue.remote_status_id
+                }).id
+
+    def create_missing_types(self, issues, local):
+        for issue in issues:
+            if issue.issue_type_key not in local['dict_type']:
+                local['dict_type'][issue.remote_status_id] = self.env['wt.type'].sudo().create({
+                    'name': issue.raw_type['name'],
+                    'img_url': issue.raw_type['iconUrl'],
+                    'key': issue.issue_type_key
+                }).id
+
+    def create_missing_epics(self, issues, local):
+        for issue in issues:
+            if issue.epic and issue.epic.issue_key not in local['dict_issue_key']:
+                epics = {'new': []}
+                self.mapping_issue(local, issue.epic, epics)
+                res = self.env['wt.issue'].sudo().with_context(default_epic_ok=True).create(epics['new'])
+                local['dict_issue_key'][res.issue_key] = res
 
     def processing_issue_raw_data(self, local, raw):
         importing_base = ImportingJiraIssue(self.server_type, self.wt_server_url)
@@ -301,7 +360,9 @@ class TaskMigration(models.Model):
         issues = importing_base.parse_issues(raw_issues)
         self.create_missing_projects(issues, local)
         self.create_missing_users(issues, local)
-        self.create_missing_status(issues, local)
+        self.create_missing_statuses(issues, local)
+        self.create_missing_types(issues, local)
+        self.create_missing_epics(issues, local)
         for issue in issues:
             self.mapping_issue(local, issue, response)
         return response
@@ -331,13 +392,10 @@ class TaskMigration(models.Model):
             if body.get('total', 0) > total_response and load_all:
                 total_response = body['total']
             start_index += paging
-            new_issues = self.processing_issue_raw_data(local_data, body)
-            if new_issues:
-                if not isinstance(new_issues[0], dict):
-                    existing_record |= new_issues[0]
-                    new_issues.pop(0)
-            response.extend(new_issues)
-        print(json.dumps(response, indent=4))
+            res = self.processing_issue_raw_data(local_data, body)
+            if res:
+                existing_record |= res['updated']
+            response.extend(res['new'])
         return existing_record | self.env['wt.issue'].sudo().create(response)
 
     def load_issues(self, extra_jql="", domain=[], load_all=False):
@@ -418,69 +476,49 @@ class TaskMigration(models.Model):
         return self._search_load(res)
 
     # ===========================================  Section for loading work logs ===================================
-    def get_user(self):
-        return {r.partner_id.email or r.login: r.id for r in self.env['res.users'].sudo().search([])}
 
     def get_local_worklog_data(self, issue_id, domain):
         return {
-            'work_logs': {x.id_on_wt: x for x in issue_id.time_log_ids if x.id_on_wt},
-            'issues': {issue_id.wt_id: issue_id.id},
-            'issue_to_logs': {}
+            'dict_log': {x.id_on_wt: x for x in issue_id.time_log_ids if x.id_on_wt},
+            'dict_issue': {issue_id.wt_id: issue_id.id},
+            'dict_issue_to_log': {}
         }
 
-    def update_work_log_data(self, log_id, work_log, data, mapping):
-        to_update = {}
-        work_log_id = data['work_logs'][log_id]
-        if work_log_id.duration != work_log['timeSpentSeconds']:
-            to_update['duration'] = work_log['timeSpentSeconds']
-            to_update['time'] = work_log['timeSpent']
-        logging_email = self.__load_from_key_paths(work_log, mapping.author)
-        start_date = self.convert_server_tz_to_utc(self.__load_from_key_paths(work_log, mapping.start_date))
-        if work_log_id.user_id.id != data['dict_user'].get(logging_email, False):
-            to_update['user_id'] = data['dict_user'].get(logging_email, False)
-        if not work_log_id.start_date or work_log_id.start_date.isoformat()[:16] != start_date.isoformat()[:16]:
-            to_update['start_date'] = start_date
-        if to_update:
-            work_log_id.write(to_update)
+    def mapping_worklog(self, local, log, issue, response):
+        curd_data = {
+            'time': log.time,
+            'duration': log.duration,
+            'description': log.description,
+            'id_on_wt': log.remote_id,
+            'start_date': self.convert_server_tz_to_utc(log.start_date),
+            'user_id': local['dict_user'][log.author],
+            'state': 'done',
+            'source': 'sync',
+            'issue_id': issue.get(int(log.remote_issue_id), False),
+            'is_exported': True
+        }
+        if log.remote_id not in local['dict_log'] and log.duration > 0 and issue.get(int(log.remote_issue_id), False):
+            response['new'].append(curd_data)
+        else:
+            existing_log = local['dict_log'].get(log.remote_id)
+            curd_data = self.minify_with_existing_record(curd_data, existing_log)
+            if len(curd_data.keys()):
+                existing_log.write(curd_data)
+                response['updated'] |= existing_log
 
-    def processing_worklog_raw_data(self, data, body, mapping=False):
+    def processing_worklog_raw_data(self, local, raw, mapping):
         if not mapping:
-            mapping = WorkLogMapping(self.wt_server_url, self.server_type)
-        new_issues = []
-        issues = data['issues']
-        affected_wt_ids = set()
-        for work_log in body.get('worklogs', [body]):
-            log_id = int(work_log.get('id', '-'))
-            affected_wt_ids.add(log_id)
-            time = self.__load_from_key_paths(work_log, mapping.time)
-            duration = self.__load_from_key_paths(work_log, mapping.duration)
-            description = self.__load_from_key_paths(work_log, mapping.description) or ''
-            id_on_wt = self.__load_from_key_paths(work_log, mapping.id_on_wt)
-            start_date = self.__load_from_key_paths(work_log, mapping.start_date)
-            logging_email = self.__load_from_key_paths(work_log, mapping.author)
-            if log_id not in data['work_logs']:
-                if duration > 0 and issues.get(int(work_log['issueId']), False):
-                    to_create = {
-                        'time': time,
-                        'duration': duration,
-                        'description': description,
-                        'state': 'done',
-                        'source': 'sync',
-                        'issue_id': issues.get(int(work_log['issueId']), False),
-                        'id_on_wt': id_on_wt,
-                        'start_date': self.convert_server_tz_to_utc(start_date),
-                        'user_id': data['dict_user'].get(logging_email, False),
-                        'is_exported': True
-                    }
-                    new_issues.append(to_create)
-            else:
-                self.update_work_log_data(log_id, work_log, data, mapping)
-        if self.env.context.get('force_delete', False):
-            deleted = set(list(data['work_logs'].keys())) - affected_wt_ids
-            if deleted:
-                self.env['wt.time.log'].search([('id_on_wt', 'in', list(deleted))]).unlink()
-
-        return new_issues
+            mapping = ImportingJiraWorkLog(self.server_type, self.wt_server_url)
+        response = {
+            'new': [],
+            'updated': self.env['wt.time.log']
+        }
+        raw_logs = raw.get('worklogs', [raw])
+        logs = mapping.parse_logs(raw_logs)
+        issue = local['dict_issue']
+        for log in logs:
+            self.mapping_worklog(local, log, issue, response)
+        return response
 
     def load_work_logs_by_unix(self, unix, employee_ids, batch=900):
         if self.import_work_log:
@@ -488,13 +526,13 @@ class TaskMigration(models.Model):
                 self = self.with_context(employee_id=employee_id)
                 unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
                 last_page = False
-                mapping = WorkLogMapping(self.wt_server_url, self.server_type)
+                mapping = ImportingJiraWorkLog(self.server_type, self.wt_server_url)
                 headers = self.__get_request_headers()
                 issue_ids = self.env['wt.issue'].search(
                     [('wt_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
                 local_data = {
-                    'work_logs': {x.id_on_wt: x for x in issue_ids.mapped('time_log_ids') if x.id_on_wt},
-                    'issues': {issue_id.wt_id: issue_id.id for issue_id in issue_ids},
+                    'dict_log': {x.id_on_wt: x for x in issue_ids.mapped('time_log_ids') if x.id_on_wt},
+                    'dict_issue': {issue_id.wt_id: issue_id.id for issue_id in issue_ids},
                     'dict_user': self.with_context(active_test=False).get_user()
                 }
                 flush = []
@@ -524,7 +562,7 @@ class TaskMigration(models.Model):
                                     log_failed_count = 0
                                     data = {'worklogs': logs}
                                     new_logs = self.processing_worklog_raw_data(local_data, data, mapping)
-                                    to_create.extend(new_logs)
+                                    to_create.extend(new_logs.get('new'))
                                     flush = []
                                     break
                                 else:
@@ -577,7 +615,7 @@ class TaskMigration(models.Model):
 
     def load_work_logs(self, issue_ids, paging=100, domain=[], load_all=False):
         if self.import_work_log:
-            mapping = WorkLogMapping(self.wt_server_url, self.server_type)
+            mapping = ImportingJiraWorkLog(self.server_type, self.wt_server_url)
             headers = self.__get_request_headers()
             user_dict = self.with_context(active_test=False).get_user()
             for issue_id in issue_ids:
@@ -603,7 +641,7 @@ class TaskMigration(models.Model):
                     start_index += paging
                     new_issues = self.with_context(force_delete=True).processing_worklog_raw_data(local_data, body,
                                                                                                   mapping)
-                    to_create.extend(new_issues)
+                    to_create.extend(new_issues.get('new'))
                 if to_create:
                     self.env['wt.time.log'].create(to_create)
 
