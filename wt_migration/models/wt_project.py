@@ -36,7 +36,7 @@ class WtProject(models.Model):
                 _logger.info(project.last_update.timestamp() * 1000)
                 if project.last_update.timestamp() * 1000 < latest_unix and any(employee_id) and project.wt_migration_id:
                     project.wt_migration_id.update_project(project, employee_id)
-                project.checkpoint_unix = checkpoint_unix
+                project.last_update = checkpoint_unix
 
         for wt in migration_dict.keys():
             employee_ids = self.env['hr.employee'].search(
