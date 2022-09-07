@@ -286,7 +286,9 @@ class TaskMigration(models.Model):
             'wt_id': issue.remote_id
         }
         if issue.epic:
-            curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key).id
+            curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key)
+        if not local['dict_project_key'].get(issue.project_key):
+            _logger.info("Data: " + str(issue))
         curd_data['project_id'] = local['dict_project_key'].get(issue.project_key)
         curd_data['assignee_id'] = local['dict_user'].get(issue.assignee_email)
         curd_data['tester_id'] = local['dict_user'].get(issue.tester_email)
@@ -307,10 +309,9 @@ class TaskMigration(models.Model):
                 existing_issue.write(curd_data)
 
     def create_missing_projects(self, issues, local):
-        to_create_projects = [issue.project_key for issue in issues if
-                              issue.project_key not in local['dict_project_key']]
+        to_create_projects = [issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']]
         if len(to_create_projects):
-            self.load_projects()
+            self._search_load({'project': to_create_projects})
 
     def create_missing_users(self, issues, local):
         to_create_users = [(issue.assignee_email, issue.assignee_name) for issue in issues if
