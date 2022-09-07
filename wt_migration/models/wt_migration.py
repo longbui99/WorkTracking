@@ -282,7 +282,6 @@ class TaskMigration(models.Model):
             'story_point': issue.hour_point and issue.hour_point or issue.fibonacci_point,
             'story_point_unit': issue.hour_point and 'hrs' or 'general',
             'wt_migration_id': self.id,
-            # 'create_date': self.convert_server_tz_to_utc(issue.create_date),
             'wt_id': issue.remote_id
         }
         if issue.epic:
@@ -311,7 +310,8 @@ class TaskMigration(models.Model):
     def create_missing_projects(self, issues, local):
         to_create_projects = [issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']]
         if len(to_create_projects):
-            self._search_load({'project': to_create_projects})
+            for project in to_create_projects:
+                self._get_single_project(project_key=project)
 
     def create_missing_users(self, issues, local):
         to_create_users = [(issue.assignee_email, issue.assignee_name) for issue in issues if
