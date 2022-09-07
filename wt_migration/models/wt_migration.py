@@ -721,7 +721,6 @@ class TaskMigration(models.Model):
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
         issue_ids = self.do_request(request_data, load_all=True)
         _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
-        project_id.last_update = datetime.now()
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
@@ -735,7 +734,6 @@ class TaskMigration(models.Model):
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
             issue_ids = self.do_request(request_data, load_all=True)
             _logger.info(f"Batch Load Of User {employee_id.name}: {len(issue_ids)}")
-            issue_ids.mapped('project_id').last_update = datetime.now()
 
     def update_boards(self):
         project_ids = self.env["wt.project"].search([])

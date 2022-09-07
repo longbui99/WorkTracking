@@ -18,6 +18,7 @@ class WtProject(models.Model):
         if not self:
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
         latest_unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
+        checkpoint_unix = datetime.now()
         allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
         migration_dict = dict()
         for project in self:
@@ -35,6 +36,7 @@ class WtProject(models.Model):
                 _logger.info(project.last_update.timestamp() * 1000)
                 if project.last_update.timestamp() * 1000 < latest_unix and any(employee_id) and project.wt_migration_id:
                     project.wt_migration_id.update_project(project, employee_id)
+                project.checkpoint_unix = checkpoint_unix
 
         for wt in migration_dict.keys():
             employee_ids = self.env['hr.employee'].search(
