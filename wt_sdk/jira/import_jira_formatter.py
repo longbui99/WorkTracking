@@ -80,7 +80,7 @@ class Issue:
         self.remote_status_id = load_from_key_paths(issue_fields, map.status_id)
         self.status_key = load_from_key_paths(issue_fields, map.status_key)
         self.raw_status_key = load_from_key_paths(issue_fields, map.new_status)
-        self.remote_id = data['id']
+        self.remote_id = int(data['id'])
         if issue_fields.get('parent'):
             parent = issue_fields['parent']
             parent['fields']['project'] = issue_fields['project']

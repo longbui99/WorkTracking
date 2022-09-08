@@ -495,6 +495,7 @@ class TaskMigration(models.Model):
             'issue_id': issue.get(int(log.remote_issue_id), False),
             'is_exported': True
         }
+        _logger.info(str(log.remote_id) + "-" + local['dict_log'].get(log.remote_id))
         if log.remote_id not in local['dict_log']:
             if log.duration > 0 and issue.get(int(log.remote_issue_id), False):
                 response['new'].append(curd_data)
