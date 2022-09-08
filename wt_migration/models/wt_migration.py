@@ -502,6 +502,7 @@ class TaskMigration(models.Model):
             existing_log = local['dict_log'].get(log.remote_id)
             curd_data = self.minify_with_existing_record(curd_data, existing_log)
             if len(curd_data.keys()):
+                curd_data['is_exported'] = True
                 existing_log.write(curd_data)
                 response['updated'] |= existing_log
 
