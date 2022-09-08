@@ -285,7 +285,7 @@ class TaskMigration(models.Model):
             'wt_id': issue.remote_id
         }
         if issue.epic:
-            curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key)
+            curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key).id
         curd_data['project_id'] = local['dict_project_key'].get(issue.project_key)
         curd_data['assignee_id'] = local['dict_user'].get(issue.assignee_email)
         curd_data['tester_id'] = local['dict_user'].get(issue.tester_email)
