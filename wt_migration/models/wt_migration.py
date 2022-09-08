@@ -187,7 +187,7 @@ class TaskMigration(models.Model):
             if keys[index] not in SPECIAL_FIELDS:
                 value = getattr(existing_record, keys[index])
                 if isinstance(value, models.Model):
-                    _logger.info(str(value) + "=" + type(value) +  "-" + curd_data[keys[index]] + "=" + type(curd_data[keys[index]]))
+                    _logger.info(str(value) + "=" + str(type(value)) +  "-" + str(curd_data[keys[index]]) + "=" + str(type(curd_data[keys[index]])))
                     if value.id == curd_data[keys[index]]:
                         del curd_data[keys[index]]
                 elif isinstance(value, datetime):
