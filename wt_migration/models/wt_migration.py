@@ -193,7 +193,7 @@ class TaskMigration(models.Model):
                     if value and value.isoformat()[:16] == curd_data[keys[index]].isoformat()[:16]:
                         del curd_data[keys[index]]
                 elif isinstance(value, str):
-                    if value == curd_data[keys[index]]:
+                    if value.strip() == (curd_data[keys[index]] or '').strip():
                         del curd_data[keys[index]]
                 elif float(value) == float(curd_data[keys[index]]):
                     del curd_data[keys[index]]
