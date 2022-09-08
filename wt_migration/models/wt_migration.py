@@ -492,12 +492,11 @@ class TaskMigration(models.Model):
             'user_id': local['dict_user'][log.author],
             'state': 'done',
             'source': 'sync',
-            'issue_id': issue.get(int(log.remote_issue_id), False),
+            'issue_id': issue.get(log.remote_issue_id, False),
             'is_exported': True
         }
-        _logger.info(str(log.remote_id) + "-" + str(local['dict_log'].get(log.remote_id)))
         if log.remote_id not in local['dict_log']:
-            if log.duration > 0 and issue.get(int(log.remote_issue_id), False):
+            if log.duration > 0 and issue.get(log.remote_issue_id, False):
                 response['new'].append(curd_data)
         else:
             existing_log = local['dict_log'].get(log.remote_id)
@@ -516,7 +515,6 @@ class TaskMigration(models.Model):
         raw_logs = raw.get('worklogs', [raw])
         logs = mapping.parse_logs(raw_logs)
         issue = local['dict_issue']
-        _logger.info(json.dumps(issue, indent=4))
         for log in logs:
             self.mapping_worklog(local, log, issue, response)
         return response

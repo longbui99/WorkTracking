@@ -141,10 +141,10 @@ class Log:
         self.time = load_from_key_paths(fields, map.time)
         self.duration = load_from_key_paths(fields, map.duration)
         self.description = load_from_key_paths(fields, map.description)
-        self.remote_id = load_from_key_paths(fields, map.id_on_wt)
+        self.remote_id = int(load_from_key_paths(fields, map.id_on_wt))
         self.start_date = load_from_key_paths(fields, map.start_date)
         self.author = load_from_key_paths(fields, map.author)
-        self.remote_issue_id = load_from_key_paths(fields, map.issue_id)
+        self.remote_issue_id = int(load_from_key_paths(fields, map.issue_id))
 
 
 class ImportingJiraWorkLog:
