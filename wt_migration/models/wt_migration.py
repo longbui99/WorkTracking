@@ -516,6 +516,7 @@ class TaskMigration(models.Model):
         raw_logs = raw.get('worklogs', [raw])
         logs = mapping.parse_logs(raw_logs)
         issue = local['dict_issue']
+        _logger.info(json.dumps(issue, indent=4))
         for log in logs:
             self.mapping_worklog(local, log, issue, response)
         return response
