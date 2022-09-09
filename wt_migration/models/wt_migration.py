@@ -290,6 +290,8 @@ class TaskMigration(models.Model):
                 del curd_data[keys[index]]
             index += 1
         if issue.issue_key not in local['dict_issue_key']:
+            if isinstance(curd_data['story_point'], dict):
+                _logger.error("ERROR AT" + str(curd_data['story_point']))
             response['new'].append(curd_data)
             if self.is_load_acs and issue.checklists:
                 step = self._create_new_acs(issue.checklists)
