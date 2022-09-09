@@ -285,6 +285,8 @@ class TaskMigration(models.Model):
         curd_data['status_id'] = local['dict_status'].get(issue.status_key)
         curd_data['issue_type_id'] = local['dict_type'].get(issue.issue_type_key)
         index, length, keys = 0, len(curd_data.keys()), list(curd_data.keys())
+        if isinstance(curd_data['story_point'], dict):
+            _logger.error("ERROR AT" + str(curd_data['story_point']))
         while index < length:
             if curd_data[keys[index]] is None:
                 del curd_data[keys[index]]
