@@ -95,8 +95,8 @@ class ImportJiraCloudIssue:
 
     def __init__(self, server_type, server_url):
         self.status_id = ['status', 'id']
-        self.story_point = ['customfield_10041']
-        self.estimate_hour = ['customfield_10052']
+        self.story_point = ['customfield_10028']
+        self.estimate_hour = ['customfield_10056']
         self.assignee = ['assignee', 'emailAddress']
         self.assignee_name = ['assignee', 'displayName']
         self.tester = ['customfield_11101', 'name']
@@ -115,7 +115,7 @@ class ImportJiraCloudIssue:
 
     def map_checklists(self, data):
         fields = md2json(data)
-        checklists = fields['Default checklist']
+        checklists = fields.get('Default checklist', [])
         res = []
         for index, record in enumerate(checklists):
             record['rank'] = index

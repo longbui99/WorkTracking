@@ -290,11 +290,11 @@ class TaskMigration(models.Model):
                 del curd_data[keys[index]]
             index += 1
         if issue.issue_key not in local['dict_issue_key']:
-            response['new'].append(curd_data)
             if self.is_load_acs and issue.checklists:
                 step = self._create_new_acs(issue.checklists)
                 if step:
                     curd_data['ac_ids'] = step
+            response['new'].append(curd_data)
         else:
             existing_issue = local['dict_issue_key'].get(issue.issue_key)
             curd_data = self.minify_with_existing_record(curd_data, existing_issue)
@@ -313,16 +313,19 @@ class TaskMigration(models.Model):
                 local['dict_project_key'][project] = self._get_single_project(project_key=project)
 
     def create_missing_users(self, issues, local):
+        processed = set()
         to_create_users = [(issue.assignee_email, issue.assignee_name) for issue in issues if
                            issue.assignee_email and issue.assignee_email not in local['dict_user']]
         to_create_users += [(issue.tester_email, issue.tester_name) for issue in issues if
                             issue.tester_email and issue.tester_email not in local['dict_user']]
         for user in to_create_users:
-            local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
-                'login': user[0],
-                'name': user[1],
-                'active': False
-            }).id
+            if user[0] not in processed:
+                local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
+                    'login': user[0],
+                    'name': user[1],
+                    'active': False
+                }).id
+                processed.add(user[0])
 
     def create_missing_statuses(self, issues, local):
         for issue in issues:
@@ -491,7 +494,7 @@ class TaskMigration(models.Model):
             'description': log.description or '',
             'id_on_wt': log.remote_id,
             'start_date': self.convert_server_tz_to_utc(log.start_date),
-            'user_id': local['dict_user'][log.author],
+            'user_id': log.author and local['dict_user'][log.author] or False,
             'state': 'done',
             'source': 'sync',
             'issue_id': issue.get(log.remote_issue_id, False),
@@ -509,14 +512,17 @@ class TaskMigration(models.Model):
                 response['updated'] |= existing_log
 
     def create_missing_assignee(self, logs, local):
+        processed = set()
         to_create_users = [(log.author, log.author_name) for log in logs if
                            log.author and log.author not in local['dict_user']]
         for user in to_create_users:
-            local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
-                'login': user[0],
-                'name': user[1],
-                'active': False
-            }).id
+            if user[0] not in processed:
+                local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
+                    'login': user[0],
+                    'name': user[1],
+                    'active': False
+                }).id
+                processed.add(user[0])
 
     def processing_worklog_raw_data(self, local, raw, mapping):
         if not mapping:
