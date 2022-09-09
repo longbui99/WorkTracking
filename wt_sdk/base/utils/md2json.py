@@ -4,7 +4,7 @@ def md2json(data):
     res, key = dict(), ''
     for line in lines:
         line = line.strip()
-        step = {}
+        step = {'is_header': False}
         index = 1
         if line.startswith('#'):
             key = line[index:].strip()
@@ -23,6 +23,8 @@ def md2json(data):
             while line[index] != ' ':
                 index+=1
             step['addition'] = line[checkpoint: index]
+        else:
+            continue
         step['name'] = line[index:].strip(' :')
         res[key].append(step)
     return res
