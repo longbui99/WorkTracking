@@ -3,10 +3,6 @@ import yaml
 from urllib.parse import urlparse
 
 
-def string_to_int(s):
-    ord3 = lambda x: '%.3d' % ord(x)
-    return int(''.join(map(ord3, s)))
-
 
 class IssueMapping:
     def __init__(self, server_url, server_type):

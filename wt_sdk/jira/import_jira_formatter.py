@@ -17,6 +17,84 @@ def load_from_key_paths(o, paths):
     return res
 
 
+class Checklist:
+    def __init__(self, data):
+        self.is_header = data['is_header']
+        self.name = data['name']
+        self.key = data.get('id' or self.string_to_int(name)
+        self.sequence = data['rank']
+        self.checked = data['checked']
+    
+    def string_to_int(s):
+        ord3 = lambda x: '%.3d' % ord(x)
+        return int(''.join(map(ord3, s)))
+
+    def parsing(self):
+        if self.server_type == "cloud":
+            return self.cloud_parsing
+        elif self.server_type == "self_hosting":
+            return self.self_hosted_parsing
+        else:
+            raise TypeError("Doesn't support type: " + self.server_type)
+
+    def self_hosted_exporting(self, ac_ids):
+        return ac_ids.mapped(
+            lambda r: {
+                "name": r.wt_raw_name,
+                "checked": r.checked,
+                "rank": r.sequence,
+                "isHeader": r.is_header,
+                "id": int(r.key)
+            }
+        )
+
+    def cloud_exporting(self, ac_ids):
+        payloads = self.self_hosted_exporting(ac_ids=ac_ids)
+        for payload in payloads:
+            if payload['isHeader']:
+                payload['name'] = '---' + payload['name']
+        res = yaml.dump({"items": payloads}, sort_keys=False)
+        return res
+
+    def exporting(self):
+        if self.server_type == "cloud":
+            return self.cloud_exporting
+        elif self.server_type == "self_hosting":
+            return self.self_hosted_exporting
+        else:
+            raise TypeError("Doesn't support type: " + self.server_type)
+
+class Issue:
+    def __init__(self, data, map):
+        issue_fields = data['fields']
+        self.summary = load_from_key_paths(issue_fields, map.summary)
+        self.issue_key = data['key']
+        self.issue_url = map.map_url(data['key'])
+        self.hour_point = load_from_key_paths(issue_fields, map.estimate_hour) or 0.0
+        self.fibonacci_point = load_from_key_paths(issue_fields, map.story_point)
+        self.create_date = load_from_key_paths(issue_fields, map.created_date)
+        self.project_key = load_from_key_paths(issue_fields, map.project)
+        self.assignee_email = load_from_key_paths(issue_fields, map.assignee)
+        self.assignee_name = load_from_key_paths(issue_fields, map.assignee_name)
+        self.tester_email = load_from_key_paths(issue_fields, map.tester)
+        self.tester_name = load_from_key_paths(issue_fields, map.tester_name)
+        self.issue_type_key = load_from_key_paths(issue_fields, map.issue_type)
+        self.raw_type = load_from_key_paths(issue_fields, map.new_issue_key)
+        self.remote_status_id = load_from_key_paths(issue_fields, map.status_id)
+        self.status_key = load_from_key_paths(issue_fields, map.status_key)
+        self.raw_status_key = load_from_key_paths(issue_fields, map.new_status)
+        self.remote_id = int(data['id'])
+        raw_checklist = load_from_key_paths(issue_fields, map.checklist)
+        if raw_checklist:
+            self.checklists = map.map_checklists(raw_checklist)
+        if issue_fields.get('parent'):
+            parent = issue_fields['parent']
+            parent['fields']['project'] = issue_fields['project']
+            self.epic = Issue(parent, map)
+        else:
+            self.epic = None
+
+
 class ImportJiraCloudIssue:
 
     def __init__(self, server_type, server_url):
@@ -37,6 +115,23 @@ class ImportJiraCloudIssue:
         self.new_issue_key = ['issuetype']
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
+        self.checklist = ['']
+
+    def map_checklists(self, data):
+        yaml_values = yaml.safe_load(data)['items']
+        checklists = []
+        for index, record in enumerate(yaml_values):
+            record['name'] = ""
+            if record['text'].startswith('---'):
+                record['name'] = record['text'][3:]
+                record['is_header'] = True
+            else:
+                record['name'] = record['text']
+                record['is_header'] = False
+            record['rank'] = index
+            record['checked'] = False
+            checklists.append(Checklist(record))
+        return checklists
 
 
 class ImportJiraSelfHostedIssue:
@@ -59,34 +154,14 @@ class ImportJiraSelfHostedIssue:
         self.new_issue_key = ['issuetype']
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
+        self.checklist = ['']
 
-
-class Issue:
-    def __init__(self, data, map):
-        issue_fields = data['fields']
-        self.summary = load_from_key_paths(issue_fields, map.summary)
-        self.issue_key = data['key']
-        self.issue_url = map.map_url(data['key'])
-        self.hour_point = load_from_key_paths(issue_fields, map.estimate_hour) or 0.0
-        self.fibonacci_point = load_from_key_paths(issue_fields, map.story_point)
-        self.create_date = load_from_key_paths(issue_fields, map.created_date)
-        self.project_key = load_from_key_paths(issue_fields, map.project)
-        self.assignee_email = load_from_key_paths(issue_fields, map.assignee)
-        self.assignee_name = load_from_key_paths(issue_fields, map.assignee_name)
-        self.tester_email = load_from_key_paths(issue_fields, map.tester)
-        self.tester_name = load_from_key_paths(issue_fields, map.tester_name)
-        self.issue_type_key = load_from_key_paths(issue_fields, map.issue_type)
-        self.raw_type = load_from_key_paths(issue_fields, map.new_issue_key)
-        self.remote_status_id = load_from_key_paths(issue_fields, map.status_id)
-        self.status_key = load_from_key_paths(issue_fields, map.status_key)
-        self.raw_status_key = load_from_key_paths(issue_fields, map.new_status)
-        self.remote_id = int(data['id'])
-        if issue_fields.get('parent'):
-            parent = issue_fields['parent']
-            parent['fields']['project'] = issue_fields['project']
-            self.epic = Issue(parent, map)
-        else:
-            self.epic = None
+    def map_checklists(self, data):
+        checklists = []
+        for key, value in data.items():
+            value['is_header'] = value['isHeader']
+            checklists.append(Checklist(value))
+        return checklists
 
 
 class ImportingJiraIssue(ImportingIssue):
@@ -110,9 +185,7 @@ class ImportingJiraIssue(ImportingIssue):
     def parse_issue(self, issue):
         return Issue(issue, self.map)
 
-
 # Work Log
-
 
 class ImportingJiraSelfHostedWorkLog:
     def __init__(self, server_url, server_type):
