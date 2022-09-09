@@ -21,7 +21,7 @@ class Checklist:
     def __init__(self, data):
         self.is_header = data['is_header']
         self.name = data['name']
-        self.key = data.get('id' or self.string_to_int(name)
+        self.key = data.get('id' or self.string_to_int(name))
         self.sequence = data['rank']
         self.checked = data['checked']
     
