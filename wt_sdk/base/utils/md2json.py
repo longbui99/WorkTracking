@@ -1,4 +1,6 @@
 
+import logging
+_logger = logging.getLogger(__name__)
 def md2json(data):
     lines = data.split('\n')
     res, key = dict(), ''
@@ -24,6 +26,7 @@ def md2json(data):
                 index+=1
             step['addition'] = line[checkpoint: index]
         else:
+            _logger.warning("OUTTA Checklist Format: " + line)
             continue
         step['name'] = line[index:].strip(' :')
         res[key].append(step)
