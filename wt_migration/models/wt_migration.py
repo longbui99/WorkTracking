@@ -509,14 +509,17 @@ class TaskMigration(models.Model):
                 response['updated'] |= existing_log
 
     def create_missing_assignee(self, logs, local):
+        processed = set()
         to_create_users = [(log.author, log.author_name) for log in logs if
                            log.author and log.author not in local['dict_user']]
         for user in to_create_users:
-            local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
-                'login': user[0],
-                'name': user[1],
-                'active': False
-            }).id
+            if user[0] not in processed:
+                local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
+                    'login': user[0],
+                    'name': user[1],
+                    'active': False
+                }).id
+                processed.add(user[0])
 
     def processing_worklog_raw_data(self, local, raw, mapping):
         if not mapping:
