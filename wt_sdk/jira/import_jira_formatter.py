@@ -2,6 +2,7 @@ import yaml
 from urllib.parse import urlparse
 import logging
 import json
+from odoo.addons.wt_sdk.base.utils.md2json import md2json
 from odoo.addons.wt_sdk.base.import_formatter import ImportingIssue
 
 _logger = logging.getLogger(__name__)
@@ -21,21 +22,13 @@ class Checklist:
     def __init__(self, data):
         self.is_header = data['is_header']
         self.name = data['name']
-        self.key = data.get('id' or self.string_to_int(name))
+        self.key = data.get('id', self.string_to_float(data['name']))
         self.sequence = data['rank']
         self.checked = data['checked']
-    
-    def string_to_int(s):
-        ord3 = lambda x: '%.3d' % ord(x)
-        return int(''.join(map(ord3, s)))
 
-    def parsing(self):
-        if self.server_type == "cloud":
-            return self.cloud_parsing
-        elif self.server_type == "self_hosting":
-            return self.self_hosted_parsing
-        else:
-            raise TypeError("Doesn't support type: " + self.server_type)
+    def string_to_float(self, string):
+        ord3 = lambda x: '%.3d' % ord(x)
+        return float(''.join(map(ord3, string))[:15])
 
     def self_hosted_exporting(self, ac_ids):
         return ac_ids.mapped(
@@ -64,6 +57,7 @@ class Checklist:
         else:
             raise TypeError("Doesn't support type: " + self.server_type)
 
+
 class Issue:
     def __init__(self, data, map):
         issue_fields = data['fields']
@@ -87,6 +81,8 @@ class Issue:
         raw_checklist = load_from_key_paths(issue_fields, map.checklist)
         if raw_checklist:
             self.checklists = map.map_checklists(raw_checklist)
+        else:
+            self.checklists = None
         if issue_fields.get('parent'):
             parent = issue_fields['parent']
             parent['fields']['project'] = issue_fields['project']
@@ -115,23 +111,17 @@ class ImportJiraCloudIssue:
         self.new_issue_key = ['issuetype']
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
-        self.checklist = ['']
+        self.checklist = ['customfield_10035']
 
     def map_checklists(self, data):
-        yaml_values = yaml.safe_load(data)['items']
-        checklists = []
-        for index, record in enumerate(yaml_values):
-            record['name'] = ""
-            if record['text'].startswith('---'):
-                record['name'] = record['text'][3:]
-                record['is_header'] = True
-            else:
-                record['name'] = record['text']
-                record['is_header'] = False
+        fields = md2json(data)
+        checklists = fields['Default checklist']
+        res = []
+        for index, record in enumerate(checklists):
             record['rank'] = index
-            record['checked'] = False
-            checklists.append(Checklist(record))
-        return checklists
+            record['checked'] = (record.get('status', False) == 'done')
+            res.append(Checklist(record))
+        return res
 
 
 class ImportJiraSelfHostedIssue:
@@ -160,6 +150,7 @@ class ImportJiraSelfHostedIssue:
         checklists = []
         for key, value in data.items():
             value['is_header'] = value['isHeader']
+            value['checked'] = (data.get('status', False) == 'done')
             checklists.append(Checklist(value))
         return checklists
 
@@ -184,6 +175,7 @@ class ImportingJiraIssue(ImportingIssue):
 
     def parse_issue(self, issue):
         return Issue(issue, self.map)
+
 
 # Work Log
 

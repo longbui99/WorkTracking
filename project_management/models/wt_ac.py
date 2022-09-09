@@ -11,7 +11,7 @@ class WtACs(models.Model):
     float_sequence = fields.Float(string="Float Sequence")
     name = fields.Html(string='Name', required=True, default="")
     display_type = fields.Char(string="Display Type")
-    key = fields.Char(string="Key")
+    key = fields.Float(string="Key")
     checked = fields.Boolean(string="Checked?")
     is_header = fields.Boolean(string="Header?")
     issue_id = fields.Many2one("wt.issue", string="Issue")

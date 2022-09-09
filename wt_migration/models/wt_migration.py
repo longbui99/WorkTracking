@@ -204,46 +204,40 @@ class TaskMigration(models.Model):
 
     # ===========================================  Section for loading issues/issues =============================================
     @api.model
-    def _create_new_acs(self, values=[], mapping=None):
-        if not values:
-            return []
-        if not mapping:
-            mapping = ACMapping(self.wt_server_url, self.server_type).parsing()
-        if not isinstance(values, list):
-            parsed_values = mapping(values)
-        else:
-            parsed_values = values
+    def _create_new_acs(self, values):
         return list(map(lambda r: (0, 0, {
-            'name': parsing(r["name"]),
-            'wt_raw_name': r["name"],
-            "checked": r["checked"],
-            "key": r["id"],
-            "sequence": r["rank"],
-            "is_header": r["isHeader"]
-        }), parsed_values))
+            'name': parsing(r.name),
+            'wt_raw_name': r.name,
+            "checked": r.checked,
+            "key": r.key,
+            "sequence": r.sequence,
+            "is_header": r.is_header
+        }), values))
 
-    def _update_acs(self, ac_ids, values=[], mapping=None):
+    def _update_acs(self, ac_ids, values=[]):
         if not values:
             return False
-        if not mapping:
-            mapping = ACMapping(self.wt_server_url, self.server_type).parsing()
-        parsed_values = mapping(values)
-        value_keys = {r['id']: r for r in parsed_values}
-        unexisting_records = ac_ids.filtered(lambda r: r.key not in value_keys)
-        ac_ids -= unexisting_records
-        unexisting_records.unlink()
+        value_keys = {r.key: r for r in values}
+        to_delete_records = ac_ids.filtered(lambda r: r.key not in value_keys)
+        ac_ids -= to_delete_records
+        res = []
+        res += to_delete_records.mapped(lambda r: (2, r.id))
         for record in ac_ids:
             r = value_keys[record.key]
-            record.write({
-                'name': parsing(r["name"]),
-                'wt_raw_name': r["name"],
-                "checked": r["checked"] or record.checked,
-                "key": r["id"],
-                "sequence": r["rank"],
-                "is_header": r["isHeader"]
-            })
+            if record.key != r.key \
+                    or r.is_header != record.is_header \
+                    or record.sequence != r.sequence \
+                    or record.checked != r.checked:
+                res.append((1, record.id, {
+                    'name': parsing(r.name),
+                    'wt_raw_name': r.name,
+                    "checked": r.checked or record.checked,
+                    "key": r.key,
+                    "sequence": r.sequence,
+                    "is_header": r.is_header
+                }))
             del value_keys[record.key]
-        res = self._create_new_acs(list(value_keys.values()), mapping)
+        res += self._create_new_acs(list(value_keys.values()))
         return res
 
     def export_acceptance_criteria(self, issue_id):
@@ -297,10 +291,18 @@ class TaskMigration(models.Model):
             index += 1
         if issue.issue_key not in local['dict_issue_key']:
             response['new'].append(curd_data)
+            if self.is_load_acs and issue.checklists:
+                step = self._create_new_acs(issue.checklists)
+                if step:
+                    curd_data['ac_ids'] = step
         else:
             existing_issue = local['dict_issue_key'].get(issue.issue_key)
             curd_data = self.minify_with_existing_record(curd_data, existing_issue)
             response['updated'] |= existing_issue
+            if self.is_load_acs and issue.checklists:
+                step = self._update_acs(existing_issue.ac_ids, issue.checklists)
+                if step:
+                    curd_data['ac_ids'] = step
             if len(curd_data.keys()):
                 existing_issue.write(curd_data)
 
