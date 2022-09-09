@@ -115,7 +115,7 @@ class ImportJiraCloudIssue:
 
     def map_checklists(self, data):
         fields = md2json(data)
-        checklists = fields['Default checklist']
+        checklists = fields.get('Default checklist', [])
         res = []
         for index, record in enumerate(checklists):
             record['rank'] = index

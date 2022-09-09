@@ -491,7 +491,7 @@ class TaskMigration(models.Model):
             'description': log.description or '',
             'id_on_wt': log.remote_id,
             'start_date': self.convert_server_tz_to_utc(log.start_date),
-            'user_id': local['dict_user'][log.author],
+            'user_id': log.author and local['dict_user'][log.author] or False,
             'state': 'done',
             'source': 'sync',
             'issue_id': issue.get(log.remote_issue_id, False),

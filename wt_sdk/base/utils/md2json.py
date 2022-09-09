@@ -26,6 +26,8 @@ def md2json(data):
                 index+=1
             step['addition'] = line[checkpoint: index]
         else:
+            step['is_header'] = False
+            index=0
             _logger.warning("OUTTA Checklist Format: " + line)
             continue
         step['name'] = line[index:].strip(' :')
