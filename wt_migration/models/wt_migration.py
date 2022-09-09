@@ -508,6 +508,16 @@ class TaskMigration(models.Model):
                 existing_log.write(curd_data)
                 response['updated'] |= existing_log
 
+    def create_missing_assignee(self, logs, local):
+        to_create_users = [(log.author, log.author_name) for log in logs if
+                           log.author and log.author not in local['dict_user']]
+        for user in to_create_users:
+            local['dict_user'][user[0]] = self.env['res.users'].sudo().create({
+                'login': user[0],
+                'name': user[1],
+                'active': False
+            }).id
+
     def processing_worklog_raw_data(self, local, raw, mapping):
         if not mapping:
             mapping = ImportingJiraWorkLog(self.server_type, self.wt_server_url)
@@ -518,6 +528,7 @@ class TaskMigration(models.Model):
         raw_logs = raw.get('worklogs', [raw])
         logs = mapping.parse_logs(raw_logs)
         issue = local['dict_issue']
+        self.create_missing_assignee(logs, local)
         for log in logs:
             self.mapping_worklog(local, log, issue, response)
         return response
