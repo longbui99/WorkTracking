@@ -15,7 +15,7 @@ def md2json(data):
         elif line.startswith('--- '):
             step['is_header'] = True
             index = 4
-        elif line.startswith('* '):
+        elif line.startswith('* ['):
             index, length = 3, len(line)
             while line[index] != ']':
                 index+=1
