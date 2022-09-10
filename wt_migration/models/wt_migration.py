@@ -309,7 +309,7 @@ class TaskMigration(models.Model):
                 existing_issue.write(curd_data)
 
     def create_missing_projects(self, issues, local):
-        to_create_projects = [issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']]
+        to_create_projects = {issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']}
         if len(to_create_projects):
             for project in to_create_projects:
                 local['dict_project_key'][project] = self._get_single_project(project_key=project)
