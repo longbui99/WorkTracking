@@ -789,8 +789,8 @@ class TaskMigration(models.Model):
             'method': 'get',
             'params': ['type=scrum']
         }
-        start_index, page_size, total_response, paging = 0, 1, 1, 50
-        while start_index < page_size:
+        start_index, page_size, total_response, paging = 0, 50, 51, 50
+        while start_index < total_response:
             page_size = paging if total_response - start_index > paging else total_response - start_index
             params = request_data['params'].copy()
             params += [f'startAt={start_index}', f'maxResults={page_size}']
@@ -820,7 +820,7 @@ class TaskMigration(models.Model):
             if not board.id_on_wt and not board.type == 'scrum':
                 continue
             request_data = {
-                'endpoint': f"""{self.wt_agile_url}/board/{board.id_on_wt}/sprint?maxResults=2000""",
+                'endpoint': f"""{self.wt_agile_url}/board/{board.id_on_wt}/sprint?maxResults=50""",
                 'method': 'get',
             }
             current_sprints = {x.id_on_wt: x for x in board.sprint_ids}
