@@ -78,6 +78,7 @@ class Issue:
         self.status_key = load_from_key_paths(issue_fields, map.status_key)
         self.raw_status_key = load_from_key_paths(issue_fields, map.new_status)
         self.remote_id = int(data['id'])
+        self.raw_sprint = load_from_key_paths(issue_fields, map.sprint)
         raw_checklist = load_from_key_paths(issue_fields, map.checklist)
         if raw_checklist:
             self.checklists = map.map_checklists(raw_checklist)
@@ -112,6 +113,7 @@ class ImportJiraCloudIssue:
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
         self.checklist = ['customfield_10035']
+        self.sprint = ['customfield_10020']
 
     def map_checklists(self, data):
         fields = md2json(data)
@@ -145,6 +147,7 @@ class ImportJiraSelfHostedIssue:
         server_url = urlparse(server_url).netloc
         self.map_url = lambda r: f"https://{server_url}/browse/{r}"
         self.checklist = ['']
+        self.sprint = ['customfield_10020']
 
     def map_checklists(self, data):
         checklists = []
