@@ -837,7 +837,7 @@ class TaskMigration(models.Model):
                             'updated': True
                         })
                     elif sprint['state'] != current_sprints[sprint['id']].state:
-                        current_sprints[sprint['id']].write({
+                        current_sprints[sprint['id']].sudo().write({
                             'state': sprint['state'],
                             'updated': True
                         })
