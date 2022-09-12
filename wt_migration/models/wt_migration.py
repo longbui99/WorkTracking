@@ -70,11 +70,11 @@ class TaskMigration(models.Model):
         else:
             user = employee_id.user_id
             wt_private_key = employee_id.wt_private_key
-        if self.auth_type == 'api_token':
-            wt_private_key = "Basic " + base64.b64encode(
-                f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
-        else:
-            wt_private_key = "Bearer " + wt_private_key
+        # if self.auth_type == 'api_token':
+        wt_private_key = "Basic " + base64.b64encode(
+            f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
+        # else:
+        #     wt_private_key = "Bearer " + wt_private_key
 
         headers = {
             'Authorization': wt_private_key
@@ -264,7 +264,8 @@ class TaskMigration(models.Model):
             'dict_user': self.with_context(active_test=False).get_user(),
             'dict_issue_key': {r.issue_key: r for r in self.env['wt.issue'].sudo().search(domain)},
             'dict_status': {r.key: r.id for r in self.env['wt.status'].sudo().search([])},
-            'dict_type': {r.key: r.id for r in self.env["wt.type"].sudo().search([])}
+            'dict_type': {r.key: r.id for r in self.env["wt.type"].sudo().search([])},
+            'dict_sprint': {r.id_on_wt: r.id for r in self.env["agile.sprint"].sudo().search([])}
         }
 
     def mapping_issue(self, local, issue, response):
@@ -275,10 +276,17 @@ class TaskMigration(models.Model):
             'story_point': issue.hour_point and issue.hour_point or issue.fibonacci_point,
             'story_point_unit': issue.hour_point and 'hrs' or 'general',
             'wt_migration_id': self.id,
-            'wt_id': issue.remote_id
+            'wt_id': issue.remote_id,
         }
         if issue.epic:
             curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key).id
+        if isinstance(issue.raw_sprint, dict) and issue.raw_sprint.get('id', None):
+            sprint = local['dict_sprint'].get(issue.raw_sprint.get('id', None))
+            if sprint:
+                curd_data['sprint_id'] = sprint.id
+            else:
+                curd_data['sprint_key'] = issue.raw_sprint.get('id', None)
+
         curd_data['project_id'] = local['dict_project_key'].get(issue.project_key)
         curd_data['assignee_id'] = local['dict_user'].get(issue.assignee_email)
         curd_data['tester_id'] = local['dict_user'].get(issue.tester_email)
@@ -309,7 +317,8 @@ class TaskMigration(models.Model):
                 existing_issue.write(curd_data)
 
     def create_missing_projects(self, issues, local):
-        to_create_projects = {issue.project_key for issue in issues if issue.project_key not in local['dict_project_key']}
+        to_create_projects = [issue.project_key for issue in issues if
+                              issue.project_key not in local['dict_project_key']]
         if len(to_create_projects):
             for project in to_create_projects:
                 local['dict_project_key'][project] = self._get_single_project(project_key=project)
@@ -744,11 +753,12 @@ class TaskMigration(models.Model):
 
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
-    
+
     def update_projects(self, latest_unix, employee_ids):
         for employee_id in employee_ids:
             self = self.with_context(employee_id=employee_id)
-            str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix/1000)).strftime('%Y-%m-%d %H:%M')
+            str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix / 1000)).strftime(
+                '%Y-%m-%d %H:%M')
             params = f"""jql=updated >= '{str_updated_date}'"""
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
             issue_ids = self.do_request(request_data, load_all=True)
@@ -756,10 +766,10 @@ class TaskMigration(models.Model):
             _logger.info(",".join(issue_ids.mapped('issue_key')))
 
     def update_boards(self):
-        project_ids = self.env["wt.project"].search([])
+        project_ids = self.env["wt.project"].sudo().search([])
         self.load_boards(project_ids=project_ids)
         for project_id in project_ids:
-            self.with_delay().update_board(project_id)
+            self.update_board(project_id)
 
     def update_board(self, project_id):
         self.load_sprints(project_id.board_ids)
@@ -770,45 +780,60 @@ class TaskMigration(models.Model):
         if not self.wt_agile_url:
             return
         if not project_ids:
-            project_ids = self.env["wt.project"].search([])
+            project_ids = self.env["wt.project"].sudo().search([])
+        project_by_key = {project.project_key: project for project in project_ids}
+        existed_boards = set(project_ids.mapped('board_ids').mapped('id_on_wt'))
         headers = self.__get_request_headers()
-        for project in project_ids:
-            request_data = {
-                'endpoint': f"""{self.wt_agile_url}/board?projectKeyOrId={project.project_key}""",
-                'method': 'get',
-            }
-            current_boards = set(project.board_ids.mapped('id_on_wt'))
-            try:
-                data = self.make_request(request_data, headers)
-                for board in data['values']:
-                    if board['id'] not in current_boards:
+        request_data = {
+            'endpoint': f"""{self.wt_agile_url}/board""",
+            'method': 'get',
+            'params': ['type=scrum']
+        }
+        start_index, page_size, total_response, paging = 0, 50, 51, 50
+        while start_index < total_response:
+            page_size = paging if total_response - start_index > paging else total_response - start_index
+            params = request_data['params'].copy()
+            params += [f'startAt={start_index}', f'maxResults={page_size}']
+            request_data['params'] = params
+            data = self.make_request(request_data, headers)
+            total_response = data.get('total', 1)
+            start_index += paging
+            for board in data.get('values', []):
+                if board.get('id') not in existed_boards:
+                    project = project_by_key[board.get('location', {}).get('projectKey', '')]
+                    if project:
                         self.env["board.board"].sudo().create({
                             'id_on_wt': board['id'],
                             'name': board['name'],
                             'type': board['type'],
                             'project_id': project.id
                         })
-            except Exception as e:
-                _logger.warning(f"Loading board on project {project.project_name} failed: " + str(e))
 
     def load_sprints(self, board_ids=False):
         if not self.wt_agile_url:
             return
         if not board_ids:
-            board_ids = self.env['board.board'].search([])
+            board_ids = self.env['board.board'].sudo().search([('id_on_wt', '=', 143)])
+        allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
+        header_by_user = {self.env.user.id: self.__get_request_headers()}
         board_ids = board_ids.filtered(lambda r: r.type == "scrum")
-        headers = self.__get_request_headers()
         for board in board_ids:
             if not board.id_on_wt and not board.type == 'scrum':
                 continue
+            usable_user = (board.project_id.allowed_user_ids & allowed_user_ids)
+            if not usable_user:
+                continue
+            headers = header_by_user.get(usable_user[0]) or self.with_user(usable_user[0]).__get_request_headers()
+            if usable_user[0] not in header_by_user:
+                header_by_user[usable_user[0]] = headers
             request_data = {
-                'endpoint': f"""{self.wt_agile_url}/board/{board.id_on_wt}/sprint?maxResults=2000""",
+                'endpoint': f"""{self.wt_agile_url}/board/{board.id_on_wt}/sprint?maxResults=50""",
                 'method': 'get',
             }
             current_sprints = {x.id_on_wt: x for x in board.sprint_ids}
             try:
                 data = self.make_request(request_data, headers)
-                for sprint in data['values']:
+                for sprint in data.get('values', []):
                     if sprint['id'] not in current_sprints:
                         self.env["agile.sprint"].sudo().create({
                             'id_on_wt': sprint['id'],
@@ -819,7 +844,7 @@ class TaskMigration(models.Model):
                             'updated': True
                         })
                     elif sprint['state'] != current_sprints[sprint['id']].state:
-                        current_sprints[sprint['id']].write({
+                        current_sprints[sprint['id']].sudo().write({
                             'state': sprint['state'],
                             'updated': True
                         })
@@ -828,23 +853,9 @@ class TaskMigration(models.Model):
 
     def update_issue_for_sprints(self, sprint_ids=False):
         if not sprint_ids:
-            sprint_ids = self.env["agile.sprint"].search([('state', 'in', ('active', 'future'))])
-        headers = self.__get_request_headers()
-        current_issues = {x.issue_key: x for x in self.env["wt.issue"].search(
-            [('create_date', '>', datetime.now() - relativedelta(months=2))])}
-        force = self.env.context.get('force', False)
-        for sprint in sprint_ids:
-            if not sprint.id_on_wt:
-                continue
-            request_data = {
-                'endpoint': f"""{self.wt_agile_url}/sprint/{sprint.id_on_wt}/issue?maxResults=200&fields=""""",
-                'method': 'get',
-            }
-            try:
-                data = self.make_request(request_data, headers)
-                for issue in data['issues']:
-                    if issue['key'] in current_issues:
-                        current_issues[issue['key']].sprint_id = sprint.id
-                sprint.write({'updated': False})
-            except Exception as e:
-                _logger.warning(f"Loading issue of sprint {sprint.name} failed: " + str(e))
+            sprint_ids = self.env["agile.sprint"].sudo().search([('state', 'in', ('active', 'future'))])
+        sprint_by_id = {sprint.id_on_wt: sprint for sprint in sprint_ids}
+        issues = self.env['wt.issue'].sudo().search([('sprint_key', 'in', sprint_ids.mapped('id_on_wt'))])
+        for issue in issues:
+            issue.sprint_id = sprint_by_id[issue.sprint_key]
+            issue.sprint_key = False
