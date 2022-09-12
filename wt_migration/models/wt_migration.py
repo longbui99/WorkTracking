@@ -70,11 +70,11 @@ class TaskMigration(models.Model):
         else:
             user = employee_id.user_id
             wt_private_key = employee_id.wt_private_key
-        if self.auth_type == 'api_token':
-            wt_private_key = "Basic " + base64.b64encode(
-                f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
-        else:
-            wt_private_key = "Bearer " + wt_private_key
+        # if self.auth_type == 'api_token':
+        wt_private_key = "Basic " + base64.b64encode(
+            f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
+        # else:
+        #     wt_private_key = "Bearer " + wt_private_key
 
         headers = {
             'Authorization': wt_private_key
@@ -769,7 +769,7 @@ class TaskMigration(models.Model):
         project_ids = self.env["wt.project"].sudo().search([])
         self.load_boards(project_ids=project_ids)
         for project_id in project_ids:
-            self.with_delay().update_board(project_id)
+            self.update_board(project_id)
 
     def update_board(self, project_id):
         self.load_sprints(project_id.board_ids)
@@ -813,12 +813,19 @@ class TaskMigration(models.Model):
         if not self.wt_agile_url:
             return
         if not board_ids:
-            board_ids = self.env['board.board'].sudo().search([])
+            board_ids = self.env['board.board'].sudo().search([('id_on_wt', '=', 143)])
+        allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
+        header_by_user = {self.env.user.id: self.__get_request_headers()}
         board_ids = board_ids.filtered(lambda r: r.type == "scrum")
-        headers = self.__get_request_headers()
         for board in board_ids:
             if not board.id_on_wt and not board.type == 'scrum':
                 continue
+            usable_user = (board.project_id.allowed_user_ids & allowed_user_ids)
+            if not usable_user:
+                continue
+            headers = header_by_user.get(usable_user[0]) or self.with_user(usable_user[0]).__get_request_headers()
+            if usable_user[0] not in header_by_user:
+                header_by_user[usable_user[0]] = headers
             request_data = {
                 'endpoint': f"""{self.wt_agile_url}/board/{board.id_on_wt}/sprint?maxResults=50""",
                 'method': 'get',
@@ -826,7 +833,7 @@ class TaskMigration(models.Model):
             current_sprints = {x.id_on_wt: x for x in board.sprint_ids}
             try:
                 data = self.make_request(request_data, headers)
-                for sprint in data['values']:
+                for sprint in data.get('values', []):
                     if sprint['id'] not in current_sprints:
                         self.env["agile.sprint"].sudo().create({
                             'id_on_wt': sprint['id'],
