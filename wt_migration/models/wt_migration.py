@@ -570,7 +570,8 @@ class TaskMigration(models.Model):
                     'endpoint': f"{self.wt_server_url}/worklog/updated?since={unix}",
                 }
                 page_failed_count = 0
-                while not last_page and page_failed_count < 6:
+                page_break = False
+                while not last_page and page_failed_count < 6 and not page_break:
                     body = self.make_request(request_data, headers)
                     if isinstance(body, dict):
                         page_failed_count = 0
@@ -599,7 +600,7 @@ class TaskMigration(models.Model):
                                     log_failed_count += 1
                                     time.sleep(30)
                                     continue
-                        del body['values']
+                        # del body['values']
                         _logger.info(json.dumps(body, indent=4))
                     else:
                         _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
