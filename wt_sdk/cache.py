@@ -11,12 +11,13 @@ TOKEN_PATH = TOKEN_DIR + (os.getenv('TOKEN_FILENAME') or 'token.txt' )
 
 class TokenCache:
     def __init__(self, file_path):
-        if not os.path.exists(file_path):
-            open(file_path, 'x').close()
-        os.chmod(file_path, 600)
-        self.file_path = file_path
         self.tokens = dict()
-        self._load_tokens()
+        if file_path:
+            if not os.path.exists(file_path):
+                open(file_path, 'x').close()
+            os.chmod(file_path, 600)
+            self.file_path = file_path
+            self._load_tokens()
 
     def _load_tokens(self):
         if self.file_path:
