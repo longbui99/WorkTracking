@@ -792,7 +792,7 @@ class TaskMigration(models.Model):
         if not self.wt_agile_url:
             return
         if not board_ids:
-            board_ids = self.env['board.board'].sudo().search([('id_on_wt', '=', 143)])
+            board_ids = self.env['board.board'].sudo().search([])
         allowed_user_ids = self.env['res.users'].search([]).token_exists()
         header_by_user = {self.env.user.id: self.__get_request_headers()}
         board_ids = board_ids.filtered(lambda r: r.type == "scrum")
