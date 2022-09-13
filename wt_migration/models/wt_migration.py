@@ -193,25 +193,27 @@ class TaskMigration(models.Model):
     def _update_acs(self, ac_ids, values=[]):
         if not values:
             return False
-        value_keys = {int(r.key): r for r in values}
-        to_delete_records = ac_ids.filtered(lambda r: int(r.key) not in value_keys)
+        value_keys = {r.key: r for r in values}
+        to_delete_records = ac_ids.filtered(lambda r: r.key and r.key not in value_keys)
         ac_ids -= to_delete_records
         res = []
         res += to_delete_records.mapped(lambda r: (2, r.id))
         for record in ac_ids:
-            r = value_keys.get(int(record.key), None)
-            if r and r.is_header != record.is_header \
-                    or record.sequence != r.sequence \
-                    or record.checked != r.checked:
-                res.append((1, record.id, {
-                    'name': parsing(r.name),
-                    'wt_raw_name': r.name,
-                    "checked": r.checked or record.checked,
-                    "key": r.key,
-                    "sequence": r.sequence,
-                    "is_header": r.is_header
-                }))
-            del value_keys[record.key]
+            if record.key:
+                r = value_keys.get(record.key, None)
+                if r:
+                    if (r.is_header != record.is_header \
+                        or record.sequence != r.sequence \
+                        or record.checked != r.checked):
+                        res.append((1, record.id, {
+                            'name': parsing(r.name),
+                            'wt_raw_name': r.name,
+                            "checked": r.checked or record.checked,
+                            "key": r.key,
+                            "sequence": r.sequence,
+                            "is_header": r.is_header
+                        }))
+                    del value_keys[record.key]
         res += self._create_new_acs(list(value_keys.values()))
         return res
 

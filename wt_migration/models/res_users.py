@@ -1,6 +1,5 @@
 from odoo import models, fields, _
 from odoo.addons.wt_sdk import token
-print(token)
 
 class ResUsers(models.Model):
     _inherit = "res.users"
