@@ -1,8 +1,8 @@
 import os
 from odoo import tools
-from odoo.tools.config import _get_default_datadir
+from odoo.tools.appdirs import user_data_dir
 
-TOKEN_DIR = _get_default_datadir() + '/token/'
+TOKEN_DIR = user_data_dir() + '/token'
 if not os.path.exists(TOKEN_DIR):
     os.mkdir(TOKEN_DIR)
 
