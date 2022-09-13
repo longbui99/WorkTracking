@@ -223,8 +223,8 @@ class TaskMigration(models.Model):
         res = []
         res += to_delete_records.mapped(lambda r: (2, r.id))
         for record in ac_ids:
-            r = value_keys[record.key]
-            if record.key != r.key \
+            r = value_keys.get(record.key, None)
+            if r and record.key != r.key \
                     or r.is_header != record.is_header \
                     or record.sequence != r.sequence \
                     or record.checked != r.checked:
