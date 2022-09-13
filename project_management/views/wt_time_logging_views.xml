@@ -84,23 +84,12 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="wt_time_log_dashboard_view">
-        <field name="name">wt.work.log.dashboard.view</field>
-        <field name="model">wt.time.log</field>
-        <field name="arch" type="xml">
-            <dashboard>
-                <view type="graph" ref="project_management.wt_time_log_graph_view"/>
-                <view type="pivot" ref="project_management.wt_time_log_pivot_view"/>
-            </dashboard>
-        </field>
-    </record>
-
     <record id="action_wt_time_log" model="ir.actions.act_window">
         <field name="name">Work Logs</field>
         <field name="res_model">wt.time.log</field>
-        <field name="view_mode">dashboard,graph,tree,form</field>
+        <field name="view_mode">graph,tree,form</field>
         <field name="context">{'search_default_group_by_project_id': True, 'search_default_group_by_user_id': True, 'search_default_group_by_issue_id': True, 'search_default_filter_by_my_log': True}</field>
-        <field name="view_id" ref="wt_time_log_dashboard_view"/>
+        <field name="view_id" ref="wt_time_log_graph_view"/>
         <field name="search_view_id" ref="project_management.wt_time_log_search_view"/>
     </record>
 </odoo>
