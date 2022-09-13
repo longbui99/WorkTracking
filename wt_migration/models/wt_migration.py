@@ -410,6 +410,7 @@ class TaskMigration(models.Model):
             if res:
                 existing_record |= res['updated']
             response.extend(res['new'])
+        self.env.cr.execute(f"UPDATE wt_issue SET write_date = NOW() WHERE id IN %(ids)s", {'ids': existing_record.ids})
         return existing_record | self.env['wt.issue'].sudo().create(response)
 
     def load_issues(self, extra_jql="", domain=[], load_all=False):
