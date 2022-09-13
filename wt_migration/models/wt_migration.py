@@ -217,15 +217,14 @@ class TaskMigration(models.Model):
     def _update_acs(self, ac_ids, values=[]):
         if not values:
             return False
-        value_keys = {r.key: r for r in values}
-        to_delete_records = ac_ids.filtered(lambda r: r.key not in value_keys)
+        value_keys = {int(r.key): r for r in values}
+        to_delete_records = ac_ids.filtered(lambda r: int(r.key) not in value_keys)
         ac_ids -= to_delete_records
         res = []
         res += to_delete_records.mapped(lambda r: (2, r.id))
         for record in ac_ids:
-            r = value_keys.get(record.key, None)
-            if r and record.key != r.key \
-                    or r.is_header != record.is_header \
+            r = value_keys.get(int(record.key), None)
+            if r and r.is_header != record.is_header \
                     or record.sequence != r.sequence \
                     or record.checked != r.checked:
                 res.append((1, record.id, {
@@ -410,6 +409,9 @@ class TaskMigration(models.Model):
             if res:
                 existing_record |= res['updated']
             response.extend(res['new'])
+
+        if existing_record:
+            self.env.cr.execute(f"UPDATE wt_issue SET write_date = NOW() WHERE id IN %(ids)s", {'ids': tuple(existing_record.ids)})
         return existing_record | self.env['wt.issue'].sudo().create(response)
 
     def load_issues(self, extra_jql="", domain=[], load_all=False):
@@ -570,7 +572,8 @@ class TaskMigration(models.Model):
                     'endpoint': f"{self.wt_server_url}/worklog/updated?since={unix}",
                 }
                 page_failed_count = 0
-                while not last_page and page_failed_count < 6:
+                page_break = False
+                while not last_page and page_failed_count < 6 and not page_break:
                     body = self.make_request(request_data, headers)
                     if isinstance(body, dict):
                         page_failed_count = 0
