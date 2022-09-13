@@ -19,7 +19,7 @@ class WtProject(models.Model):
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
         latest_unix = int(self.env['ir.config_parameter'].get_param('latest_unix'))
         checkpoint_unix = datetime.now()
-        allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
+        allowed_user_ids = self.env['res.users'].search([]).token_exists()
         migration_dict = dict()
         for project in self:
             if project.wt_migration_id not in migration_dict:
@@ -30,20 +30,14 @@ class WtProject(models.Model):
                     migration_dict[project.wt_migration_id] |= user_ids[0]
                 if len(user_ids) == 0 and project.wt_migration_id:
                     user_ids = project.wt_migration_id.admin_user_ids.ids
-                employee_id = self.env['hr.employee'].search(
-                    [('user_id', 'in', user_ids.ids),
-                    ('wt_private_key', '!=', False)], order='is_wt_admin desc', limit=1)
-                if project.last_update and project.last_update.timestamp() * 1000 < latest_unix and any(employee_id) and project.wt_migration_id:
-                    project.wt_migration_id.update_project(project, employee_id)
+                if project.last_update and project.last_update.timestamp() * 1000 < latest_unix and user_ids and project.wt_migration_id:
+                    project.wt_migration_id.update_project(project, user_ids[0])
                 project.last_update = checkpoint_unix
 
         for wt in migration_dict.keys():
-            employee_ids = self.env['hr.employee'].search(
-                    [('user_id', 'in', migration_dict[wt].ids),
-                    ('wt_private_key', '!=', False)], order='is_wt_admin desc')
-            wt.with_delay().update_projects(latest_unix, employee_ids)
-            wt.with_delay(eta=1).delete_work_logs_by_unix(latest_unix, employee_ids)
-            wt.with_delay(eta=2).load_work_logs_by_unix(latest_unix, employee_ids)
+            wt.with_delay().update_projects(latest_unix, migration_dict[wt])
+            wt.with_delay(eta=1).delete_work_logs_by_unix(latest_unix, migration_dict[wt])
+            wt.with_delay(eta=2).load_work_logs_by_unix(latest_unix, migration_dict[wt])
         
         self.env['ir.config_parameter'].set_param('latest_unix', int(checkpoint_unix.timestamp() * 1000))
 
