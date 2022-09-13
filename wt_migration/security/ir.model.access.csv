@@ -4,3 +4,5 @@ access_wt_migration_manager,wt.migration,model_wt_migration,project_management.g
 access_wt_load_by_link_user,wt.load.by.link,model_wt_load_by_link,project_management.group_wt_user,1,1,1,1
 access_wt_load_by_link_line_user,wt.load.by.link.line,model_wt_load_by_link_line,project_management.group_wt_user,1,1,1,1
 access_export_work_log_pivot_user,export.work.log.pivot,model_export_work_log_pivot,project_management.group_wt_user,1,1,1,1
+
+access_token_confirmation_user,token.confirmation.user,model_token_confirmation,base.group_user,1,1,1,1

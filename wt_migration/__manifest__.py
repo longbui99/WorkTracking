@@ -23,6 +23,7 @@
 
         'wizard/load_by_link_views.xml',
         'wizard/export_by_pivot_time_views.xml',
+        'wizard/token_confirmation.xml',
 
     ],
     "application": False,

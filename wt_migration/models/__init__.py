@@ -7,3 +7,4 @@ from . import wt_project
 from . import wt_ac
 from . import board
 from . import agile_sprint
+from . import res_users

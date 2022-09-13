@@ -22,7 +22,4 @@
         </field>
     </record>
     
-    <record id="hr.open_view_employee_list_my" model="ir.actions.act_window">
-        <field name="domain">[ '|', ('wt_private_key','=',False), ('user_id','=', uid)]</field>
-    </record>
 </odoo>

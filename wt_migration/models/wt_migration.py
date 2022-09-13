@@ -58,24 +58,12 @@ class TaskMigration(models.Model):
 
     def __get_request_headers(self):
         self.ensure_one()
-        employee_id = self._context.get('employee_id')
-        if not employee_id:
-            user = self.env.user or self.admin_user_ids
-            employee_id = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
-            if not employee_id:
-                raise UserError(_("Don't have any related Employee, please set up on Employee Application"))
-            if not employee_id.wt_private_key:
-                raise UserError(_("Missing the Access token in the related Employee"))
-            wt_private_key = employee_id.wt_private_key
+        user = self.env.user
+        wt_private_key = user.get_jira_token()
+        if self.auth_type == 'api_token':
+            wt_private_key = "Basic " + base64.b64encode(f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
         else:
-            user = employee_id.user_id
-            wt_private_key = employee_id.wt_private_key
-        # if self.auth_type == 'api_token':
-        wt_private_key = "Basic " + base64.b64encode(
-            f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
-        # else:
-        #     wt_private_key = "Bearer " + wt_private_key
-
+            wt_private_key = "Bearer " + wt_private_key
         headers = {
             'Authorization': wt_private_key
         }
@@ -85,24 +73,17 @@ class TaskMigration(models.Model):
         headers = self.__get_request_headers()
         result = requests.get(f"{self.wt_server_url}/project/{project_key}", headers=headers)
         record = json.loads(result.text)
-        if self.env.context.get('employee_id'):
-            user_id = self._context['employee_id'].user_id
-        else:
-            user_id = self.env['hr.employee'].search(
-                [('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
         res = {
             'project_name': record['name'],
             'project_key': record['key'],
-            'wt_migration_id': self.id
+            'wt_migration_id': self.id,
+            'allowed_user_ids': [(4, self.env.user.id, False)]
         }
-        if user_id:
-            res['allowed_user_ids'] = [(4, user_id.id, False)]
         return self.env['wt.project'].sudo().create(res).id
 
     def _get_current_employee(self):
         return {
-            "user_email": {user.partner_id.email or user.login for user in
-                           self.with_context(active_test=False).env["res.users"].sudo().search([])}
+            "user_email": {user.partner_id.email or user.login for user in self.with_context(active_test=False).env["res.users"].sudo().search([])}
         }
 
     def load_all_users(self, user_email=''):
@@ -127,12 +108,7 @@ class TaskMigration(models.Model):
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
         existing_project_dict = {f"{r.project_key}": r for r in existing_project}
-        user_id = False
-        if self.env.context.get('employee_id'):
-            user_id = self._context['employee_id'].user_id
-        else:
-            user_id = self.env['hr.employee'].search(
-                [('wt_private_key', '!=', False), ('user_id', '=', self.env.user.id)], limit=1).user_id
+        user_id = self.env.user
         new_project = []
         for record in json.loads(result.text):
             if not existing_project_dict.get(record.get('key', False), False):
@@ -550,13 +526,12 @@ class TaskMigration(models.Model):
             self.mapping_worklog(local, log, issue, response)
         return response
 
-    def load_work_logs_by_unix(self, unix, employee_ids, batch=900):
+    def load_work_logs_by_unix(self, unix, users, batch=900):
         if self.import_work_log:
-            for employee_id in employee_ids:
-                self = self.with_context(employee_id=employee_id)
+            for user in users:
                 last_page = False
                 mapping = ImportingJiraWorkLog(self.server_type, self.wt_server_url)
-                headers = self.__get_request_headers()
+                headers = self.with_user(user).__get_request_headers()
                 issue_ids = self.env['wt.issue'].search(
                     [('wt_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
                 local_data = {
@@ -609,12 +584,11 @@ class TaskMigration(models.Model):
                 if len(to_create):
                     self.env["wt.time.log"].create(to_create)
 
-    def delete_work_logs_by_unix(self, unix, employee_ids, batch=900):
+    def delete_work_logs_by_unix(self, unix, users, batch=900):
         if self.import_work_log:
-            for employee_id in employee_ids:
-                self = self.with_context(employee_id=employee_id)
+            for user in users:
                 last_page = False
-                headers = self.__get_request_headers()
+                headers = self.with_user(user).__get_request_headers()
                 flush = []
                 request_data = {
                     'endpoint': f"{self.wt_server_url}/worklog/deleted?since={unix}",
@@ -754,15 +728,15 @@ class TaskMigration(models.Model):
     def update_project(self, project_id, access_token):
         self.with_delay()._update_project(project_id, access_token)
 
-    def update_projects(self, latest_unix, employee_ids):
-        for employee_id in employee_ids:
-            self = self.with_context(employee_id=employee_id)
+    def update_projects(self, latest_unix, users):
+        for user in users:
+            self = self.with_user(user)
             str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix / 1000)).strftime(
                 '%Y-%m-%d %H:%M')
             params = f"""jql=updated >= '{str_updated_date}'"""
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
             issue_ids = self.do_request(request_data, load_all=True)
-            _logger.info(f"Batch Load Of User {employee_id.name}: {len(issue_ids)}")
+            _logger.info(f"Batch Load Of User {user.display_name}: {len(issue_ids)}")
             _logger.info(",".join(issue_ids.mapped('issue_key')))
 
     def update_boards(self):
@@ -814,7 +788,7 @@ class TaskMigration(models.Model):
             return
         if not board_ids:
             board_ids = self.env['board.board'].sudo().search([('id_on_wt', '=', 143)])
-        allowed_user_ids = self.env['hr.employee'].search([('wt_private_key', '!=', False)], order='is_wt_admin desc').mapped('user_id')
+        allowed_user_ids = self.env['res.users'].search([]).token_exists()
         header_by_user = {self.env.user.id: self.__get_request_headers()}
         board_ids = board_ids.filtered(lambda r: r.type == "scrum")
         for board in board_ids:
