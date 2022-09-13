@@ -1,6 +1,7 @@
 import os
 from odoo import tools
 from odoo.tools.appdirs import user_data_dir
+from odoo import SUPERUSER_ID, api
 
 TOKEN_DIR = user_data_dir() + '/token/'
 if not os.path.exists(TOKEN_DIR):
@@ -59,5 +60,22 @@ class TokenCache:
     def set_token(self, key, value):
         self._update_token(key, value)
 
+class TokenStorage(TokenCache):
 
-token = TokenCache(TOKEN_PATH)
+    def get_token(self, key, odoo_model):
+        odoo_model.env.cr.execute(f"SELECT value FROM token_cache WHERE key = '{key}'")
+        res = odoo_model.env.cr.dictfetchone()
+        if not res:
+            raise KeyError("Cannot find token for the key: " + str(key))
+        return res.get('value')
+
+    def set_token(self, key, value, odoo_model):
+        odoo_model.env.cr.execute(f"""
+        INSERT INTO token_cache (key, value) VALUES ('{key}','{value}')
+        ON CONFLICT (key) DO
+        UPDATE SET value = '{value}'""")
+
+try:
+    token = TokenCache(TOKEN_PATH)
+except PermissionError as e:
+    token = TokenStorage(False)

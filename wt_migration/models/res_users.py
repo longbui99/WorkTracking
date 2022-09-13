@@ -5,10 +5,10 @@ class ResUsers(models.Model):
     _inherit = "res.users"
 
     def get_jira_token(self):
-        return token.get_token("jira_" + str(self.login or self.partner_id.email))
+        return token.get_token("jira_" + str(self.login or self.partner_id.email), self)
 
     def set_jira_token(self, value):
-        token.set_token("jira_" + str(self.login or self.partner_id.email), value)
+        token.set_token("jira_" + str(self.login or self.partner_id.email), value, self)
 
     def token_exists(self):
         existing_token_users = self.env['res.users']

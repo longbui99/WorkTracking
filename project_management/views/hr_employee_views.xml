@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//notebook[1]" position="inside">
                 <page string="Task Configurations">
-                    <group>
+                    <group colspan="4">
                         <field name="default_unit"/>
                         <field name="maximum_search_result"/>
                         <field name="maximum_relative_result"/>
