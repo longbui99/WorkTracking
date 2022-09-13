@@ -410,7 +410,7 @@ class TaskMigration(models.Model):
             if res:
                 existing_record |= res['updated']
             response.extend(res['new'])
-        self.env.cr.execute(f"UPDATE wt_issue SET write_date = NOW() WHERE id IN %(ids)s", {'ids': existing_record.ids})
+        self.env.cr.execute(f"UPDATE wt_issue SET write_date = NOW() WHERE id IN %(ids)s", {'ids': tuple(existing_record.ids)})
         return existing_record | self.env['wt.issue'].sudo().create(response)
 
     def load_issues(self, extra_jql="", domain=[], load_all=False):
@@ -601,7 +601,7 @@ class TaskMigration(models.Model):
                                     log_failed_count += 1
                                     time.sleep(30)
                                     continue
-                        # del body['values']
+                        del body['values']
                         _logger.info(json.dumps(body, indent=4))
                     else:
                         _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
