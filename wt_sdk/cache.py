@@ -1,6 +1,6 @@
 import os
 from odoo import tools
-from odoo.tools.appdirs import _get_default_datadir
+from odoo.tools.config import _get_default_datadir
 from odoo import SUPERUSER_ID, api
 
 TOKEN_DIR = "/".join(_get_default_datadir().split('/')[:-1]) + '/token/'
@@ -13,14 +13,14 @@ class TokenCache:
     def __init__(self, file_path):
         self.tokens = dict()
         if file_path:
-            if not os.path.exists(file_path):
-                open(file_path, 'x').close()
-            os.chmod(file_path, 600)
             self.file_path = file_path
-            self._load_tokens()
 
     def _load_tokens(self):
         if self.file_path:
+            if not os.path.exists(self.file_path):
+                open(self.file_path, 'x').close()
+            os.chmod(self.file_path, 600)
+            self._load_tokens()
             with open(self.file_path, 'r') as f:
                 tokens = f.readlines()
                 for token in tokens:
