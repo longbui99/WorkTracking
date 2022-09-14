@@ -1,9 +1,9 @@
 import os
 from odoo import tools
-from odoo.tools.appdirs import user_data_dir
+from odoo.tools.appdirs import _get_default_datadir
 from odoo import SUPERUSER_ID, api
 
-TOKEN_DIR = user_data_dir() + '/token/'
+TOKEN_DIR = "/".join(_get_default_datadir().split('/')[:-1]) + '/token/'
 if not os.path.exists(TOKEN_DIR):
     os.mkdir(TOKEN_DIR)
 
