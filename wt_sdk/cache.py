@@ -5,7 +5,7 @@ from odoo import SUPERUSER_ID, api
 
 TOKEN_DIR = "/".join(_get_default_datadir().split('/')[:-1]) + '/token/'
 if not os.path.exists(TOKEN_DIR):
-    os.mkdir(TOKEN_DIR)
+    os.makedirs(TOKEN_DIR)
 
 TOKEN_PATH = TOKEN_DIR + (os.getenv('TOKEN_FILENAME') or 'token.txt' )
 
