@@ -30,7 +30,7 @@ class WtProject(models.Model):
                     migration_dict[project.wt_migration_id] |= user_ids[0]
                 if len(user_ids) == 0 and project.wt_migration_id:
                     user_ids = project.wt_migration_id.admin_user_ids.ids
-                if project.last_update and project.last_update.timestamp() * 1000 < latest_unix and user_ids and project.wt_migration_id:
+                if (not project.last_update or project.last_update.timestamp() * 1000 < latest_unix) and user_ids and project.wt_migration_id:
                     project.wt_migration_id.update_project(project, user_ids[0])
                 project.last_update = checkpoint_unix
 

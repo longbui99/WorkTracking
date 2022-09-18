@@ -719,8 +719,8 @@ class TaskMigration(models.Model):
         self.add_time_logs(issue_id, time_log_to_create_ids)
         self.update_time_logs(issue_id, time_log_to_update_ids)
 
-    def _update_project(self, project_id, employee_id):
-        self = self.with_context(employee_id=employee_id)
+    def _update_project(self, project_id, user_id):
+        self = self.with_user(user_id)
         updated_date = datetime(1970, 1, 1, 1, 1, 1, 1)
         if project_id.last_update:
             updated_date = self.convert_utc_to_usertz(project_id.last_update)
@@ -730,8 +730,8 @@ class TaskMigration(models.Model):
         issue_ids = self.do_request(request_data, load_all=True)
         _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
 
-    def update_project(self, project_id, access_token):
-        self.with_delay()._update_project(project_id, access_token)
+    def update_project(self, project_id, user_id):
+        self.with_delay()._update_project(project_id, user_id)
 
     def update_projects(self, latest_unix, users):
         for user in users:
