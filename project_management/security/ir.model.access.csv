@@ -21,4 +21,4 @@ access_board_board_manager,board_board_manager.model,model_board_board,project_m
 access_agile_sprint_user,agile_sprint_user.model,model_agile_sprint,project_management.group_wt_user,1,0,0,0
 access_agile_sprint_manager,agile_sprint_manager.model,model_agile_sprint,project_management.group_wt_manager,1,1,1,1
 access_access_code,access_code_user.model,model_user_access_code,base.group_user,0,0,0,0
-
+ 
