@@ -732,7 +732,7 @@ class TaskMigration(models.Model):
 
     def update_project(self, project_id, user_id):
         _self = self.with_user(user_id)
-        self.with_delay()._update_project(project_id)
+        _self.with_delay()._update_project(project_id)
 
     def update_projects(self, latest_unix, users):
         for user in users:
