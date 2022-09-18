@@ -774,7 +774,7 @@ class TaskMigration(models.Model):
             params = request_data['params'].copy()
             params += [f'startAt={start_index}', f'maxResults={page_size}']
             request_data['params'] = params
-            data = self.make_request(request_data, headers)
+            data = self.make_request(request_data, headers) or {}
             total_response = data.get('total', 1)
             start_index += paging
             for board in data.get('values', []):
