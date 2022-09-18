@@ -77,6 +77,7 @@ class TaskMigration(models.Model):
             'project_name': record['name'],
             'project_key': record['key'],
             'wt_migration_id': self.id,
+            'allow_to_fetch': True,
             'allowed_user_ids': [(4, self.env.user.id, False)]
         }
         return self.env['wt.project'].sudo().create(res).id
