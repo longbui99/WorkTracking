@@ -720,10 +720,10 @@ class TaskMigration(models.Model):
         self.add_time_logs(issue_id, time_log_to_create_ids)
         self.update_time_logs(issue_id, time_log_to_update_ids)
 
-    def _update_project(self, project_id):
+    def _update_project(self, project_id, project_last_update):
         updated_date = datetime(1970, 1, 1, 1, 1, 1, 1)
-        if project_id.last_update:
-            updated_date = self.convert_utc_to_usertz(project_id.last_update)
+        if project_last_update:
+            updated_date = self.convert_utc_to_usertz(project_last_update)
         str_updated_date = updated_date.strftime('%Y-%m-%d %H:%M')
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
@@ -734,7 +734,7 @@ class TaskMigration(models.Model):
 
     def update_project(self, project_id, user_id):
         _self = self.with_user(user_id)
-        _self.with_delay()._update_project(project_id)
+        _self.with_delay()._update_project(project_id, project_id.last_update)
 
     def update_projects(self, latest_unix, users):
         for user in users:
