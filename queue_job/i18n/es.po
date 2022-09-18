@@ -4,17 +4,17 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 12.0\n"
+"Project-Id-Version: Odoo Server 15.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2020-07-22 12:20+0000\n"
-"Last-Translator: c2cdidier <didier.donze@camptocamp.com>\n"
+"PO-Revision-Date: 2022-06-30 10:05+0000\n"
+"Last-Translator: Jairo Llopis <yajo.sk8@gmail.com>\n"
 "Language-Team: none\n"
-"Language: de\n"
+"Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.10\n"
+"X-Generator: Weblate 4.3.2\n"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
@@ -22,80 +22,79 @@ msgid ""
 "<span class=\"oe_grey oe_inline\"> If the max. retries is 0, the number of "
 "retries is infinite.</span>"
 msgstr ""
-"<span class=\"oe_grey oe_inline\">Wenn die maximale Anzahl der Wiederholung "
-"auf 0 gesetzt ist,  wird dies als unendlich interpretiert.</span>"
+"<span class=\"oe_grey oe_inline\"> Si los reintentos máximos son 0, el "
+"número de reintentos es infinito.</span>"
 
 #. module: queue_job
 #: code:addons/queue_job/controllers/main.py:0
 #, python-format
 msgid "Access Denied"
-msgstr ""
+msgstr "Acceso denegado"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_needaction
 msgid "Action Needed"
-msgstr "Aktion notwendig"
+msgstr "Acción requerida"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_ids
 msgid "Activities"
-msgstr "Aktivitäten"
+msgstr "Actividades"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_exception_decoration
-#, fuzzy
 msgid "Activity Exception Decoration"
-msgstr "Exception-Information"
+msgstr "Decoración de Actividad de Excepción"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_state
 msgid "Activity State"
-msgstr "Aktivitätsstatus"
+msgstr "Estado de la actividad"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_type_icon
 msgid "Activity Type Icon"
-msgstr ""
+msgstr "Icono de tipo de actividad"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__args
 msgid "Args"
-msgstr "Argumente"
+msgstr "Argumentos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_attachment_count
 msgid "Attachment Count"
-msgstr "Anzahl der Anhänge"
+msgstr "Nº de archivos adjuntos"
 
 #. module: queue_job
 #: model:ir.actions.server,name:queue_job.ir_cron_autovacuum_queue_jobs_ir_actions_server
 #: model:ir.cron,cron_name:queue_job.ir_cron_autovacuum_queue_jobs
 #: model:ir.cron,name:queue_job.ir_cron_autovacuum_queue_jobs
 msgid "AutoVacuum Job Queue"
-msgstr "AutoVacuum für Job-Warteschlange"
+msgstr "Vaciado automático de la cola de trabajos"
 
 #. module: queue_job
 #: model:ir.model,name:queue_job.model_base
 msgid "Base"
-msgstr "Basis"
+msgstr "Base"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_requeue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_set_jobs_done
 msgid "Cancel"
-msgstr "Abbrechen"
+msgstr "Cancelar"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job_channel.py:0
 #, python-format
 msgid "Cannot change the root channel"
-msgstr "Der Root-Kanal kann nicht geändert werden"
+msgstr "No se puede cambiar el canal raíz"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job_channel.py:0
 #, python-format
 msgid "Cannot remove the root channel"
-msgstr "Der Root-Kanal kann nicht entfernt werden"
+msgstr "No se puede eliminar el canal raíz"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__channel
@@ -103,17 +102,17 @@ msgstr "Der Root-Kanal kann nicht entfernt werden"
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_function_search
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Channel"
-msgstr "Kanal"
+msgstr "Canal"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__channel_method_name
 msgid "Channel Method Name"
-msgstr "Kanal-Methodenname"
+msgstr "Nombre del método del canal"
 
 #. module: queue_job
 #: model:ir.model.constraint,message:queue_job.constraint_queue_job_channel_name_uniq
 msgid "Channel complete name must be unique"
-msgstr "Der vollständige Name des Kanals muss eindeutig sein"
+msgstr "El nombre completo del canal debe ser único"
 
 #. module: queue_job
 #: model:ir.actions.act_window,name:queue_job.action_queue_job_channel
@@ -121,144 +120,142 @@ msgstr "Der vollständige Name des Kanals muss eindeutig sein"
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_channel_form
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_channel_search
 msgid "Channels"
-msgstr "Kanäle"
+msgstr "Canales"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__company_id
 msgid "Company"
-msgstr "Unternehmen"
+msgstr "Empresa"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__complete_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__channel
 msgid "Complete Name"
-msgstr "Vollständiger Name"
+msgstr "Nombre completo"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__date_created
 msgid "Created Date"
-msgstr "Erstellt am"
+msgstr "Fecha de creación"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__create_uid
 #: model:ir.model.fields,field_description:queue_job.field_queue_jobs_to_done__create_uid
 #: model:ir.model.fields,field_description:queue_job.field_queue_requeue_job__create_uid
 msgid "Created by"
-msgstr "Erstellt von"
+msgstr "Creado por"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__create_date
 #: model:ir.model.fields,field_description:queue_job.field_queue_jobs_to_done__create_date
 #: model:ir.model.fields,field_description:queue_job.field_queue_requeue_job__create_date
 msgid "Created on"
-msgstr "Erstellt am"
+msgstr "Creado el"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__retry
 msgid "Current try"
-msgstr "Aktueller Versuch"
+msgstr "Intento actual"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 msgid "Current try / max. retries"
-msgstr "Aktueller Versuch / max. Anzahl der Wiederholung"
+msgstr "Intento actual / reintentos máx."
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__date_done
 msgid "Date Done"
-msgstr "Erledigt am"
+msgstr "Fecha de realización"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__name
 msgid "Description"
-msgstr "Beschreibung"
+msgstr "Descripción"
 
 #. module: queue_job
-#: model:ir.model.fields,field_description:queue_job.field_ir_model_fields__display_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__display_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__display_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__display_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_jobs_to_done__display_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_requeue_job__display_name
 msgid "Display Name"
-msgstr "Anzeigename"
+msgstr "Nombre mostrado"
 
 #. module: queue_job
 #: model:ir.model.fields.selection,name:queue_job.selection__queue_job__state__done
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Done"
-msgstr "Erledigt"
+msgstr "Hecho"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__date_enqueued
 msgid "Enqueue Time"
-msgstr "Zeit der Einreihung"
+msgstr "Hora en que se puso en cola"
 
 #. module: queue_job
 #: model:ir.model.fields.selection,name:queue_job.selection__queue_job__state__enqueued
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Enqueued"
-msgstr "Eingereiht"
+msgstr "En la cola"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__exc_info
 msgid "Exception Info"
-msgstr "Exception-Info"
+msgstr "Información de la excepción"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 msgid "Exception Information"
-msgstr "Exception-Information"
+msgstr "Información de la excepción"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__eta
 msgid "Execute only after"
-msgstr "Erst ausführen nach"
+msgstr "Ejecutar solo después de"
 
 #. module: queue_job
 #: model:ir.model.fields.selection,name:queue_job.selection__queue_job__state__failed
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Failed"
-msgstr "Fehlgeschlagen"
+msgstr "Falló"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_ir_model_fields__ttype
 msgid "Field Type"
-msgstr ""
+msgstr "Tipo de campo"
 
 #. module: queue_job
 #: model:ir.model,name:queue_job.model_ir_model_fields
 msgid "Fields"
-msgstr ""
+msgstr "Campos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_follower_ids
 msgid "Followers"
-msgstr "Abonnenten"
-
-#. module: queue_job
-#: model:ir.model.fields,field_description:queue_job.field_queue_job__message_channel_ids
-msgid "Followers (Channels)"
-msgstr "Abonnenten (Kanäle)"
+msgstr "Seguidores"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Abonnenten (Partner)"
+msgstr "Seguidores (Partners)"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__activity_type_icon
 msgid "Font awesome icon e.g. fa-tasks"
-msgstr ""
+msgstr "Icono de Font Awesome ej. fa-tasks"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_function_search
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Group By"
-msgstr "Gruppieren nach"
+msgstr "Agrupar por"
 
 #. module: queue_job
-#: model:ir.model.fields,field_description:queue_job.field_ir_model_fields__id
+#: model:ir.model.fields,field_description:queue_job.field_queue_job__has_message
+msgid "Has Message"
+msgstr "Tiene un mensaje"
+
+#. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__id
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__id
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__id
@@ -270,58 +267,60 @@ msgstr "ID"
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_exception_icon
 msgid "Icon"
-msgstr "Symbol"
+msgstr "Icono"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__activity_exception_icon
 msgid "Icon to indicate an exception activity."
-msgstr "Symbol zur Kennzeichnung einer Ausnahmeaktivität."
+msgstr "Icono para indicar una actividad de excepción."
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__identity_key
 msgid "Identity Key"
-msgstr "Identitätsschlüssel"
+msgstr "Clave identificadora"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
-#, fuzzy, python-format
+#, python-format
 msgid "If both parameters are 0, ALL jobs will be requeued!"
-msgstr "Die ausgewählten Jobs werden erneut eingereiht."
+msgstr ""
+"Si ambos parámetros son 0, ¡TODOS los trabajos se volverán a poner en la "
+"cola!"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_needaction
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_unread
 msgid "If checked, new messages require your attention."
-msgstr "Wenn es gesetzt ist, erfordern neue Nachrichten Ihre Aufmerksamkeit."
+msgstr ""
+"Si se encuentra seleccionado, hay nuevos mensajes que requieren tu atención."
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_has_error
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr ""
-"Wenn es gesetzt ist, gibt es einige Nachrichten mit einem Übertragungsfehler."
+msgstr "Si se encuentra seleccionado, algunos mensajes tienen error de envío."
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job_function.py:0
 #, python-format
 msgid "Invalid job function: {}"
-msgstr ""
+msgstr "Función del trabajo no válida: {}"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_is_follower
 msgid "Is Follower"
-msgstr "Ist Abonnent"
+msgstr "Es un seguidor"
 
 #. module: queue_job
 #: model:ir.model,name:queue_job.model_queue_job_channel
 msgid "Job Channels"
-msgstr "Job-Kanäle"
+msgstr "Canales de trabajos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__job_function_id
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Job Function"
-msgstr "Job-Funktion"
+msgstr "Función del trabajo"
 
 #. module: queue_job
 #: model:ir.actions.act_window,name:queue_job.action_queue_job_function
@@ -331,35 +330,34 @@ msgstr "Job-Funktion"
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_function_form
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_function_search
 msgid "Job Functions"
-msgstr "Job-Funktionen"
+msgstr "Funciones de los trabajos"
 
 #. module: queue_job
 #: model:ir.module.category,name:queue_job.module_category_queue_job
 #: model:ir.ui.menu,name:queue_job.menu_queue_job_root
 msgid "Job Queue"
-msgstr "Job-Warteschlange"
+msgstr "Cola de trabajos"
 
 #. module: queue_job
 #: model:res.groups,name:queue_job.group_queue_job_manager
 msgid "Job Queue Manager"
-msgstr "Job-Warteschlangenverwalter"
+msgstr "Gestor de la cola de trabajos"
 
 #. module: queue_job
 #: model:ir.model.fields.selection,name:queue_job.selection__ir_model_fields__ttype__job_serialized
-#, fuzzy
 msgid "Job Serialized"
-msgstr "Job ist fehlgeschlagen"
+msgstr "Trabajo en serie"
 
 #. module: queue_job
 #: model:mail.message.subtype,name:queue_job.mt_job_failed
 msgid "Job failed"
-msgstr "Job ist fehlgeschlagen"
+msgstr "Trabajo fallido"
 
 #. module: queue_job
 #: code:addons/queue_job/controllers/main.py:0
 #, python-format
 msgid "Job interrupted and set to Done: nothing to do."
-msgstr "Job unterbrochen und als Erledigt markiert: Es ist nicht zu tun."
+msgstr "Trabajo interrumpido y marcado como hecho: nada que hacer"
 
 #. module: queue_job
 #: model:ir.actions.act_window,name:queue_job.action_queue_job
@@ -369,14 +367,14 @@ msgstr "Job unterbrochen und als Erledigt markiert: Es ist nicht zu tun."
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Jobs"
-msgstr "Jobs"
+msgstr "Trabajos"
 
 #. module: queue_job
 #: model:ir.actions.server,name:queue_job.ir_cron_queue_job_garbage_collector_ir_actions_server
 #: model:ir.cron,cron_name:queue_job.ir_cron_queue_job_garbage_collector
 #: model:ir.cron,name:queue_job.ir_cron_queue_job_garbage_collector
 msgid "Jobs Garbage Collector"
-msgstr ""
+msgstr "Recolector de basura de trabajos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__kwargs
@@ -384,306 +382,306 @@ msgid "Kwargs"
 msgstr "Kwargs"
 
 #. module: queue_job
-#: model:ir.model.fields,field_description:queue_job.field_ir_model_fields____last_update
 #: model:ir.model.fields,field_description:queue_job.field_queue_job____last_update
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel____last_update
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function____last_update
 #: model:ir.model.fields,field_description:queue_job.field_queue_jobs_to_done____last_update
 #: model:ir.model.fields,field_description:queue_job.field_queue_requeue_job____last_update
 msgid "Last Modified on"
-msgstr "Zuletzt geändert am"
+msgstr "Última modificación el"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__write_uid
 #: model:ir.model.fields,field_description:queue_job.field_queue_jobs_to_done__write_uid
 #: model:ir.model.fields,field_description:queue_job.field_queue_requeue_job__write_uid
 msgid "Last Updated by"
-msgstr "Zuletzt aktualisiert von"
+msgstr "Última actualización por"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__write_date
 #: model:ir.model.fields,field_description:queue_job.field_queue_jobs_to_done__write_date
 #: model:ir.model.fields,field_description:queue_job.field_queue_requeue_job__write_date
 msgid "Last Updated on"
-msgstr "Zuletzt aktualisiert am"
+msgstr "Última actualización el"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_main_attachment_id
 msgid "Main Attachment"
-msgstr "Haupt-Anhang"
+msgstr "Adjuntos principales"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
 #, python-format
 msgid "Manually set to done by %s"
-msgstr "Manuell als Erledigt markiert von: %s"
+msgstr "Marcado como hecho a mano por %s"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__max_retries
 msgid "Max. retries"
-msgstr "max. Anzahl von Wiederholungen"
+msgstr "Reintentos máx."
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_has_error
 msgid "Message Delivery error"
-msgstr "Fehler bei Nachrichtenübermittlung"
+msgstr "Error de Envío de Mensaje"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_ids
 msgid "Messages"
-msgstr "Nachrichten"
+msgstr "Mensajes"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__method
-#, fuzzy
 msgid "Method"
-msgstr "Methodenname"
+msgstr "Método"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__method_name
 msgid "Method Name"
-msgstr "Methodenname"
+msgstr "Nombre del método"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__model_name
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__model_id
 msgid "Model"
-msgstr "Modell"
+msgstr "Modelo"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job_function.py:0
 #, python-format
 msgid "Model {} not found"
-msgstr ""
+msgstr "No se ha encontrado el modelo {}"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__my_activity_date_deadline
 msgid "My Activity Deadline"
-msgstr ""
+msgstr "Mi fecha límite de actividad"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__name
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__name
 msgid "Name"
-msgstr "Bezeichnung"
+msgstr "Nombre"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_date_deadline
 msgid "Next Activity Deadline"
-msgstr "Fälligkeit der nächsten Aktivität"
+msgstr "Fecha límite de siguiente actividad"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_summary
 msgid "Next Activity Summary"
-msgstr "Zusammenfassung der nächsten Aktivität"
+msgstr "Resumen de la siguiente actividad"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_type_id
 msgid "Next Activity Type"
-msgstr "Typ der nächsten Aktivität"
+msgstr "Siguiente tipo de actividad"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
 #, python-format
 msgid "No action available for this job"
-msgstr "Für diesen Job ist keine Aktion verfügbar"
+msgstr "No hay ninguna acción disponible para este trabajo"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
 #, python-format
 msgid "Not allowed to change field(s): {}"
-msgstr ""
+msgstr "No se permite cambiar los campos: {}"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_needaction_counter
 msgid "Number of Actions"
-msgstr "Anzahl der Aktionen"
+msgstr "Número de acciones"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_has_error_counter
 msgid "Number of errors"
-msgstr "Anzahl der Fehler"
+msgstr "Numero de errores"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_needaction_counter
 msgid "Number of messages which requires an action"
-msgstr "Das ist die Anzahl von Nachrichten, die eine Aktion benötigen"
+msgstr "Número de mensajes que requieren una acción"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "Das ist die Anzahl von Nachrichten mit Übermittlungsfehler"
+msgstr "Número de mensajes con error de envío"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__message_unread_counter
 msgid "Number of unread messages"
-msgstr "Das ist die Anzahl von ungelesenen Nachrichten"
+msgstr "Número de mensajes no leidos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__override_channel
 msgid "Override Channel"
-msgstr "Kanal überschreiben"
+msgstr "Sobreescribir canal"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__parent_id
 msgid "Parent Channel"
-msgstr "Übergeordneter Kanal"
+msgstr "Canal padre"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job_channel.py:0
 #, python-format
 msgid "Parent channel required."
-msgstr "Es ist ein übergeordneter Kanal notwendig."
+msgstr "Se requiere un canal padre."
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job_function__edit_retry_pattern
 msgid ""
-"Pattern expressing from the count of retries on retryable errors, the number "
-"of of seconds to postpone the next execution. Setting the number of seconds "
-"to a 2-element tuple or list will randomize the retry interval between the 2 "
-"values.\n"
+"Pattern expressing from the count of retries on retryable errors, the number of of seconds to postpone the next execution. Setting the number of seconds to a 2-element tuple or list will randomize the retry interval between the 2 values.\n"
 "Example: {1: 10, 5: 20, 10: 30, 15: 300}.\n"
 "Example: {1: (1, 10), 5: (11, 20), 10: (21, 30), 15: (100, 300)}.\n"
 "See the module description for details."
 msgstr ""
+"Patrón que expresa cuántos segundos se pospondrá la próxima ejecución, "
+"basado en el número de reintentos de los errores reintentables. Si se usa "
+"una tupla o lista de 2 elementos para expresar el número de segundos, se "
+"escogerá un número aleatorio entre ambos valores.\n"
+"Ejemplo: {1: 10, 5: 20, 10: 30, 15: 300}.\n"
+"Ejemplo: {1: (1, 10), 5: (11, 20), 10: (21, 30), 15: (100, 300)}.\n"
+"Vea la descripción del módulo para más detalles."
 
 #. module: queue_job
 #: model:ir.model.fields.selection,name:queue_job.selection__queue_job__state__pending
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Pending"
-msgstr "Ausstehend"
+msgstr "Pendiente"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__priority
 msgid "Priority"
-msgstr "Priorität"
+msgstr "Prioridad"
 
 #. module: queue_job
 #: model:ir.ui.menu,name:queue_job.menu_queue
 msgid "Queue"
-msgstr "Warteschlange"
+msgstr "Cola"
 
 #. module: queue_job
 #: model:ir.model,name:queue_job.model_queue_job
 msgid "Queue Job"
-msgstr "Job einreihen"
+msgstr "Cola de trabajos"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
 #, python-format
 msgid "Queue jobs must created by calling 'with_delay()'."
-msgstr ""
+msgstr "Los trabajos de la cola se deben crear llamando a `with_delay()`"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__record_ids
 msgid "Record"
-msgstr "Datensatz"
+msgstr "Registro"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__records
-#, fuzzy
 msgid "Record(s)"
-msgstr "Datensatz"
+msgstr "Registro(s)"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 msgid "Related"
-msgstr "Zugehörige Aktion anzeigen"
+msgstr "Relacionado"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__edit_related_action
-#, fuzzy
 msgid "Related Action"
-msgstr "Zugehöriger Datensatz"
+msgstr "Acción relacionada"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__related_action
 msgid "Related Action (serialized)"
-msgstr ""
+msgstr "Acción relacionada (en serie)"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
 #, python-format
 msgid "Related Record"
-msgstr "Zugehöriger Datensatz"
+msgstr "Registro relacionado"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
 #, python-format
 msgid "Related Records"
-msgstr "Zugehörige Datensätze"
+msgstr "Registros relacionados"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_channel__removal_interval
 msgid "Removal Interval"
-msgstr "Entfernungsintervall"
+msgstr "Intervalo de eliminación"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_requeue_job
 msgid "Requeue"
-msgstr "Erneut einreihen"
+msgstr "Volver a poner en la cola"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 msgid "Requeue Job"
-msgstr "Job erneut einreihen"
+msgstr "Volver a poner el trabajo en la cola"
 
 #. module: queue_job
 #: model:ir.actions.act_window,name:queue_job.action_requeue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_requeue_job
 msgid "Requeue Jobs"
-msgstr "Jobs erneut einreihen"
+msgstr "Volver a poner los trabajos en la cola"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__activity_user_id
 msgid "Responsible User"
-msgstr "Verantwortlicher Benutzer"
+msgstr "Usuario responsable"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__result
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 msgid "Result"
-msgstr "Ergebnis"
+msgstr "Resultado"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__edit_retry_pattern
 msgid "Retry Pattern"
-msgstr ""
+msgstr "Patrón de reintentos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job_function__retry_pattern
 msgid "Retry Pattern (serialized)"
-msgstr ""
+msgstr "Patrón de reintentos (en serie)"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr "Fehler bei der SMS Nachrichtenübermittlung"
+msgstr "Error de entrega del SMS"
 
 #. module: queue_job
 #: model:ir.model,name:queue_job.model_queue_jobs_to_done
 msgid "Set all selected jobs to done"
-msgstr "Alle ausgewählten Jobs als Erledigt markieren"
+msgstr "Marcar como hechos todos los trabajos seleccionados"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_set_jobs_done
 msgid "Set jobs done"
-msgstr "Jobs als Erledigt markieren"
+msgstr "Marcar trabajos como hechos"
 
 #. module: queue_job
 #: model:ir.actions.act_window,name:queue_job.action_set_jobs_done
 msgid "Set jobs to done"
-msgstr "Jobs als Erledigt markieren"
+msgstr "Marcar trabajos como hechos"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_form
 msgid "Set to 'Done'"
-msgstr "Als Erledigt markieren"
+msgstr "Marcar como 'Hecho'"
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_set_jobs_done
 msgid "Set to done"
-msgstr "Als Erledigt markieren"
+msgstr "Marcar como hecho"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job.py:0
@@ -692,25 +690,25 @@ msgid ""
 "Something bad happened during the execution of the job. More details in the "
 "'Exception Information' section."
 msgstr ""
-"Bei der Ausführung des Jobs ist etwas Ungewöhnliches passiert. Beachten Sie "
-"die Details im Abschnitt \"Exception-Information\"."
+"Algo malo pasó durante la ejecución del trabajo. Más detalles en la sección "
+"'Información de la excepción'."
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__date_started
 msgid "Start Date"
-msgstr "Gestartet am"
+msgstr "Fecha de inicio"
 
 #. module: queue_job
 #: model:ir.model.fields.selection,name:queue_job.selection__queue_job__state__started
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "Started"
-msgstr "Gestartet"
+msgstr "Iniciado"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__state
 #: model_terms:ir.ui.view,arch_db:queue_job.view_queue_job_search
 msgid "State"
-msgstr "Status"
+msgstr "Estado"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__activity_state
@@ -720,24 +718,27 @@ msgid ""
 "Today: Activity date is today\n"
 "Planned: Future activities."
 msgstr ""
-"Der Status hängt von den Aktivitäten ab.\n"
-"Überfällig: Das Fälligkeitsdatum der Aktivität ist überschritten.\n"
-"Heute: Die Aktivität findet heute statt.\n"
-"Geplant: Die Aktivitäten findet in der Zukunft statt."
+"Estado basado en actividades\n"
+"Vencida: la fecha tope ya ha pasado\n"
+"Hoy: La fecha tope es hoy\n"
+"Planificada: futuras actividades."
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__func_string
 msgid "Task"
-msgstr "Aufgabe"
+msgstr "Tarea"
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job_function__edit_related_action
 msgid ""
-"The action when the button *Related Action* is used on a job. The default "
-"action is to open the view of the record related to the job. Configured as a "
-"dictionary with optional keys: enable, func_name, kwargs.\n"
+"The action when the button *Related Action* is used on a job. The default action is to open the view of the record related to the job. Configured as a dictionary with optional keys: enable, func_name, kwargs.\n"
 "See the module description for details."
 msgstr ""
+"Acción cuando se usa el botón *Acción relacionada* en un trabajo. La acción "
+"por defecto es abrir la vista del registro relacionado con el trabajo. Se "
+"configura como un diccionario con estas claves opcionales: enable, "
+"func_name, kwargs.\n"
+"Vea la descripción del módulo para más detalles."
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__max_retries
@@ -745,25 +746,23 @@ msgid ""
 "The job will fail if the number of tries reach the max. retries.\n"
 "Retries are infinite when empty."
 msgstr ""
-"Der Job wird fehlschlagen, wenn die Anzahl der Versuche gleich der maximalen "
-"Anzahl der Wiederholungen ist.\n"
-"Wenn Letzteres nicht gesetzt ist, werden unendlich viele Versuche "
-"unternommen."
+"El trabajo fallará si alcanza el máx. de re intentos.\n"
+"Los reintentos son infinitos si se deja vacío."
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_requeue_job
 msgid "The selected jobs will be requeued."
-msgstr "Die ausgewählten Jobs werden erneut eingereiht."
+msgstr "Los trabajos seleccionados volverán a ponerse en la cola."
 
 #. module: queue_job
 #: model_terms:ir.ui.view,arch_db:queue_job.view_set_jobs_done
 msgid "The selected jobs will be set to done."
-msgstr "Die ausgewählten Jobs werden als Erledigt markiert."
+msgstr "Los trabajos seleccionados se marcarán como hechos."
 
 #. module: queue_job
 #: model:ir.model.fields,help:queue_job.field_queue_job__activity_exception_decoration
 msgid "Type of the exception activity on record."
-msgstr "Typ der Ausnahmeaktivität im Datensatz."
+msgstr "Tipo de actividad de excepción registrada."
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__uuid
@@ -776,9 +775,12 @@ msgstr "UUID"
 msgid ""
 "Unexpected format of Related Action for {}.\n"
 "Example of valid format:\n"
-"{{\"enable\": True, \"func_name\": \"related_action_foo\", \"kwargs"
-"\" {{\"limit\": 10}}}}"
+"{{\"enable\": True, \"func_name\": \"related_action_foo\", \"kwargs\" {{\"limit\": 10}}}}"
 msgstr ""
+"Formato inesperado en la acción relacionada con {}.\n"
+"Ejemplo de un formato válido:\n"
+"{{\"enable\": True, \"func_name\": \"related_action_foo\", \"kwargs\" {{"
+"\"limit\": 10}}}}"
 
 #. module: queue_job
 #: code:addons/queue_job/models/queue_job_function.py:0
@@ -788,51 +790,31 @@ msgid ""
 "Example of valid format:\n"
 "{{1: 300, 5: 600, 10: 1200, 15: 3000}}"
 msgstr ""
+"Formato inesperado en el patrón de reintentos de {}.\n"
+"Ejemplo de un formato válido:\n"
+"{{1: 300, 5: 600, 10: 1200, 15: 3000}}"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_unread
 msgid "Unread Messages"
-msgstr "Ungelesene Nachrichten"
+msgstr "Mensajes sin leer"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__message_unread_counter
 msgid "Unread Messages Counter"
-msgstr "Zähler für ungelesene Nachrichten"
+msgstr "Nº de mensajes sin leer"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__user_id
 msgid "User ID"
-msgstr "Benutzer"
-
-#. module: queue_job
-#: model:ir.model.fields,field_description:queue_job.field_queue_job__website_message_ids
-msgid "Website Messages"
-msgstr "Website Nachrichten"
-
-#. module: queue_job
-#: model:ir.model.fields,help:queue_job.field_queue_job__website_message_ids
-msgid "Website communication history"
-msgstr "Historie der Website-Kommunikation"
+msgstr "ID de usuario"
 
 #. module: queue_job
 #: model:ir.model,name:queue_job.model_queue_requeue_job
 msgid "Wizard to requeue a selection of jobs"
-msgstr "Assistent zur erneuten Einreihung einer Job-Auswahl"
+msgstr "Asistente para volver a poner en cola una selección de trabajos"
 
 #. module: queue_job
 #: model:ir.model.fields,field_description:queue_job.field_queue_job__worker_pid
 msgid "Worker Pid"
-msgstr ""
-
-#~ msgid "If checked new messages require your attention."
-#~ msgstr ""
-#~ "Wenn es gesetzt ist, erfordern neue Nachrichten Ihre Aufmerksamkeit."
-
-#~ msgid "Overdue"
-#~ msgstr "Überfällig"
-
-#~ msgid "Planned"
-#~ msgstr "Geplant"
-
-#~ msgid "Today"
-#~ msgstr "Heute"
+msgstr "Pid del trabajador"

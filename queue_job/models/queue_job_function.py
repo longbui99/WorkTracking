@@ -27,8 +27,7 @@ class QueueJobFunction(models.Model):
         "retry_pattern "
         "related_action_enable "
         "related_action_func_name "
-        "related_action_kwargs "
-        "job_function_id ",
+        "related_action_kwargs ",
     )
 
     def _default_channel(self):
@@ -94,7 +93,9 @@ class QueueJobFunction(models.Model):
             raise exceptions.UserError(_("Invalid job function: {}").format(self.name))
         model_name = groups[1]
         method = groups[2]
-        model = self.env["ir.model"].search([("model", "=", model_name)], limit=1)
+        model = (
+            self.env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
+        )
         if not model:
             raise exceptions.UserError(_("Model {} not found").format(model_name))
         self.model_id = model.id
@@ -113,8 +114,10 @@ class QueueJobFunction(models.Model):
                 self.retry_pattern = ast.literal_eval(edited)
             else:
                 self.retry_pattern = {}
-        except (ValueError, TypeError, SyntaxError):
-            raise exceptions.UserError(self._retry_pattern_format_error_message())
+        except (ValueError, TypeError, SyntaxError) as ex:
+            raise exceptions.UserError(
+                self._retry_pattern_format_error_message()
+            ) from ex
 
     @api.depends("related_action")
     def _compute_edit_related_action(self):
@@ -128,8 +131,10 @@ class QueueJobFunction(models.Model):
                 self.related_action = ast.literal_eval(edited)
             else:
                 self.related_action = {}
-        except (ValueError, TypeError, SyntaxError):
-            raise exceptions.UserError(self._related_action_format_error_message())
+        except (ValueError, TypeError, SyntaxError) as ex:
+            raise exceptions.UserError(
+                self._related_action_format_error_message()
+            ) from ex
 
     @staticmethod
     def job_function_name(model_name, method_name):
@@ -142,7 +147,6 @@ class QueueJobFunction(models.Model):
             related_action_enable=True,
             related_action_func_name=None,
             related_action_kwargs={},
-            job_function_id=None,
         )
 
     def _parse_retry_pattern(self):
@@ -175,7 +179,6 @@ class QueueJobFunction(models.Model):
             related_action_enable=config.related_action.get("enable", True),
             related_action_func_name=config.related_action.get("func_name"),
             related_action_kwargs=config.related_action.get("kwargs", {}),
-            job_function_id=config.id,
         )
 
     def _retry_pattern_format_error_message(self):
@@ -196,10 +199,10 @@ class QueueJobFunction(models.Model):
             for value in all_values:
                 try:
                     int(value)
-                except ValueError:
+                except ValueError as ex:
                     raise exceptions.UserError(
                         record._retry_pattern_format_error_message()
-                    )
+                    ) from ex
 
     def _related_action_format_error_message(self):
         return _(
