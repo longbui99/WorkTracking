@@ -8,6 +8,7 @@
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",
     "depends": ['hr', 'digest'],
+    "license": "LGPL-3",
     "data": [
         'data/project_data.xml',
         'data/digest_email_template.xml',

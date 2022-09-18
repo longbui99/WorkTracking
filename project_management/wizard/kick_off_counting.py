@@ -30,7 +30,7 @@ class KickOffSession(models.TransientModel):
     description = fields.Char(string="Description")
     logging_type = fields.Selection([('issue', 'To the specific issue'),
                                      ('separate', 'In separated')], default='separate')
-    log_to_issue_id = fields.Many2one('wt.issue', string="Issue")
+    log_to_issue_id = fields.Many2one('wt.issue', string="Log To Issue")
 
     @api.depends('issue_chain_work_ids', 'issue_chain_work_ids.state')
     def _compute_state(self):

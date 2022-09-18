@@ -8,6 +8,7 @@
     "author": "Drake Bui",
     "website": "https://www.drakebui.ml/",
     "depends": ['project_management', 'queue_job'],
+    "license": "LGPL-3",
     "data": [
         'data/queue_job_function.xml',
         'data/cron_job.xml',
