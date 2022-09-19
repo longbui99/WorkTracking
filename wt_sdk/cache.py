@@ -53,12 +53,12 @@ class TokenCache:
             self.tokens[key] = value
             self._store_tokens()
 
-    def get_token(self, key):
+    def get_token(self, key, odoo_model):
         if key not in self.tokens:
             raise KeyError("Cannot find token for the key: " + str(key))
         return self.tokens[key]
 
-    def set_token(self, key, value):
+    def set_token(self, key, value, odoo_model):
         self._update_token(key, value)
 
 class TokenStorage(TokenCache):
