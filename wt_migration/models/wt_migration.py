@@ -41,6 +41,7 @@ class TaskMigration(models.Model):
     wt_agile_url = fields.Char(string="Task Agile URL")
     admin_user_ids = fields.Many2many("res.users", string="Admins")
     active = fields.Boolean(string="Active?", default=True)
+    is_round_robin = fields.Boolean(string="Share Sync?")
 
     def action_toggle(self):
         for record in self:
