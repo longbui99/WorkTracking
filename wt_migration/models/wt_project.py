@@ -26,13 +26,15 @@ class WtProject(models.Model):
                 migration_dict[project.wt_migration_id] = self.env['res.users']
             if project.allowed_user_ids:
                 user_ids = allowed_user_ids & project.allowed_user_ids
-                if not (user_ids & migration_dict[project.wt_migration_id]) and user_ids:
-                    migration_dict[project.wt_migration_id] |= user_ids[0]
-                if len(user_ids) == 0 and project.wt_migration_id:
-                    user_ids = project.wt_migration_id.admin_user_ids.ids
-                if (not project.last_update or project.last_update.timestamp() * 1000 < latest_unix) and user_ids and project.wt_migration_id:
-                    project.wt_migration_id.update_project(project, user_ids[0])
-                project.last_update = checkpoint_unix
+            elif project.wt_migration_id.admin_user_ids:
+                user_ids = allowed_user_ids & project.project.wt_migration_id.admin_user_ids
+            if not (user_ids & migration_dict[project.wt_migration_id]) and user_ids:
+                migration_dict[project.wt_migration_id] |= user_ids[0]
+            if len(user_ids) == 0 and project.wt_migration_id:
+                user_ids = project.wt_migration_id.admin_user_ids.ids
+            if (not project.last_update or project.last_update.timestamp() * 1000 < latest_unix) and user_ids and project.wt_migration_id:
+                project.wt_migration_id.update_project(project, user_ids[0])
+            project.last_update = checkpoint_unix
 
         for wt in migration_dict.keys():
             wt.with_delay().update_projects(latest_unix, migration_dict[wt])
