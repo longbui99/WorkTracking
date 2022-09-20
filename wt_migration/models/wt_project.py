@@ -27,7 +27,7 @@ class WtProject(models.Model):
             if project.allowed_user_ids:
                 user_ids = allowed_user_ids & project.allowed_user_ids
             elif project.wt_migration_id.admin_user_ids:
-                user_ids = allowed_user_ids & project.project.wt_migration_id.admin_user_ids
+                user_ids = allowed_user_ids & project.wt_migration_id.admin_user_ids
             if not (user_ids & migration_dict[project.wt_migration_id]) and user_ids:
                 migration_dict[project.wt_migration_id] |= user_ids[0]
             if len(user_ids) == 0 and project.wt_migration_id:
