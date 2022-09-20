@@ -47,10 +47,14 @@
                         <group>
                             <field name="wt_server_url"/>
                             <field name="wt_agile_url"/>
+
                             <field name="auth_type"/>
                             <field name="server_type"/>
                             <field name="timezone"/>
+                        </group>
+                        <group>
                             <field name="admin_user_ids" widget="many2many_tags"/>
+                            <field name="is_round_robin" widget="boolean_toggle"/>
                         </group>
                     </group>
                     <notebook>
