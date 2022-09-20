@@ -24,6 +24,7 @@ class WtProject(models.Model):
         for project in self:
             if project.wt_migration_id not in migration_dict:
                 migration_dict[project.wt_migration_id] = self.env['res.users']
+            user_ids = self.env['res.users']
             if project.wt_migration_id.is_round_robin and project.wt_migration_id.admin_user_ids:
                 user_ids = allowed_user_ids & project.wt_migration_id.admin_user_ids
             elif project.allowed_user_ids:
