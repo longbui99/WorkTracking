@@ -52,6 +52,10 @@ class Auth(http.Controller):
             }
         return http.Response(json.dumps(res), content_type='application/json', status=200)
 
+    @http.route(['/web/login/jwt/status'], methods=['GET', 'POST'], cors="*", type="http", auth="jwt", csrf=False)
+    def fetch_status_by_jwt(self):
+        return http.Response(json.dumps(True), content_type='application/json', status=200)
+
     @http.route(['/web/login/jwt/new-code'], methods=['GET', 'POST'], cors="*", type="http", auth="jwt", csrf=False)
     def fetch_new_code(self, **kwargs):
         res = {}
