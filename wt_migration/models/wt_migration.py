@@ -62,7 +62,8 @@ class TaskMigration(models.Model):
         user = self.env.user
         wt_private_key = user.get_jira_token()
         if self.auth_type == 'api_token':
-            wt_private_key = "Basic " + base64.b64encode(f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
+            wt_private_key = "Basic " + base64.b64encode(
+                f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
         else:
             wt_private_key = "Bearer " + wt_private_key
         headers = {
@@ -85,7 +86,8 @@ class TaskMigration(models.Model):
 
     def _get_current_employee(self):
         return {
-            "user_email": {user.partner_id.email or user.login for user in self.with_context(active_test=False).env["res.users"].sudo().search([])}
+            "user_email": {user.partner_id.email or user.login for user in
+                           self.with_context(active_test=False).env["res.users"].sudo().search([])}
         }
 
     def load_all_users(self, user_email=''):
@@ -205,8 +207,8 @@ class TaskMigration(models.Model):
                 r = value_keys.get(record.key, None)
                 if r:
                     if (r.is_header != record.is_header \
-                        or record.sequence != r.sequence \
-                        or record.checked != r.checked):
+                            or record.sequence != r.sequence \
+                            or record.checked != r.checked):
                         res.append((1, record.id, {
                             'name': parsing(r.name),
                             'wt_raw_name': r.name,
@@ -247,7 +249,7 @@ class TaskMigration(models.Model):
             'dict_sprint': {r.id_on_wt: r.id for r in self.env["agile.sprint"].sudo().search([])}
         }
 
-    def mapping_issue(self, local, issue, response):
+    def prepare_issue_data(self, local, issue, response):
         curd_data = {
             'issue_name': issue.summary,
             'issue_key': issue.issue_key,
@@ -256,6 +258,11 @@ class TaskMigration(models.Model):
             'story_point_unit': issue.hour_point and 'hrs' or 'general',
             'wt_migration_id': self.id,
             'wt_id': issue.remote_id,
+            'project_id': local['dict_project_key'].get(issue.project_key),
+            'assignee_id': local['dict_user'].get(issue.assignee_email),
+            'tester_id': local['dict_user'].get(issue.tester_email),
+            'status_id': local['dict_status'].get(issue.status_key),
+            'issue_type_id': local['dict_type'].get(issue.issue_type_key)
         }
         if issue.epic:
             curd_data['epic_id'] = local['dict_issue_key'].get(issue.epic.issue_key).id
@@ -265,12 +272,10 @@ class TaskMigration(models.Model):
                 curd_data['sprint_id'] = sprint.id
             else:
                 curd_data['sprint_key'] = issue.raw_sprint.get('id', None)
+        return curd_data
 
-        curd_data['project_id'] = local['dict_project_key'].get(issue.project_key)
-        curd_data['assignee_id'] = local['dict_user'].get(issue.assignee_email)
-        curd_data['tester_id'] = local['dict_user'].get(issue.tester_email)
-        curd_data['status_id'] = local['dict_status'].get(issue.status_key)
-        curd_data['issue_type_id'] = local['dict_type'].get(issue.issue_type_key)
+    def mapping_issue(self, local, issue, response):
+        curd_data = self.prepare_issue_data(local, issue, response)
         index, length, keys = 0, len(curd_data.keys()), list(curd_data.keys())
         if isinstance(curd_data['story_point'], dict):
             _logger.error("ERROR AT" + str(curd_data['story_point']))
@@ -391,7 +396,8 @@ class TaskMigration(models.Model):
             response.extend(res['new'])
 
         if existing_record:
-            self.env.cr.execute(f"UPDATE wt_issue SET write_date = NOW() WHERE id IN %(ids)s", {'ids': tuple(existing_record.ids)})
+            self.env.cr.execute(f"UPDATE wt_issue SET write_date = NOW() WHERE id IN %(ids)s",
+                                {'ids': tuple(existing_record.ids)})
         return existing_record | self.env['wt.issue'].sudo().create(response)
 
     def load_issues(self, extra_jql="", domain=[], load_all=False):
@@ -480,7 +486,7 @@ class TaskMigration(models.Model):
             'dict_issue_to_log': {}
         }
 
-    def mapping_worklog(self, local, log, issue, response):
+    def prepare_worklog_data(self, local, log, issue, response):
         curd_data = {
             'time': log.time,
             'duration': log.duration,
@@ -493,6 +499,10 @@ class TaskMigration(models.Model):
             'issue_id': issue.get(log.remote_issue_id, False),
             'is_exported': True
         }
+        return curd_data
+
+    def mapping_worklog(self, local, log, issue, response):
+        curd_data = self.prepare_worklog_data(local, log, issue, response)
         if log.remote_id not in local['dict_log']:
             if log.duration > 0 and issue.get(log.remote_issue_id, False):
                 response['new'].append(curd_data)
