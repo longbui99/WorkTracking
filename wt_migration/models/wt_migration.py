@@ -632,7 +632,7 @@ class TaskMigration(models.Model):
         processed = set([False, None])
         to_create_users = [(issue.assignee_email, issue.assignee_name, issue.assignee_accountId) for issue in issues if (issue.assignee_email or issue.assignee_accountId, company.id) not in local['dict_user']]
         to_create_users += [(issue.tester_email, issue.tester_name, issue.tester_accountId) for issue in issues if (issue.assignee_email or issue.tester_accountId, company.id) not in local['dict_user']]
-        user_env_sudo = self.env['res.users'].sudo()
+        user_env_sudo = self.env['res.users'].sudo().with_context(install_mode=True)
         for user in to_create_users:
             login = user[0] or user[2]
             email = login or 'sample@mail'
@@ -905,11 +905,12 @@ class TaskMigration(models.Model):
         company = self.company_id
         processed = set([False, None])
         to_create_users = [(log.author, log.author_name, log.author_accountId) for log in logs if (log.author or log.author_accountId, company.id) not in local['dict_user']]
+        user_env_sudo = self.env['res.users'].sudo().with_context(install_mode=True)
         for user in to_create_users:
             login = user[0] or user[2]
             email = login or 'sample@mail'
             if login not in processed:
-                new_user = self.env['res.users'].sudo().create({
+                new_user = user_env_sudo.create({
                     'login': login,
                     'name': user[1],
                     'active': False,
