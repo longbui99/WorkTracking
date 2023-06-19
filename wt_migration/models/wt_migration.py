@@ -1262,8 +1262,10 @@ class TaskMigration(models.Model):
             project_ids = self.env["wt.project"].sudo().search([])
         project_by_key = {project.project_key: project for project in project_ids}
         existed_boards = set(project_ids.mapped('board_ids').mapped('id_on_wt'))
-
-        allowed_user_ids = project_ids.mapped('allowed_user_ids').token_exists()
+        allowed_user_ids = self.admin_user_ids
+        if self.is_round_robin:
+            allowed_user_ids = project_ids.mapped('allowed_user_ids')
+        allowed_user_ids = allowed_user_ids.token_exists()
         if not allowed_user_ids:
             return
         for user in allowed_user_ids:
@@ -1376,7 +1378,10 @@ class TaskMigration(models.Model):
             return
         if not board_ids:
             board_ids = self.env['board.board'].sudo().search([])
-        allowed_user_ids = self.env['res.users'].search([]).token_exists()
+        allowed_user_ids = self.admin_user_ids
+        if self.is_round_robin:
+            allowed_user_ids = self.env['res.users'].search([])
+        allowed_user_ids = allowed_user_ids.token_exists()
         header_by_user = dict()
         board_ids = board_ids.filtered(lambda r: r.type == "scrum")
         local = self.prepare_local_agile()
