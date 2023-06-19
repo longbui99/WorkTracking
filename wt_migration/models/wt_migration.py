@@ -642,7 +642,6 @@ class TaskMigration(models.Model):
                 new_user = user_env_sudo.create({
                     'login': login,
                     'name': user[1],
-                    'email': email,
                     'active': False,
                     'account_id': user[2]
                 })
