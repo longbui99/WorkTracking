@@ -635,10 +635,14 @@ class TaskMigration(models.Model):
         user_env_sudo = self.env['res.users'].sudo()
         for user in to_create_users:
             login = user[0] or user[2]
+            email = login
+            if '@' not in login:
+                email =  'sample@mail'
             if login not in processed:
                 new_user = user_env_sudo.create({
                     'login': login,
                     'name': user[1],
+                    'email': email,
                     'active': False,
                     'account_id': user[2]
                 })
@@ -1300,7 +1304,7 @@ class TaskMigration(models.Model):
         company_id = self.company_id.id
         return {
             'sprints': {x.id_on_wt: x for x in self.env['agile.sprint'].sudo().search([('company_id', '=', company_id)])},
-            'boards': {x.id_on_wt: x for x in self.env['board.board'].sudo().search(('company_id', '=', company_id))},
+            'boards': {x.id_on_wt: x for x in self.env['board.board'].sudo().search([('company_id', '=', company_id)])},
         }
 
     def _map_sprint_values(self, sprint_data, local):
