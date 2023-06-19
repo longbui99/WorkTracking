@@ -33,6 +33,8 @@ class BillableRule(models.Model):
     new_issue_ids = fields.Many2many(comodel="wt.issue", store=False, compute="_compute_applicable_issue_ids")
 
     applicable_domain = fields.Char(string="Applicable Domain", compute="_compute_applicable_domain", store=True)
+    start_date = fields.Datetime(string="Start Timestamp")
+    end_date = fields.Datetime(string="End Timestamp")
 
     def _prepare_applicable_domain(self):
         self.ensure_one()
@@ -53,6 +55,10 @@ class BillableRule(models.Model):
             domain = AND([domain,[['id', 'not in', self.exclude_issue_ids.ids]]])
         if self.include_issue_ids:
             domain = AND([domain,[['id', 'in', self.include_issue_ids.ids]]])
+        if self.start_date:
+            domain = AND([domain,[['create_date', '>=', self.start_date.strftime("%Y-%m-%d")]]])
+        if self.end_date:
+            domain = AND([domain,[['create_date', '<', self.end_date.strftime("%Y-%m-%d")]]])
         return domain
     
     @api.depends('project_ids', 'epic_ids', 'label_ids', 'status_ids', 'priority_ids', 'text_content', 'exclude_issue_ids', 'include_issue_ids')

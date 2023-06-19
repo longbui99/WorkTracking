@@ -18,6 +18,14 @@
                         <field name="rule_type"/>
                     </group>
                     <group>
+                        <group>
+                            <field name="start_date"/>
+                        </group>
+                        <group>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <group>
                         <group string="Filter" name="filter">
                             <field name="text_content" />
                             <field name="project_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
