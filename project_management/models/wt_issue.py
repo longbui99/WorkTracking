@@ -182,6 +182,7 @@ class WtProject(models.Model):
                     'user_id': user_id,
                     'duration': 0,
                     'source': source,
+                    'company_id': self.env.company.id
                 })]
             else:
                 cluster = time_log_ids[0].cluster_id
@@ -190,7 +191,8 @@ class WtProject(models.Model):
                 'cluster_id': cluster.id,
                 'user_id': user_id,
                 'source': source,
-                'description': values.get('description', '')
+                'description': values.get('description', ''),
+                'company_id': self.env.company.id
             })]
             record.last_start = datetime.datetime.now()
         return self
