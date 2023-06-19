@@ -1297,9 +1297,10 @@ class TaskMigration(models.Model):
                             })
 
     def prepare_local_agile(self):
+        company_id = self.company_id.id
         return {
-            'sprints': {x.id_on_wt: x for x in self.env['agile.sprint'].sudo().search([])},
-            'boards': {x.id_on_wt: x for x in self.env['board.board'].sudo().search([])},
+            'sprints': {x.id_on_wt: x for x in self.env['agile.sprint'].sudo().search([('company_id', '=', company_id)])},
+            'boards': {x.id_on_wt: x for x in self.env['board.board'].sudo().search(('company_id', '=', company_id))},
         }
 
     def _map_sprint_values(self, sprint_data, local):
