@@ -133,7 +133,7 @@ class TaskMigration(models.Model):
             'project_key': record['key'],
             'wt_migration_id': self.id,
             'allow_to_fetch': True,
-            'allowed_user_ids': [(4, self.env.user.id, False)],
+            'allowed_manager_ids': [(4, self.env.user.id, False)],
             'company_id': self.company_id.id
         }
         return self.env['wt.project'].sudo().create(res)
@@ -195,12 +195,12 @@ class TaskMigration(models.Model):
                     'company_id': self.company_id.id,
                 }
                 if user_id:
-                    res['allowed_user_ids'] = [(4, user_id.id, False)]
+                    res['allowed_manager_ids'] = [(4, user_id.id, False)]
                 new_project.append(res)
             else:
                 project = existing_project_dict.get(record.get('key', False), False)
                 if user_id:
-                    project.sudo().allowed_user_ids = [(4, user_id.id, False)]
+                    project.sudo().allowed_manager_ids = [(4, user_id.id, False)]
         projects = self.env['wt.project']
         if new_project:
             projects = self.env['wt.project'].sudo().create(new_project)
@@ -225,12 +225,12 @@ class TaskMigration(models.Model):
                     'external_id': record['id']
                 }
                 if user_id:
-                    res['allowed_user_ids'] = [(4, user_id.id, False)]
+                    res['allowed_manager_ids'] = [(4, user_id.id, False)]
                 new_project.append(res)
             else:
                 project = existing_project_dict.get(record.get('key', False), False)
                 if user_id:
-                    project.sudo().allowed_user_ids = [(4, user_id.id, False)]
+                    project.sudo().allowed_manager_ids = [(4, user_id.id, False)]
         projects = self.env['wt.project']
         if new_project:
             projects = self.env['wt.project'].sudo().create(new_project)
@@ -1268,7 +1268,7 @@ class TaskMigration(models.Model):
         existed_boards = set(project_ids.mapped('board_ids').mapped('id_on_wt'))
         allowed_user_ids = self.admin_user_ids
         if self.is_round_robin:
-            allowed_user_ids = project_ids.mapped('allowed_user_ids')
+            allowed_user_ids = project_ids.mapped('allowed_manager_ids')
         allowed_user_ids = allowed_user_ids.token_exists()
         if not allowed_user_ids:
             return
@@ -1393,7 +1393,7 @@ class TaskMigration(models.Model):
             try:
                 if not board.id_on_wt and not board.type == 'scrum':
                     continue
-                usable_user = (board.project_id.allowed_user_ids & allowed_user_ids)
+                usable_user = (board.project_id.allowed_manager_ids & allowed_user_ids)
                 if not usable_user:
                     continue
                 headers = header_by_user.get(usable_user[0]) or self.with_user(usable_user[0]).__get_request_headers()
