@@ -258,7 +258,8 @@ class WtProject(models.Model):
                 'source': source,
                 'issue_id': record.id,
                 'state': 'done',
-                'start_date': start_date
+                'start_date': start_date,
+                'company_id': self.env.company.id
             })
             change_records |= record
             record.last_start = False
