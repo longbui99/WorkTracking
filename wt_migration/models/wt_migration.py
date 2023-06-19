@@ -914,7 +914,7 @@ class TaskMigration(models.Model):
                 })
                 new_user.partner_id.email = login
                 new_user.action_create_employee()
-                local['dict_user'][(login, company)] = new_user.id
+                local['dict_user'][(login, company.id)] = new_user.id
                 processed.add(login)
 
     def processing_worklog_raw_data(self, local, raw, mapping):
