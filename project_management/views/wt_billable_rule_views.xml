@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="wt_billable_rule_form_View" model="ir.ui.view">
+        <field name="name">Billable Rule</field>
+        <field name="model">wt.billable.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="apply_nonbillable_rule" string="Apply Rule" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <field name="rule_type"/>
+                    </group>
+                    <group>
+                        <group string="Filter" name="filter">
+                            <field name="text_content" />
+                            <field name="project_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                            <field name="epic_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                            <field name="label_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                            <field name="status_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                            <field name="priority_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                            <field name="exclude_issue_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                            <field name="include_issue_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                        </group>
+                        <group>
+                            <field name="applicable_domain" widget="domain"
+                                options="{'model': 'wt.issue'}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_billable_rule_tree_View" model="ir.ui.view">
+        <field name="name">Billable Rules</field>
+        <field name="model">wt.billable.rule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="rule_type"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_wt_billable_rule" model="ir.actions.act_window">
+        <field name="name">Non-Billable Rules</field>
+        <field name="res_model">wt.billable.rule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wt_billable_rule_tree_View"/>
+    </record>
+</odoo>

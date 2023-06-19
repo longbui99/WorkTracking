@@ -9,46 +9,52 @@
                 id="project_management.menu_wt_project"
                 name="Projects"
                 action="project_management.action_wt_project"
-                sequence="1"/>
+                sequence="10"/>
         <menuitem
                 id="project_management.menu_wt_issue"
-                sequence="2"
+                sequence="20"
                 name="Issues">
                 <menuitem
                         id="project_management.menu_wt_issue_general"
-                        sequence="2"
+                        sequence="10"
                         name="General Issues"
                         action="project_management.action_wt_issue"
                 />
                 <menuitem
                         id="project_management.menu_wt_issue_personal"
-                        sequence="2"
+                        sequence="20"
                         name="Personal Tasks"
                         action="project_management.action_wt_issue_personal"
+                />
+                <menuitem
+                        id="project_management.menu_wt_billable_rule"
+                        sequence="30"
+                        name="Billable Rules"
+                        action="project_management.action_wt_billable_rule"
                 />
         </menuitem>
         <menuitem
                 id="project_management.menu_work_log"
-                sequence="3"
+                sequence="30"
                 name="Work Logs"
                 action="project_management.action_wt_time_log"/>
         <menuitem
                 id="project_management.settings"
-                sequence="9999"
+                sequence="40"
                 name="Settings">
                 <menuitem
                         id="project_management.menu_status"
-                        sequence="4"
+                        sequence="10"
                         name="Statuses"
                         action="project_management.action_wt_status"/>
                 <menuitem
                         id="project_management.menu_type"
-                        sequence="5"
+                        sequence="20"
                         name="Types"
                         action="project_management.action_wt_type"/>
                 <menuitem
                         id="project_management.menu_priority"
-                        sequence="6"
+                        sequence="30"
                         name="Priorities"
                         action="project_management.action_wt_priority"/>
         </menuitem>

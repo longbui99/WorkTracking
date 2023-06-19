@@ -58,12 +58,26 @@ class WtProject(models.Model):
     company_id = fields.Many2one('res.company', string='Company', related='project_id.company_id', store=True)
     description = fields.Text(string="Description")
     priority_id = fields.Many2one("wt.priority", string="Priority")
+    billable_state = fields.Selection(
+        [
+            ('bill', 'Billable'),
+            ('non-bill', 'Non-Billable')
+        ],
+        string="Billable?",
+        default='bill'
+    )
 
     def name_get(self):
         # Prefetch the fields used by the `name_get`, so `browse` doesn't fetch other fields
         self.browse(self.ids).read(['issue_key', 'issue_name'])
         return [(template.id, '%s: %s' % (template.issue_key and template.issue_key or '', template.issue_name))
                 for template in self]
+    
+    def mark_billable(self):
+        self.billable_state = 'bill'
+
+    def mark_nonbillable(self):
+        self.billable_state = 'non-bill'
 
     #==================================================== API METHOD ==================================================================
 

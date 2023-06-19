@@ -23,6 +23,7 @@
         'views/wt_field_map_views.xml',
         'views/clone_rule_views.xml',
         'views/wt_priority_views.xml',
+        'views/wt_billable_rule_views.xml',
 
         'views/menus.xml',
 

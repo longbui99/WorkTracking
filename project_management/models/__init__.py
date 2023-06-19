@@ -15,3 +15,4 @@ from . import board
 from . import agile_sprint
 from . import wt_label
 from . import wt_priority
+from . import billable_rule

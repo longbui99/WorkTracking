@@ -37,6 +37,11 @@ class WtTimeLog(models.Model):
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
     filter_date = fields.Char(string="Filter", store=False, search='_search_filter_date')
     company_id = fields.Many2one('res.company', string='Company', required=True, related='issue_id.company_id', store=True)
+    billable_state = fields.Selection(
+        string="Billable?",
+        related="issue_id.billable_state",
+        store=True
+    )
 
     def _search_filter_date(self, operator, operand):
         if operator == "=":

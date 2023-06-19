@@ -55,10 +55,11 @@
                             <field name="label_ids" widget="many2many_tags"/>
                         </group>
                         <group>
-                            <field name="duration_in_text"/>
-                            <field name="story_point"/>
                             <field name="assignee_id" domain="[('id','in', suitable_assignee)]"/>
                             <field name="tester_id" domain="[('id','in', suitable_assignee)]"/>
+                            <field name="story_point"/>
+                            <field name="duration_in_text"/>
+                            <field name="billable_state"/>
                         </group>
                     </group>
                     <notebook>
@@ -201,9 +202,13 @@
                 <separator/>
                 <filter string="In Progress" name="filter_in_progress" domain="[('status_value','=', 'new')]"/>
                 <separator/>
+                <filter string="Billable" name="billable" domain="[('billable_state', '=', 'bill')]"/>
+                <filter string="Non-Billable" name="non_billable" domain="[('billable_state', '=', 'non-bill')]"/>
+                <separator/>
                 <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
                 <filter string="Status" name="group_by_status" context="{'group_by':'status_id'}"/>
                 <filter string="Company" name="group_by_status" context="{'group_by':'company_id'}"/>
+                <filter string="Billable" name="group_by_billable_state" context="{'group_by':'billable_state'}"/>
             </search>
         </field>
     </record>
@@ -240,4 +245,23 @@
         <field name="view_id" ref="wt_issue_tree_view"/>
         <field name="search_view_id" ref="project_management.wt_issue_search_view"/>
     </record>
+    
+    <record id="action_server_mark_bill" model="ir.actions.server">
+        <field name="name">Mark Billable</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_wt_issue" />
+        <field name="binding_model_id" ref="model_wt_issue" />
+        <field name="state">code</field>
+        <field name="code">records.mark_billable()</field>
+    </record>
+    
+    <record id="action_server_mark_nonbill" model="ir.actions.server">
+        <field name="name">Mark Non-Billable</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_wt_issue" />
+        <field name="binding_model_id" ref="model_wt_issue" />
+        <field name="state">code</field>
+        <field name="code">records.mark_nonbillable()</field>
+    </record>
+
 </odoo>
