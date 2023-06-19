@@ -739,6 +739,7 @@ class TaskMigration(models.Model):
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
         existing_record = self.env['wt.issue']
         headers = self.__get_request_headers()
+        _logger.warning(headers)
         start_index = 0
         total_response = paging
         response = []
@@ -1244,13 +1245,16 @@ class TaskMigration(models.Model):
         for user_id, projects in project_by_user_id.items():
             user = self.env['res.users'].browse(int(user_id)).exists()
             self = self.with_user(user)
+            _logger.error(self.env.user.id)
             str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix / 1000)).strftime(
                 '%Y-%m-%d %H:%M')
             query_projects = ",".join(projects.mapped(lambda p: f'"{p.project_key}"'))
             params = f"""jql=updated >= '{str_updated_date}' AND PROJECT IN ({query_projects})"""
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
+
             _logger.info(json.dumps(request_data, indent=4))
             issue_ids = self.do_request(request_data, load_all=True)
+
             _logger.info(f"Batch Load Of User {user.display_name}: {len(issue_ids)}")
             self.load_boards(projects)
             self.with_delay().update_board_by_new_issues(user_id, issue_ids)
