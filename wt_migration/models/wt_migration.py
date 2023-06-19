@@ -1225,6 +1225,7 @@ class TaskMigration(models.Model):
     def _update_project(self, project_id, project_last_update):
         self = self.with_context(bypass_cross_user=True)
         updated_date = datetime(1970, 1, 1, 1, 1, 1, 1)
+        _logger.error(self.env.user.id)
         if project_last_update:
             updated_date = self.convert_utc_to_usertz(project_last_update)
         str_updated_date = updated_date.strftime('%Y-%m-%d %H:%M')
