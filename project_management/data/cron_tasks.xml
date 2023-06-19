@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="ir_cron_update_daily_tasks" model="ir.cron">
+        <field name="name">Update daily tasks</field>
+        <field name="model_id" ref="model_wt_issue"/>
+        <field name="state">code</field>
+        <field name="code">model._personal_todo_move()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="nextcall" eval="datetime.now() + (datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).replace(hour=3, minute=0, second=1) - datetime.now(pytz.timezone('Asia/Ho_Chi_Minh'))) % timedelta(hours=24)"/>
+    </record>
+</odoo>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_clone_priority_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.priority.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="src_priority_ids" widget="many2many_tags"/>
+                <field name="dest_priority_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_clone_epic_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.epic.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="src_epic_ids" widget="many2many_tags"/>
+                <field name="dest_epic_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_clone_project_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.project.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="src_project_ids" widget="many2many_tags"/>
+                <field name="dest_project_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_clone_type_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.type.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="src_type_ids" widget="many2many_tags"/>
+                <field name="dest_type_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_clone_status_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.status.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="source_status_ids" widget="many2many_tags"/>
+                <field name="dest_status_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_clone_field_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.field.rule</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="field_id"/>
+                <field name="template" widget="html" class="oe-bordered-editor" options="{'style-inline': true, 'codeview': true, 'dynamic_placeholder': true}"/>
+                <field name="keep_raw"/>
+            </tree>
+        </field>
+    </record>
+
+
+    <record id="wt_clone_rule_form_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.rule</field>
+        <field name="arch" type="xml">
+            <form >
+                <sheet>
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="src_migration_id"/>
+                        </group>
+                        <group>
+                            <field name="dest_migration_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Field Rules" name="field_rule">
+                            <field name="clone_field_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_field_rule_tree_view'}"/>
+                        </page>
+                        <page string="Type Rules" name="type_rules">
+                            <field name="clone_type_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_type_rule_tree_view'}"/>
+                        </page>
+                        <page string="Status Rules" name="status_rules">
+                            <field name="clone_status_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_status_rule_tree_view'}"/>
+                        </page>
+                        <page string="Project Rules" name="project_rules">
+                            <field name="clone_project_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_project_rule_tree_view'}"/>
+                        </page>
+                        <page string="Epic Rules" name="epic_rules">
+                            <field name="clone_epic_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_epic_rule_tree_view'}"/>
+                        </page>
+                        <page string="Priority Rules" name="priority_rules">
+                            <field name="clone_priority_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_priority_rule_tree_view'}"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_clone_rule_tree_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.rule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="src_migration_id"/>
+                <field name="dest_migration_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_clone_rule_search_view" model="ir.ui.view">
+        <field name="name">Clone Rules</field>
+        <field name="model">wt.clone.rule</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="src_migration_id"/>
+                <field name="dest_migration_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wt_clone_rule_action" model="ir.actions.act_window">
+        <field name="name">Clone Rules</field>
+        <field name="res_model">wt.clone.rule</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wt_migration.wt_clone_rule_tree_view"/>
+    </record>
+
+</odoo>

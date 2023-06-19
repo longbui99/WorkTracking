@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_issue_search_view" model="ir.ui.view">
+        <field name="name">Task Issues</field>
+        <field name="model">wt.issue</field>
+        <field name="inherit_id" ref="project_management.wt_issue_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_in_progress" position="replace">
+                <filter string="In Progress" name="filter_in_progress"
+                        domain="[('status_value','in', ('new','indeterminate'))]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="wt_issue_form_view_inherited" model="ir.ui.view">
+        <field name="name">Task Issues</field>
+        <field name="model">wt.issue</field>
+        <field name="inherit_id" ref="project_management.wt_status_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="migration_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

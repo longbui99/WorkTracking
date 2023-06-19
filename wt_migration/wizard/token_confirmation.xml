@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="token_confirmation_form_views" model="ir.ui.view">
+        <field name="name">Update Token</field>
+        <field name="model">token.confirmation</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="employee_id" readonly="1"/>
+                        <field name="token" password="True"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="token_confirmation_action_form" model="ir.actions.act_window">
+        <field name="name">Update Token</field>
+        <field name="res_model">token.confirmation</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="token_confirmation_form_views"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_type_tree_view" model="ir.ui.view">
+        <field name="name">Task Types</field>
+        <field name="model">wt.type</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="epic_ok" optional="hide"/>
+                <field name="name"/>
+                <field name="img_url"/>
+                <field name="key"/>
+                <field name="default_personal"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_wt_type" model="ir.actions.act_window">
+        <field name="name">Task Types</field>
+        <field name="res_model">wt.type</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wt_type_tree_view"/>
+    </record>
+
+</odoo>

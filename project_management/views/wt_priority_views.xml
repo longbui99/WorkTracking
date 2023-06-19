@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_priority_tree_view" model="ir.ui.view">
+        <field name="name">Priority</field>
+        <field name="model">wt.priority</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="icon_url"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_wt_priority" model="ir.actions.act_window">
+        <field name="name">Priority</field>
+        <field name="res_model">wt.priority</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wt_priority_tree_view"/>
+    </record>
+
+</odoo>

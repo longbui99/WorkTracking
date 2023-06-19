@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="ir_cron_fetch_user_from_wt" model="ir.cron">
+        <field name="name">Task load all users</field>
+        <field name="model_id" ref="model_wt_migration"/>
+        <field name="state">code</field>
+        <field name="code">model.load_all_users()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+    </record>
+
+    <record id="ir_cron_re_export_issue" model="ir.cron">
+        <field name="name">Re Export Issue</field>
+        <field name="model_id" ref="model_wt_issue"/>
+        <field name="state">code</field>
+        <field name="code">model.re_export_work_log()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+    </record>
+
+
+    <record id="ir_cron_update_issue_project" model="ir.cron">
+        <field name="name">Task Project: Update Issues</field>
+        <field name="model_id" ref="model_wt_project"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_fetch_issue()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+    </record>
+
+</odoo>

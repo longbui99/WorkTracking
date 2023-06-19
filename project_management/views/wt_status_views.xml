@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_status_tree_view" model="ir.ui.view">
+        <field name="name">Task Statuses</field>
+        <field name="model">wt.status</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="key"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_wt_status" model="ir.actions.act_window">
+        <field name="name">Task Statuses</field>
+        <field name="res_model">wt.status</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wt_status_tree_view"/>
+    </record>
+</odoo>
