@@ -639,10 +639,12 @@ class TaskMigration(models.Model):
             if login not in processed:
                 new_user = user_env_sudo.create({
                     'login': login,
-                    'name': user[1],
+                    'name': user[1] or 'undefined',
                     'email': email,
                     'active': False,
-                    'account_id': user[2]
+                    'account_id': user[2],
+                    'company_id': self.company_id.id,
+                    'company_ids': [(6, 0, self.company_id.ids)],
                 })
                 new_user.partner_id.email = login
                 new_user.action_create_employee()
