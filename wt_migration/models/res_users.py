@@ -54,7 +54,7 @@ class ResUsers(models.Model):
                 users |= user
             except Exception as e:
                 _logger.error(e)
-                errors.append(str(e))
+                errors.append("%s >> %s"%(user, str(e)))
         if not users:
             error_msg = "\n".join(errors)
             raise UserError(error_msg)

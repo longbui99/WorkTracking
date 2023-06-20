@@ -68,9 +68,10 @@ class WtProject(models.Model):
         if len(project_by_user_by_migration.keys()):
             for migration, project_by_user in project_by_user_by_migration.items():
                 migration.with_delay().update_projects(latest_unix, project_by_user)
-                users = self.env['res.users'].browse((project_by_user.keys()))
-                migration.with_delay(eta=1).delete_work_logs_by_unix(latest_unix, users)
-                migration.with_delay(eta=2).load_work_logs_by_unix(latest_unix, users)
+                if migration.import_work_log:
+                    users = self.env['res.users'].browse((project_by_user.keys()))
+                    migration.with_delay(eta=1).delete_work_logs_by_unix(latest_unix, users)
+                    migration.with_delay(eta=2).load_work_logs_by_unix(latest_unix, users)
         
         self.sudo().write({'last_update': checkpoint_unix})
         self.env['ir.config_parameter'].sudo().set_param('latest_unix', int(checkpoint_unix.timestamp() * 1000))
@@ -83,7 +84,8 @@ class WtProject(models.Model):
         for migration_id, projects in migration_dict.items():
             for project in projects:
                 migration_id.with_delay()._update_project(project, project.last_update)
-            migration_id.with_delay(eta=1).load_missing_work_logs_by_unix(0, self.env.user, projects)
+            if migration_id.import_work_log:
+                migration_id.with_delay(eta=1).load_missing_work_logs_by_unix(0, self.env.user, projects)
             projects.sudo().last_update = last_updated
 
     def reset_state(self):
