@@ -42,3 +42,23 @@ class ResUsers(models.Model):
             except:
                 continue
         return existing_token_users 
+
+    @ormcache('migration')
+    def token_exists_by_migration(self, migration):
+        users = self.env['res.users']
+        existing_tokens = self.token_exists()
+        errors = []
+        for user in existing_tokens:
+            try:
+                migration.with_user(user)._get_permission()
+                users |= user
+            except Exception as e:
+                _logger.error(e)
+                errors.append(str(e))
+        if not users:
+            error_msg = "\n".join(errors)
+            raise UserError(error_msg)
+        return users
+
+    def token_clear_cache(self):
+        self.env['token.storage'].clear_caches()

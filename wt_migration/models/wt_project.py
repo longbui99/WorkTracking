@@ -20,7 +20,12 @@ class WtProject(models.Model):
             self = self.search([('allow_to_fetch', '=', True), ('wt_migration_id.active', '=', True)])
         latest_unix = int(self.env['ir.config_parameter'].sudo().get_param('latest_unix'))
         checkpoint_unix = datetime.now()
-        allowed_user_ids = self.env['res.users'].search([]).token_exists()
+        doable_user_ids = self.mapped('allowed_manager_ids') | self.mapped('allowed_user_ids')
+        token_user_by_migration = defaultdict(lambda: self.env['res.users'])
+
+        migrations = self.mapped('wt_migration_id')
+        for migration in migrations:
+            token_user_by_migration[migration] = doable_user_ids.token_exists_by_migration(migration)
 
         new_projects_by_user = defaultdict(lambda: self.env['wt.project'])
         project_by_migration = defaultdict(lambda: self.env['wt.project'])
@@ -32,27 +37,29 @@ class WtProject(models.Model):
         user_by_migration = defaultdict(set)
 
         for migration, projects in project_by_migration.items():
-            for project in projects:
-                user_ids = []
-                if not project.wt_migration_id.is_round_robin and project.wt_migration_id.admin_user_ids:
-                    user_ids = allowed_user_ids & project.wt_migration_id.admin_user_ids
-                elif project.allowed_manager_ids:
-                    user_ids = allowed_user_ids & project.allowed_manager_ids
-                elif project.allowed_user_ids:
-                    user_ids = allowed_user_ids & project.allowed_user_ids
-                
-                if not len(user_ids):
-                    continue
-                applicable_user = user_ids[0]
-                for user in user_ids:
-                    if user in  user_by_migration[migration]:
-                        applicable_user = user
-                        break
-                user_by_migration[migration].add(applicable_user)
-                if not project.last_update and applicable_user and project.wt_migration_id:
-                    new_projects_by_user[applicable_user] |= project
-                else:
-                    project_by_user_by_migration[migration][applicable_user.id] |= project
+            allowed_user_ids = token_user_by_migration[migration]
+            if allowed_user_ids:
+                for project in projects:
+                    user_ids = []
+                    if not project.wt_migration_id.is_round_robin and project.wt_migration_id.admin_user_ids:
+                        user_ids = allowed_user_ids & project.wt_migration_id.admin_user_ids
+                    elif project.allowed_manager_ids:
+                        user_ids = allowed_user_ids & project.allowed_manager_ids
+                    elif project.allowed_user_ids:
+                        user_ids = allowed_user_ids & project.allowed_user_ids
+                    
+                    if not len(user_ids):
+                        continue
+                    applicable_user = user_ids[0]
+                    for user in user_ids:
+                        if user in  user_by_migration[migration]:
+                            applicable_user = user
+                            break
+                    user_by_migration[migration].add(applicable_user)
+                    if not project.last_update and applicable_user and project.wt_migration_id:
+                        new_projects_by_user[applicable_user] |= project
+                    else:
+                        project_by_user_by_migration[migration][applicable_user.id] |= project
 
         
         if new_projects_by_user:

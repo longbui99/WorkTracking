@@ -120,9 +120,12 @@ class TaskMigration(models.Model):
     def _get_permission(self):
         self.ensure_one()
         headers = self.__get_request_headers()
-        result = requests.get(f"{self.wt_server_url}//permissions", headers=headers)
-        _logger.warning(result.text)
-        record = json.loads(result.text)
+        request_data = {
+            'endpoint': f"{self.base_url}/rest/auth/1/session",
+            'method': 'get',
+        }
+        response = self.make_request(request_data, headers)
+        print(response)
 
     def _get_single_project(self, project_key):
         headers = self.__get_request_headers()
@@ -178,6 +181,7 @@ class TaskMigration(models.Model):
                 
     def load_projects(self):
         self.ensure_one()
+        self.env.user.token_exists_by_migration(self)
         headers = self.__get_request_headers()
         result = requests.get(f"{self.wt_server_url}/project", headers=headers)
         existing_project = self.env['wt.project'].search([])
@@ -204,6 +208,7 @@ class TaskMigration(models.Model):
         projects = self.env['wt.project']
         if new_project:
             projects = self.env['wt.project'].sudo().create(new_project)
+        self.env.user.token_clear_cache()
         return projects    
     
     def update_projects_id(self):
@@ -255,8 +260,8 @@ class TaskMigration(models.Model):
         if result.text == "":
             return ""
         body = result.json()
-        if isinstance(body, dict) and len(body.get('errors', [])):
-            raise Exception(body['errors'])
+        if isinstance(body, dict) and ('errors' in body or 'errorMessages' in body):
+            raise Exception(body.get('errors') or body.get('errorMessages'))
         return body
     
     def load_priorities(self):
@@ -1267,6 +1272,7 @@ class TaskMigration(models.Model):
             self.with_delay().update_board_by_new_issues(user_id, issue_ids)
 
     def load_boards(self, project_ids=False):
+        self.ensure_one()
         if not self.wt_agile_url:
             return
         if not project_ids:
@@ -1276,7 +1282,7 @@ class TaskMigration(models.Model):
         allowed_user_ids = self.admin_user_ids
         if self.is_round_robin:
             allowed_user_ids = project_ids.mapped('allowed_manager_ids')
-        allowed_user_ids = allowed_user_ids.token_exists()
+        allowed_user_ids = allowed_user_ids.token_exists_by_migration(self)
         if not allowed_user_ids:
             return
         for user in allowed_user_ids:
@@ -1302,6 +1308,7 @@ class TaskMigration(models.Model):
                                 'type': board['type'],
                                 'project_id': project.id,
                             })
+        self.env.user.token_clear_cache()
 
     def prepare_local_agile(self):
         company_id = self.company_id.id
@@ -1386,6 +1393,7 @@ class TaskMigration(models.Model):
     # Agile Connection
 
     def load_sprints(self, board_ids=False):
+        self.ensure_one()
         if not self.wt_agile_url:
             return
         if not board_ids:
@@ -1393,7 +1401,7 @@ class TaskMigration(models.Model):
         allowed_user_ids = self.admin_user_ids
         if self.is_round_robin:
             allowed_user_ids = self.env['res.users'].search([])
-        allowed_user_ids = allowed_user_ids.token_exists()
+        allowed_user_ids = allowed_user_ids.token_exists_by_migration(self)
         header_by_user = dict()
         board_ids = board_ids.filtered(lambda r: r.type == "scrum")
         local = self.prepare_local_agile()
@@ -1416,3 +1424,4 @@ class TaskMigration(models.Model):
             except Exception as e:
                 _logger.error(e)
 
+        self.env.user.token_clear_cache()
