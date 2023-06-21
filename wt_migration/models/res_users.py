@@ -48,18 +48,18 @@ class ResUsers(models.Model):
         users = self.env['res.users']
         existing_tokens = self.token_exists()
         errors = []
-        _logger.error("CP1")
+        unaccess_users = migration.get_unaccess_token_users()
         for user in existing_tokens:
-            try:
-                _logger.error("CP2")
-                migration.with_user(user)._get_permission()
-                users |= user
-            except Exception as e:
-                _logger.error("CP3")
-                _logger.error(e)
-                errors.append("%s >> %s"%(user, str(e)))
+            if user not in unaccess_users:
+                try:
+                    migration.with_user(user)._get_permission()
+                    users |= user
+                except Exception as e:
+                    migration.add_unaccess_token_users(user)
+                    error = "Unaccecss TOKEN: %s >> %s"%(user.name, str(e))
+                    _logger.error(error)
+                    errors.append(error)
         if not users:
-            _logger.error("CP4")
             error_msg = "\n".join(errors)
             raise UserError(error_msg)
         return users

@@ -8,6 +8,9 @@ access_token_confirmation_user,token.confirmation.user,model_token_confirmation,
 access_wt_migration_admin,field.map,model_wt_field_map,project_management.group_wt_admin,1,1,1,1
 access_wt_migration_map_template_admin,wt.migration.map.template,model_wt_migration_map_template,project_management.group_wt_admin,1,1,1,1
 
+access_wt_unaccess_token,wt.unaccess.token,model_wt_unaccess_token,project_management.group_wt_user,1,0,0,0
+access_wt_unaccess_token,wt.unaccess.token,model_wt_unaccess_token,project_management.group_wt_admin,1,1,1,1
+
 access_wt_clone_rule,wt.clone.rule,model_wt_clone_rule,project_management.group_wt_admin,1,1,1,1
 access_wt_clone_status_rule,wt.clone.status.rule,model_wt_clone_status_rule,project_management.group_wt_admin,1,1,1,1
 access_wt_clone_type_rule,wt.clone.type.rule,model_wt_clone_type_rule,project_management.group_wt_admin,1,1,1,1

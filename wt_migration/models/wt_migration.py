@@ -21,6 +21,13 @@ _logger = logging.getLogger(__name__)
 
 SPECIAL_FIELDS = {'write_date', 'create_date', 'write_uid', 'create_uid'}
 
+class UnaccessTokenUsers(models.Model):
+    _name = "wt.unaccess.token"
+    _description = "WT Unaccess Token"
+    _order = "user_id"
+
+    wt_migration_id = fields.Many2one("wt.migration", string="Migration")
+    user_id = fields.Many2one("res.users", string="User")
 
 class TaskMigration(models.Model):
     _name = 'wt.migration'
@@ -46,6 +53,14 @@ class TaskMigration(models.Model):
     is_round_robin = fields.Boolean(string="Share Sync?")
     company_id = fields.Many2one('res.company', string='Company', required=True)
     template_id = fields.Many2one('wt.migration.map.template', string="Export Issue Template")
+    unaccess_token_user_ids = fields.One2many("wt.unaccess.token", "wt_migration_id", string="Unaccess Token")
+
+    def get_unaccess_token_users(self):
+        self.ensure_one()
+        return self.unaccess_token_user_ids.mapped('user_id')
+    
+    def add_unaccess_token_users(self, users):
+        self.unaccess_token_user_ids = [fields.Command.create({'user_id': user.id}) for user in users]
 
     @api.depends('base_url')
     def _compute_api_url(self):
@@ -125,7 +140,6 @@ class TaskMigration(models.Model):
             'method': 'get',
         }
         response = self.make_request(request_data, headers)
-        print(response)
 
     def _get_single_project(self, project_key):
         headers = self.__get_request_headers()

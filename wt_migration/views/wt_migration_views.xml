@@ -70,6 +70,16 @@
                                 </group>
                             </group>
                         </page>
+                        <page string="Miscellaneous">
+                            <group>
+                                <field name="unaccess_token_user_ids">
+                                    <tree>
+                                        <field name="user_id" required="1"  options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+                                        <field name="write_date" string="Last Updated"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
             </form>
