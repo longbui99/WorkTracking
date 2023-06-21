@@ -33,6 +33,7 @@ class WtProject(models.Model):
     sprint_key = fields.Integer(string="Sprint ID on WT")
     wt_id = fields.Integer(string="Task ID")
     src_issue_id = fields.Many2one("wt.issue", string="Source Issue")
+    cloned_issue_ids = fields.One2many("wt.issue", 'src_issue_id', string="Cloned Issues")
 
     def export_time_log_to_wt(self):
         for record in self:
@@ -142,6 +143,59 @@ class WtProject(models.Model):
         action = self.env["ir.actions.actions"]._for_xml_id("wt_migration.clone_to_migration_action_for")
         action['res_id'] = clone.id
         return action
+    
+    def action_open_cloned_issues(self):
+        action = self.env["ir.actions.actions"]._for_xml_id("project_management.action_wt_issue")
+        action['context'] = {}
+        if len(self) == 1:
+            action['res_id'] = self.id
+            action['view_mode'] = "form"
+            action['views'] = False
+            action['view_id'] = self.env.ref('project_management.wt_issue_form_view').id
+        elif len(self) > 1:
+            action['domain'] = [('id', 'in', self.ids)]
+        else:
+            raise UserError("Cannot open view because of empty cloned issues")
+        return action
+
+    @api.model
+    def map_template_to_values(self, issue, values, template, key, template_key):
+        if not values.get(key) and issue[key].id in template[template_key]:
+            values[key] = template[template_key][issue[key].id]
+        if not values.get(key) and template[template_key].get(False):
+            values[key] =  template[template_key][False]
+    
+    @api.model
+    def prepare_value_for_cloned_issue(self, issue, clone_rule, dest_migration, template):
+        value = {
+            'src_issue_id': issue.id,
+            'wt_migration_id': dest_migration.id,
+            'project_id': clone_rule.project_id.id if clone_rule.project_id else False,
+            'epic_id': clone_rule.epic_id.id if clone_rule.epic_id else False,
+            'sprint_id': clone_rule.sprint_id.id if clone_rule.sprint_id else False,
+            'label_ids': [fields.Command.set(clone_rule.label_ids.ids)],
+            'assignee_id': clone_rule.assignee_id.id if clone_rule.assignee_id else False,
+            'priority_id': clone_rule.priority_id.id if clone_rule.priority_id else False,
+            'issue_type_id': clone_rule.issue_type_id.id if clone_rule.issue_type_id else False,
+            'issue_name': issue.issue_name
+        }
+        if template:
+            ir_qweb_env = self.env['ir.qweb']
+            for field, (field_html, keep_raw) in template['fields'].items():
+                string = ir_qweb_env._render(
+                    html.fragment_fromstring(field_html),
+                    {'o': issue},
+                )
+                if not keep_raw:
+                    string = text_from_html(string)
+                value[field.name] = string
+
+            self.map_template_to_values(issue, value, template, 'issue_type_id', 'types')
+            self.map_template_to_values(issue, value, template, 'status_id', 'statuses')
+            self.map_template_to_values(issue, value, template, 'project_id', 'projects')
+            self.map_template_to_values(issue, value, template, 'epic_id', 'epics')
+            self.map_template_to_values(issue, value, template, 'priority_id', 'priorities')
+        return value
 
     def action_clone_to_server(self, dest_migration, clone_rule):
         issue_by_migration = defaultdict(lambda: self.env['wt.issue'])
@@ -166,38 +220,10 @@ class WtProject(models.Model):
                 for issue in issues:
                     if issue.id in cloned_ids:
                         continue
-                    value = {
-                        'src_issue_id': issue.id,
-                        'wt_migration_id': dest_migration.id,
-                        'project_id': clone_rule.project_id.id if clone_rule.project_id else False,
-                        'epic_id': clone_rule.epic_id.id if clone_rule.epic_id else False,
-                        'sprint_id': clone_rule.sprint_id.id if clone_rule.sprint_id else False,
-                        'label_ids': [fields.Command.set(clone_rule.label_ids.ids)],
-                        'assignee_id': clone_rule.assignee_id.id if clone_rule.assignee_id else False,
-                        'priority_id': clone_rule.priority_id.id if clone_rule.priority_id else False,
-                        'issue_name': issue.issue_name
-                    }
-                    if template:
-                        for field, (field_html, keep_raw) in template['fields'].items():
-                            string = self.env["ir.qweb"]._render(
-                                html.fragment_fromstring(field_html),
-                                {'o': issue},
-                            )
-                            if not keep_raw:
-                                string = text_from_html(string)
-                            value[field.name] = string
-                        if issue.issue_type_id.id in template['types']:
-                            value['issue_type_id'] = template['types'][issue.issue_type_id.id]
-                        if issue.status_id.id in  template['statuses']:
-                            value['status_id'] = template['statuses'][issue.status_id.id]
-                        if not value['project_id'] and issue.project_id.id in template['projects']:
-                            value['project_id'] = template['projects'][issue.project_id.id]
-                        if not value['epic_id'] and issue.epic_id.id in template['epics']:
-                            value['epic_id'] = template['epics'][issue.epic_id.id]
-                        if not value['priority_id'] and issue.priority.id in template['priorities']:
-                            value['priority_id'] = template['priorities'][issue.priority.id]
+                    value = self.prepare_value_for_cloned_issue(issue, clone_rule, dest_migration, template)
                     values.append(value)
-                    print(json.dumps(value, indent=4))
+                    
         issues = self.create(values)
         if clone_rule.auto_export:
             issues.export_to_server()
+        return issues.action_open_cloned_issues()

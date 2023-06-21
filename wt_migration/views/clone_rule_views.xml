@@ -98,6 +98,9 @@
                         </page>
                         <page string="Project Rules" name="project_rules">
                             <field name="clone_project_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_project_rule_tree_view'}"/>
+                            <group>
+                                <field name="default_project_id" string="Default Destination Project"/>
+                            </group>
                         </page>
                         <page string="Epic Rules" name="epic_rules">
                             <field name="clone_epic_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_epic_rule_tree_view'}"/>

@@ -15,8 +15,9 @@ class CloneRule(models.Model):
     clone_type_ids = fields.One2many('wt.clone.type.rule', 'clone_rule_id', string="Type Rules")
     clone_field_ids = fields.One2many('wt.clone.field.rule', 'clone_rule_id', string="Field Rules")
     clone_project_ids = fields.One2many('wt.clone.project.rule', 'clone_rule_id', string="Project Rules")
+    default_project_id = fields.Many2one('wt.project', string="Default Project", domain="[('wt_migration_id','=',dest_migration_id)]")
     clone_epic_ids = fields.One2many('wt.clone.epic.rule', 'clone_rule_id', string="Epic Rules")
-    default_epic_id = fields.Many2one("wt.issue", string="Default Epic", domain="[('epic_ok','=',True)]")
+    default_epic_id = fields.Many2one("wt.issue", string="Default Epic", domain="[('epic_ok','=',True),('wt_migration_id','=',dest_migration_id)]")
     clone_priority_ids = fields.One2many('wt.clone.priority.rule', 'clone_rule_id', string="Priority Rules")
 
 class StatusRule(models.Model):

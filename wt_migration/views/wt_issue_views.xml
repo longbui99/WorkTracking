@@ -26,7 +26,7 @@
                 <field name="last_export"/>
             </field>
             <field name="issue_type_id" position="before">
-                <field name="sprint_id" domain="[('company_id','=', 'company_id')]"/>
+                <field name="sprint_id" domain="[('project_id','=', project_id)]"/>
             </field>
             <xpath expr="//field[@name='ac_ids']//field[@name='checked']" position="after">
                 <field name="wt_raw_name" optional="hide"/>
@@ -38,6 +38,7 @@
                 <page string="Migration" name="migration">
                     <group>
                         <field name="wt_migration_id"/>
+                        <field name="cloned_issue_ids" widget="many2many_tags"/>
                     </group>
                 </page>
             </page>

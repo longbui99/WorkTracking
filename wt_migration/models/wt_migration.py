@@ -274,8 +274,11 @@ class TaskMigration(models.Model):
         if result.text == "":
             return ""
         body = result.json()
-        if isinstance(body, dict) and ('errors' in body or 'errorMessages' in body):
-            raise Exception(body.get('errors') or body.get('errorMessages'))
+        if isinstance(body, dict):
+            if len(body.get('errors') or []):
+                raise Exception(body.get('errors'))
+            if len(body.get('errorMessages') or []):
+                raise Exception(body.get('errorMessages'))
         return body
     
     def load_priorities(self):
@@ -424,10 +427,16 @@ class TaskMigration(models.Model):
                 
         except Exception as e:
             raise UserError(str(e))
+        
+    def get_clone_template_rule(self, destination_migration):
+        res = self.env.context.get('force_clone_template_rule')
+        if not res:
+            res = self.env['wt.clone.rule'].search([('src_migration_id', '=', self.id), ('dest_migration_id', '=', destination_migration.id)], limit=1)
+        return res
 
     def load_clone_template(self, destination_migration, clone_rule):
         self.ensure_one()
-        rule = self.env['wt.clone.rule'].search([('src_migration_id', '=', self.id), ('dest_migration_id', '=', destination_migration.id)])
+        rule = self.get_clone_template_rule(destination_migration)
         template = None
         if rule:
             fields = {
@@ -446,16 +455,18 @@ class TaskMigration(models.Model):
                 for project_rule in rule.clone_project_ids:
                     for clone_project in project_rule.src_project_ids:
                         projects[clone_project.id] = project_rule.dest_project_id.id
+                projects[False] = rule.default_project_id.id
             epics = dict()
             if not clone_rule.epic_id:
                 for epic_rule in rule.clone_epic_ids:
                     for clone_epic in epic_rule.src_epic_ids:
                         epics[clone_epic.id] = epic_rule.dest_epic_id.id
+                epics[False] = rule.default_epic_id.id
             priorities = dict()
             if not clone_rule.priority_id:
-                for epic_rule in rule.clone_priority_ids:
-                    for clone_epic in epic_rule.src_priority_ids:
-                        epics[clone_epic.id] = epic_rule.dest_priority_id.id
+                for priority_rule in rule.clone_priority_ids:
+                    for clone_priority in priority_rule.src_priority_ids:
+                        priorities[clone_priority.id] = priority_rule.dest_priority_id.id
             template = {
                 'fields': fields,
                 'types': types,
