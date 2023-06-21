@@ -4,7 +4,7 @@
               name="Migration"
               action="wt_migration.action_wt_migration"
               sequence="1"
-              groups="project_management.group_wt_admin"
+              groups="project_management.group_wt_user"
               parent="project_management.settings">
     </menuitem>
 
