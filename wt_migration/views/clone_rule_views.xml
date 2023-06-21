@@ -101,6 +101,9 @@
                         </page>
                         <page string="Epic Rules" name="epic_rules">
                             <field name="clone_epic_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_epic_rule_tree_view'}"/>
+                            <group>
+                                <field name="default_epic_id" string="Default Destination Epic"/>
+                            </group>
                         </page>
                         <page string="Priority Rules" name="priority_rules">
                             <field name="clone_priority_ids" context="{'tree_view_ref': 'wt_migration.wt_clone_priority_rule_tree_view'}"/>
