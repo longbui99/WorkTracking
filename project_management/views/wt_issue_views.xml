@@ -197,7 +197,7 @@
             <search>
                 <field name="project_id"/>
                 <field name="company_id"/>
-                <field name="wt_issue_id"/>
+                <field name="wt_migration_id"/>
                 <field name="issue_key"/>
                 <field name="issue_name"/>
                 <field name="company_id"/>
