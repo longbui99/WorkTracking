@@ -195,11 +195,11 @@
         <field name="model">wt.issue</field>
         <field name="arch" type="xml">
             <search>
-                <field name="project_id"/>
-                <field name="company_id"/>
                 <field name="issue_key"/>
                 <field name="issue_name"/>
+                <field name="project_id"/>
                 <field name="company_id"/>
+                <field name="sprint_id"/>
                 <filter string="My issues" name="filter_my_issue" domain="[('assignee_id','=', uid)]"/>
                 <separator/>
                 <filter string="In Progress" name="filter_in_progress" domain="[('status_value','=', 'new')]"/>
