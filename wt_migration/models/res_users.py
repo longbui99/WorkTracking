@@ -59,7 +59,7 @@ class ResUsers(models.Model):
                     error = "Unaccecss TOKEN: %s >> %s"%(user.name, str(e))
                     _logger.error(error)
                     errors.append(error)
-        if not users:
+        if len(errors):
             error_msg = "\n".join(errors)
             raise UserError(error_msg)
         return users
