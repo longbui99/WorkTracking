@@ -132,6 +132,7 @@ class WtTimeLog(models.Model):
             user_start_time = end_time.astimezone(tz) - relativedelta(days=self.env.user.employee_id.default_nbr_days, hour=0, minute=0, second=0)
             start_time = user_start_time.astimezone(pytz.utc)
         domain = [('state', '=', 'done'), ('start_date', '>', start_time), ('start_date', '<=', end_time), ('user_id', '=', self.env.user.id)]
+        _logger.error(domain)
         return domain
 
     @api.model
