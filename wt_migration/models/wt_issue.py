@@ -135,7 +135,6 @@ class WtProject(models.Model):
         self.env['wt.migration']._create_issues(self)
 
     def clone_to_server(self):
-        self.ensure_one()
         clone = self.env['clone.to.migration'].create({
             'issue_ids': [(6, 0, self.ids)]
         })
