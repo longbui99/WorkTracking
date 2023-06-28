@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="wt_issue_template_tree_view" model="ir.ui.view">
-        <field name="name">Task Issues</field>
+        <field name="name">Issues Template</field>
         <field name="priority">1</field>
         <field name="model">wt.issue.template</field>
         <field name="arch" type="xml">
@@ -14,7 +14,7 @@
     </record>
 
     <record id="wt_issue_template_form_view" model="ir.ui.view">
-        <field name="name">Task Issues</field>
+        <field name="name">Issues Template</field>
         <field name="priority">1</field>
         <field name="model">wt.issue.template</field>
         <field name="arch" type="xml">
@@ -63,7 +63,7 @@
     </record>
 
     <record id="wt_issue_template_search_view" model="ir.ui.view">
-        <field name="name">Task Issues</field>
+        <field name="name">Issues Template</field>
         <field name="model">wt.issue.template</field>
         <field name="arch" type="xml">
             <search>
@@ -77,7 +77,7 @@
     </record>
 
     <record id="action_issue_template" model="ir.actions.act_window">
-        <field name="name">Task Issues</field>
+        <field name="name">Issues Template</field>
         <field name="res_model">wt.issue.template</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="wt_issue_template_tree_view"/>
