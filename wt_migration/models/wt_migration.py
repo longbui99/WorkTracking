@@ -176,7 +176,7 @@ class TaskMigration(models.Model):
         travel_login = set()
         for record in response:
             login = record['emailAddress'] or record['accountId']
-            email = record['emailAddress'] or 'sample@mail'
+            email = record['emailAddress'] or f"{record['accountId']}@mail"
             if login not in travel_login and login not in current_employee_data["user_login"]:
                 new_user = UserEnv.create({
                     "name": record["displayName"],
@@ -665,7 +665,7 @@ class TaskMigration(models.Model):
         user_env_sudo = self.env['res.users'].sudo().with_context(install_mode=True)
         for user in to_create_users:
             login = user[0] or user[2]
-            email = login or 'sample@mail'
+            email = login or f"{user[2]}@mail"
             if login not in processed:
                 new_user = user_env_sudo.create({
                     'login': login,
@@ -940,7 +940,7 @@ class TaskMigration(models.Model):
         user_env_sudo = self.env['res.users'].sudo().with_context(install_mode=True)
         for user in to_create_users:
             login = user[0] or user[2]
-            email = login or 'sample@mail'
+            email = login or f"{user[2]}@mail"
             if login not in processed:
                 new_user = user_env_sudo.create({
                     'login': login,
