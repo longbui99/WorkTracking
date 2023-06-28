@@ -82,5 +82,5 @@
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="wt_issue_template_tree_view"/>
         <field name="search_view_id" ref="project_management.wt_issue_template_search_view"/>
-    </record>
+    </record> 
 </odoo>
