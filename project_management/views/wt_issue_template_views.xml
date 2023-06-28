@@ -23,7 +23,6 @@
                 <header>
                     <button name="action_clone_template" confirm="Perform this action will generate issues" string="Clone Issues" type="object" class="btn-primary"/>
                 </header>
-                <sheet>
                     <!-- <div class="oe_button_box" name="button_box" groups="project_management.group_wt_manager">
                         <button name="action_toggle" type="object" class="oe_stat_button text-primary text-center" attrs="{'invisible': [('active', '=', True)]}">
                             <field name="history_issue_counts">
@@ -59,7 +58,6 @@
                             <field name="priority_id"/>
                         </tree>
                     </field>
-                </sheet>
             </form>
         </field>
     </record>

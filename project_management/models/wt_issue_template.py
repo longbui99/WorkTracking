@@ -34,13 +34,15 @@ class WtIssueTemplate(models.Model):
         issue_env = self.env['wt.issue']
         for record in self:
             values = []
+            epic_sequence = record.epic_id.issue_sequence
             for line in record.template_line_ids:
                 values.append({
                     "issue_name": line.name,
                     "project_id": line.project_id.id,
                     "epic_id": line.epic_id.id,
                     "issue_type_id": line.type_id.id,
-                    "priority_id": line.priority_id.id
+                    "priority_id": line.priority_id.id,
+                    'issue_sequence': epic_sequence + 1
                 })
             record.cloned_issue_ids = [fields.Command.link(issue.id)for issue in issue_env.create(values)]
         return {
@@ -80,7 +82,7 @@ class WtIssueTemplateLine(models.Model):
     template = fields.Html(string="Summary Template", required=True, render_engine='qweb', sanitize=False)
     template_id = fields.Many2one("wt.issue.template", string="Template", required=True)
     project_id = fields.Many2one("wt.project", string="Project", related="template_id.project_id")
-    epic_id = fields.Many2one("wt.issue", required=True, domain="[['epic_ok', '=', True], ['project_id', 'in', project_id]]")
+    epic_id = fields.Many2one("wt.issue", domain="[['epic_ok', '=', True], ['project_id', '=', project_id]]")
     type_id = fields.Many2one("wt.type", string="Type")
     priority_id = fields.Many2one("wt.priority", string="Priority")
     is_manually_update = fields.Boolean(string="Manually Update")
