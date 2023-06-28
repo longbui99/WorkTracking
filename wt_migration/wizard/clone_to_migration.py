@@ -16,6 +16,7 @@ class CloneToMigration(models.TransientModel):
     priority_id = fields.Many2one("wt.priority", string="Priority", domain="[('wt_migration_id', '=', wt_migration_id)]")
     issue_type_id = fields.Many2one("wt.type", string="Type", domain="[('company_id', '=', company_id)]")
     issue_ids = fields.Many2many('wt.issue', string="Issues")
+    prefix = fields.Char(string="Prefix")
     is_all_same = fields.Boolean(string="Is All Same?", compute="_compute_is_all_same")
     rule_template_id = fields.Many2one("wt.clone.rule", string="Clone Template")
 
