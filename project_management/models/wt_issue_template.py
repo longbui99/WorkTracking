@@ -36,13 +36,14 @@ class WtIssueTemplate(models.Model):
             values = []
             epic_sequence = record.epic_id.issue_sequence
             for line in record.template_line_ids:
+                epic_sequence += 1
                 values.append({
                     "issue_name": line.name,
                     "project_id": line.project_id.id,
                     "epic_id": line.epic_id.id,
                     "issue_type_id": line.type_id.id,
                     "priority_id": line.priority_id.id,
-                    'issue_sequence': epic_sequence + 1
+                    'issue_sequence': epic_sequence
                 })
             record.cloned_issue_ids = [fields.Command.link(issue.id)for issue in issue_env.create(values)]
         return {
