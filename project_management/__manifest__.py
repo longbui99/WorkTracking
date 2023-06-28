@@ -28,6 +28,7 @@
         'views/wt_time_logging_views.xml',
         'views/digest_email_views.xml',
         'views/wt_billable_rule_views.xml',
+        'views/wt_issue_template_views.xml',
 
         'views/menus.xml',
 

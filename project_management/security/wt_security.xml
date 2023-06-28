@@ -81,6 +81,20 @@
             <field name="domain_force">[('project_id.allowed_user_ids', '=', user.id), '|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
         </record>
 
+        <record id="wt_issue_template_rule" model="ir.rule">
+            <field name="name">Manager Full Access</field>
+            <field name="model_id" ref="model_wt_issue_template"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_admin'))]"/>
+        </record>
+
+        <record id="wt_issue_template_rule_limited_access" model="ir.rule">
+            <field name="name">User Limited Access</field>
+            <field name="model_id" ref="model_wt_issue_template"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">['|', ('allowed_user_ids', '=', user.id), ('allowed_user_ids', '=', False)]</field>
+        </record>
+
         <record id="project_manager_rule" model="ir.rule">
             <field name="name">Manager Full Access</field>
             <field name="model_id" ref="model_wt_project"/>

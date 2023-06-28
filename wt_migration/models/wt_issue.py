@@ -27,13 +27,13 @@ class WtProject(models.Model):
     _inherit = "wt.issue"
 
     wt_migration_id = fields.Many2one('wt.migration', string='Task Migration', ondelete="cascade")
-    status_value = fields.Char(related='status_id.wt_key', store=True)
-    last_export = fields.Datetime("Last Export Time")
-    auto_export_success = fields.Boolean(string="Export Successful?", default=True)
-    sprint_key = fields.Integer(string="Sprint ID on WT")
-    wt_id = fields.Integer(string="Task ID")
-    src_issue_id = fields.Many2one("wt.issue", string="Source Issue")
-    cloned_issue_ids = fields.One2many("wt.issue", 'src_issue_id', string="Cloned Issues")
+    status_value = fields.Char(related='status_id.wt_key', store=True, copy=False)
+    last_export = fields.Datetime("Last Export Time", copy=False)
+    auto_export_success = fields.Boolean(string="Export Successful?", default=True, copy=False)
+    sprint_key = fields.Integer(string="Sprint ID on WT", copy=False)
+    wt_id = fields.Integer(string="Task ID", copy=False)
+    src_issue_id = fields.Many2one("wt.issue", string="Source Issue", copy=False)
+    cloned_issue_ids = fields.One2many("wt.issue", 'src_issue_id', string="Cloned Issues", copy=False)
 
     def export_time_log_to_wt(self):
         for record in self:
@@ -194,6 +194,7 @@ class WtProject(models.Model):
             self.map_template_to_values(issue, value, template, 'project_id', 'projects')
             self.map_template_to_values(issue, value, template, 'epic_id', 'epics')
             self.map_template_to_values(issue, value, template, 'priority_id', 'priorities')
+            value['issue_name'] = (clone_rule.prefix or '') + value['issue_name']
         return value
 
     def action_clone_to_server(self, dest_migration, clone_rule):

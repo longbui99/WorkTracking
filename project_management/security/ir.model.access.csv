@@ -27,3 +27,8 @@ access_access_code,access_code_user.model,model_user_access_code,base.group_user
 access_access_code,project_general_user.model,model_project_general,base.group_user,1,0,0,0
 access_access_code,one_time_link_user.model,model_one_time_link,base.group_user,1,0,0,0
 access_wt_billable_rule_manager,wt_billable_rule_manager.model,model_wt_billable_rule,project_management.group_wt_manager,1,1,1,1
+
+access_wt_issue_template_user,wt.issue.template,model_wt_issue_template,project_management.group_wt_user,1,1,1,0
+access_wt_issue_template_manager,wt.issue.template,model_wt_issue_template,project_management.group_wt_manager,1,1,1,1
+access_wt_issue_template_line_user,wt.issue.template.line,model_wt_issue_template_line,project_management.group_wt_user,1,1,1,0
+access_wt_issue_template_line_manager,wt.issue.template.line,model_wt_issue_template_line,project_management.group_wt_manager,1,1,1,1

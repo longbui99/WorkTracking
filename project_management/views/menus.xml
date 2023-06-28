@@ -34,13 +34,23 @@
                 />
         </menuitem>
         <menuitem
-                id="project_management.menu_work_log"
+                id="project_management.operations"
                 sequence="30"
+                name="Operations">
+                <menuitem
+                        id="project_management.menu_issue_template"
+                        sequence="10"
+                        name="Issue Templates"
+                        action="project_management.action_issue_template"/>
+        </menuitem>
+        <menuitem
+                id="project_management.menu_work_log"
+                sequence="40"
                 name="Work Logs"
                 action="project_management.action_wt_time_log"/>
         <menuitem
                 id="project_management.settings"
-                sequence="40"
+                sequence="50"
                 name="Settings">
                 <menuitem
                         id="project_management.menu_status"

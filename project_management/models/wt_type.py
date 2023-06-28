@@ -14,3 +14,4 @@ class WtType(models.Model):
     default_personal = fields.Boolean(string="Personal default")
     company_id = fields.Many2one('res.company', string='Company', required=True)
     epic_ok = fields.Boolean(string="Epic?", default=False)
+    active = fields.Boolean(string="Active", default=True)
