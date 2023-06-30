@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
 
-    <record id="view_set_jobs_done" model="ir.ui.view">
-        <field name="name">Set Jobs to Done</field>
-        <field name="model">queue.jobs.to.done</field>
+    <record id="view_set_jobs_cancelled" model="ir.ui.view">
+        <field name="name">Cancel Jobs</field>
+        <field name="model">queue.jobs.to.cancelled</field>
         <field name="arch" type="xml">
-            <form string="Set jobs done">
-                <group string="The selected jobs will be set to done.">
+            <form>
+                <group string="The selected jobs will be cancelled.">
                     <field name="job_ids" nolabel="1" colspan="2" />
                 </group>
                 <footer>
                     <button
-                        name="set_done"
-                        string="Set to done"
+                        name="set_cancelled"
+                        string="Cancel jobs"
                         type="object"
                         class="oe_highlight"
                     />
@@ -22,11 +22,11 @@
         </field>
     </record>
 
-    <record id="action_set_jobs_done" model="ir.actions.act_window">
-        <field name="name">Set jobs to done</field>
-        <field name="res_model">queue.jobs.to.done</field>
+    <record id="action_set_jobs_cancelled" model="ir.actions.act_window">
+        <field name="name">Cancel jobs</field>
+        <field name="res_model">queue.jobs.to.cancelled</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_set_jobs_done" />
+        <field name="view_id" ref="view_set_jobs_cancelled" />
         <field name="target">new</field>
         <field name="binding_model_id" ref="queue_job.model_queue_job" />
     </record>
