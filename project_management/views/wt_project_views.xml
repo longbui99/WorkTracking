@@ -45,7 +45,6 @@
                             class="btn-primary"/>
                     <button name="action_start_kick_off" string="Chain Work" type="object" class="btn-primary"/>
                     <button name="fetch_user_from_issue" string="Fetch User" type="object" class="btn-secondary"/>
-                    <widget name="export_button" string="Export Project" call_method="action_export_record"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box">
