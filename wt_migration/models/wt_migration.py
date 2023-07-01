@@ -773,7 +773,6 @@ class TaskMigration(models.Model):
     def do_request(self, request_data, domain=[], paging=100, load_all=False):
         existing_record = self.env['wt.issue']
         headers = self.__get_request_headers()
-        _logger.warning(headers)
         start_index = 0
         total_response = paging
         response = []
@@ -1032,7 +1031,6 @@ class TaskMigration(models.Model):
                         del body['values']
                         if end_unix > 0 and end_unix > body.get('until', 0):
                             last_page = True
-                        _logger.info(json.dumps(body, indent=4))
                     else:
                         _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
                         page_failed_count += 1
@@ -1094,7 +1092,6 @@ class TaskMigration(models.Model):
                         del body['values']
                         if end_unix > 0 and end_unix > body.get('until', 0):
                             last_page = True
-                        _logger.info(json.dumps(body, indent=4))
                     else:
                         _logger.warning(f"PAGE LOAD FAILED COUNT: {page_failed_count}")
                         page_failed_count += 1
@@ -1126,7 +1123,6 @@ class TaskMigration(models.Model):
                             self.env['wt.time.log'].search([('id_on_wt', 'in', flush)]).unlink()
                             flush = []
                         del body['values']
-                        _logger.info(json.dumps(body, indent=4))
                     else:
                         _logger.warning(f"PAGE DELETED FAILED COUNT: {page_failed_count}")
                         page_failed_count += 1
@@ -1263,13 +1259,11 @@ class TaskMigration(models.Model):
     def _update_project(self, project_id, project_last_update):
         self = self.with_context(bypass_cross_user=True)
         updated_date = datetime(1970, 1, 1, 1, 1, 1, 1)
-        _logger.error(self.env.user.id)
         if project_last_update:
             updated_date = self.convert_utc_to_usertz(project_last_update)
         str_updated_date = updated_date.strftime('%Y-%m-%d %H:%M')
         params = f"""jql=project="{project_id.project_key}" AND updated >= '{str_updated_date}'"""
         request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
-        _logger.info(json.dumps(request_data, indent=4))
         issue_ids = self.do_request(request_data, load_all=True)
         _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
 
@@ -1282,14 +1276,12 @@ class TaskMigration(models.Model):
         for user_id, projects in project_by_user_id.items():
             user = self.env['res.users'].browse(int(user_id)).exists()
             self = self.with_user(user)
-            _logger.error(self.env.user.id)
             str_updated_date = self.convert_utc_to_usertz(datetime.fromtimestamp(latest_unix / 1000)).strftime(
                 '%Y-%m-%d %H:%M')
             query_projects = ",".join(projects.mapped(lambda p: f'"{p.project_key}"'))
             params = f"""jql=updated >= '{str_updated_date}' AND PROJECT IN ({query_projects})"""
             request_data = {'endpoint': f"{self.wt_server_url}/search", "params": [params]}
 
-            _logger.info(json.dumps(request_data, indent=4))
             issue_ids = self.do_request(request_data, load_all=True)
 
             _logger.info(f"Batch Load Of User {user.display_name}: {len(issue_ids)}")
