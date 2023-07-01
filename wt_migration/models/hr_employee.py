@@ -4,8 +4,8 @@ from odoo import fields, models, _
 class HREmployee(models.AbstractModel):
     _inherit = 'hr.employee.base'
 
-    is_wt_admin = fields.Boolean(string="Admin?", tracking=True)
-    auto_export_work_log = fields.Boolean(string='Auto Export Logs', tracking=True)
+    is_wt_admin = fields.Boolean(string="Admin?")
+    auto_export_work_log = fields.Boolean(string='Auto Export Logs')
 
     def action_update_token(self):
         action = self.env["ir.actions.actions"]._for_xml_id("wt_migration.token_confirmation_action_form")

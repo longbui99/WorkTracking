@@ -75,6 +75,7 @@ class WtIssueTemplate(models.Model):
 
 class WtIssueTemplateLine(models.Model):
     _name = "wt.issue.template.line"
+    _inherit = ['mail.render.mixin']
     _description = "Issue Template"
     _order = "sequence, id desc"
 

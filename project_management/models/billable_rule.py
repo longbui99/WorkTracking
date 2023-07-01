@@ -29,8 +29,8 @@ class BillableRule(models.Model):
     exclude_issue_ids = fields.Many2many("wt.issue", 'billable_rule_excluding_issue', string="Exclude Issues", domain="[['project_id','in', project_ids]]")
     include_issue_ids = fields.Many2many("wt.issue", 'billable_rule_including_issue', string="Include Issues", domain="[['project_id','in', project_ids]]")
 
-    applicable_issue_ids = fields.Many2many(comodel="wt.issue", store=False, compute="_compute_applicable_issue_ids")
-    new_issue_ids = fields.Many2many(comodel="wt.issue", store=False, compute="_compute_applicable_issue_ids")
+    applicable_issue_ids = fields.Many2many(comodel_name="wt.issue", store=False, compute="_compute_applicable_issue_ids")
+    new_issue_ids = fields.Many2many(comodel_name="wt.issue", store=False, compute="_compute_applicable_issue_ids")
 
     applicable_domain = fields.Char(string="Applicable Domain", compute="_compute_applicable_domain", store=True)
     start_date = fields.Datetime(string="Start Timestamp")

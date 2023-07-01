@@ -62,6 +62,7 @@ class priorityRule(models.Model):
 
 class FieldRules(models.Model):
     _name = "wt.clone.field.rule"
+    _inherit = ['mail.render.mixin']
     _description = "Clone Field Rules"
 
     field_id = fields.Many2one("ir.model.fields", string="Field", required=True, ondelete="cascade")
