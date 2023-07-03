@@ -23,9 +23,10 @@ class ResUsers(models.Model):
 
     def load_jira_projects(self):
         fetch_ok = False
-        existing_migrations = self.env['wt.migration'].sudo().search([])
+        company_domain = [('company_id', 'in', self.env.user.company_ids.ids)]
+        existing_migrations = self.env['wt.migration'].sudo().search(company_domain)
         if existing_migrations:
-            to_fetch_projects = self.env['wt.project']
+            to_fetch_projects = self.env['wt.project'].search(company_domain)
             for migration in existing_migrations:
                     to_fetch_projects |= migration.load_projects()
                     fetch_ok = True
