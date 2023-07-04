@@ -62,7 +62,7 @@ class ResUsers(models.Model):
                     errors.append(error)
         if len(errors):
             error_msg = "\n".join(errors)
-            raise UserError(error_msg)
+            _logger.error(error_msg)
         return users
 
     def token_clear_cache(self):
