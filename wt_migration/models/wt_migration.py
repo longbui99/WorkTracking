@@ -66,6 +66,7 @@ class TaskMigration(models.Model):
             new_blocked_users.append("(%s,%s)"%(self.id, user.id))
         
         sql_stmt = "INSERT INTO wt_unaccess_token (wt_migration_id, user_id) VALUES %s" % (",".join(new_blocked_users))
+        _logger.error(sql_stmt)
         self.env.cr.execute(sql_stmt)
 
     @api.depends('base_url')
