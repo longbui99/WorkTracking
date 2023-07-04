@@ -60,7 +60,13 @@ class TaskMigration(models.Model):
         return self.unaccess_token_user_ids.mapped('user_id')
     
     def add_unaccess_token_users(self, users):
-        self.unaccess_token_user_ids = [fields.Command.create({'user_id': user.id}) for user in users]
+        non_existing_users = users - self.unaccess_token_user_ids.mapped('user_id')
+        new_blocked_users = []
+        for user in non_existing_users:
+            new_blocked_users.append("(%s,%s)"%(self.id, user.id))
+        
+        sql_stmt = "INSERT INTO wt_unaccess_token (wt_migration_id, user_id) VALUES %s" % (",".join(new_blocked_users))
+        self.env.cr.execute(sql_stmt)
 
     @api.depends('base_url')
     def _compute_api_url(self):
