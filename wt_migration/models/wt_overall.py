@@ -86,7 +86,7 @@ class WtTimeLog(models.Model):
             issue.wt_migration_id.delete_time_logs(issue, logs)
 
     def write(self, values):
-        if 'issue_id' in values:
+        if 'issue_id' in values and not self._context.get('bypass_auto_delete'):
             to_delete_logs = self.filtered(lambda r: r.issue_id.id != values['issue_id'] and r.export_state)
             _logger.info(to_delete_logs) 
             if to_delete_logs:

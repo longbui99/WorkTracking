@@ -929,7 +929,7 @@ class TaskMigration(models.Model):
             curd_data = self.minify_with_existing_record(curd_data, existing_log)
             if len(curd_data.keys()):
                 curd_data['export_state'] = 1
-                existing_log.write(curd_data)
+                existing_log.with_context(bypass_auto_delete=True).write(curd_data)
                 response['updated'] |= existing_log
 
     def create_missing_assignee(self, logs, local):
