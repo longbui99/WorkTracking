@@ -19,13 +19,13 @@ def get_search_request(string):
         'tomorrow': ('tomorrow', 0, True),
         'mine': ('mine', 0, True),
         '\[[a-zA-Z0-9]+\]': ('project', 1, -1),
-        '[a-zA-Z]+-[0-9]+': ('issue', 0, True),
+        '[a-zA-Z0-9]+-[0-9]+': ('issue', 0, True),
         '[A-Z]{2,}': ('project', 0, True),
         '\[[a-zA-Z0-9]+-[a-zA-Z0-9]+\]': ('issue', 1, -1),
         '>[a-zA-Z0-9@.]+<?': ('name', 1, True),
         '(p[0-9-/]{10}|p[0-9-/]{8})': ('personal', 1, True),
     }
-    interator = re.finditer('(([a-zA-Z]+-[0-9]+:?)|[A-Z]{2,}:?|\[[a-zA-Z0-9-]*\]|>[a-zA-Z0-9@.]+<?|[ \.]?(chain|mine|sprint|today|tomorrow\+?)[ \.]?|(p[0-9-/]{10}|p[0-9-/]{8})|favorite|jql=)', string)
+    interator = re.finditer('(([a-zA-Z0-9]+-[0-9]+:?)|[A-Z]{2,}:?|\[[a-zA-Z0-9-]*\]|>[a-zA-Z0-9@.]+<?|[ \.]?(chain|mine|sprint|today|tomorrow\+?)[ \.]?|(p[0-9-/]{10}|p[0-9-/]{8})|favorite|jql=)', string)
     for_delete = []
     for match in interator:
         action = re.sub(truncate_regex, '', match.group())
