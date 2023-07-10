@@ -19,6 +19,7 @@
         'views/hr_employee_views.xml',
         'views/wt_migration_views.xml',
         'views/wt_issue_views.xml',
+        'views/wt_time_log_views.xml',
         'views/wt_project_views.xml',
         'views/wt_field_map_views.xml',
         'views/clone_rule_views.xml',

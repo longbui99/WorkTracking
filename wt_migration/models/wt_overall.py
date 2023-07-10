@@ -208,6 +208,15 @@ class WtTimeLog(models.Model):
             #             res[log.id][key] = (log.key, raw_log_by_wt_id[log.id_on_wt].get(key))
             return res
 
+    def action_export_work_logs(self):
+        logs_by_user = defaultdict(lambda: self.env['wt.time.log'])
+        for log in self:
+            if log.export_state != 1:
+                logs_by_user[log.user_id] |= log
+
+        for user, logs in logs_by_user.items():
+            logs.with_user(user).force_export()
+
 
 def write(self, values):
     return super(WtTimeLogBase, self).write(values)
