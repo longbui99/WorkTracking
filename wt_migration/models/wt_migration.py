@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 from collections import defaultdict
 from urllib.parse import urlparse
+from dateutil.relativedelta import relativedelta
 
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.wt_migration.utils.ac_parsing import parsing, unparsing
@@ -506,8 +507,8 @@ class TaskMigration(models.Model):
                     try:
                         float("0%s"%curd_data[keys[index]])
                     except Exception as e:
-                        _logger.error(e)
-                        _logger.error("ERROR ON RECORD: %s" % existing_record)
+                        error_msg = f"{e}:\n %s" % json.dumps(existing_record, indent=4)
+                        raise error_msg
                     if float(value) == float("0%s"%curd_data[keys[index]]):
                         del curd_data[keys[index]]
             else:
@@ -573,6 +574,9 @@ class TaskMigration(models.Model):
         return res
 
     def get_local_issue_data(self, domain=[]):
+        refresh_month = self.env['ir.config_parameter'].get('wt_migration.refresh_duration_month')
+        if refresh_month and int(refresh_month):
+            domain = domain + [('write_date' ,'>=', fields.Datetime.now() + relativedelta(months=int(refresh_month)))]
         return {
             'dict_project_key': {(r.project_key, r.company_id.id): r.id for r in
                                  self.env['wt.project'].sudo().with_context(active_test=False).search([('company_id', '=', self.company_id.id)])},
@@ -823,6 +827,7 @@ class TaskMigration(models.Model):
 
     def load_all_issues(self):
         issue_ids = self.load_issues(load_all=True)
+
         if issue_ids and self.import_work_log:
             for issue_id in issue_ids:
                 self.with_delay().load_work_logs(issue_id)
