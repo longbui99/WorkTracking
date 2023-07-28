@@ -507,7 +507,7 @@ class TaskMigration(models.Model):
                     try:
                         float("0%s"%curd_data[keys[index]])
                     except Exception as e:
-                        error_msg = f"{e}:\n %s" % json.dumps(existing_record, indent=4)
+                        error_msg = "%s:\n %s" % (e, json.dumps(existing_record, indent=4))
                         raise error_msg
                     if float(value) == float("0%s"%curd_data[keys[index]]):
                         del curd_data[keys[index]]
