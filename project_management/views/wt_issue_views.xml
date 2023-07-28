@@ -232,8 +232,7 @@
         <field name="name">Task Issues</field>
         <field name="res_model">wt.issue</field>
         <field name="view_mode">tree,kanban,form</field>
-        <field name="context">{'search_default_filter_my_issue': True, 'search_default_group_by_project': True,
-            'search_default_filter_in_progress': True}
+        <field name="context">{'search_default_filter_my_issue': True, 'search_default_group_by_project': True}
         </field>
         <field name="domain">[['personal','=',False]]</field>
         <field name="view_id" ref="wt_issue_tree_view"/>
@@ -244,8 +243,7 @@
         <field name="name">Task Issues</field>
         <field name="res_model">wt.issue</field>
         <field name="view_mode">tree,kanban,form</field>
-        <field name="context">{'search_default_filter_my_issue': True, 'search_default_group_by_project': True,
-            'search_default_filter_in_progress': True}
+        <field name="context">{'search_default_filter_my_issue': True, 'search_default_group_by_project': True}
         </field>
         <field name="domain">[['personal','=',True]]</field>
         <field name="view_id" ref="wt_issue_tree_view"/>

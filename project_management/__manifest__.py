@@ -18,6 +18,7 @@
         'security/wt_security.xml',
         'security/ir.model.access.csv',
 
+        'views/agile_sprint_views.xml',
         'views/board_board_views.xml',
         'views/hr_employee_views.xml',
         'views/wt_project_views.xml',

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
 
-    <record id="agile_sprint_kanban_view" model="ir.ui.view">
+    <!-- <record id="agile_sprint_kanban_view" model="ir.ui.view">
         <field name="name">Agile Sprints</field>
         <field name="priority">1</field>
         <field name="model">agile.sprint</field>
@@ -19,6 +19,20 @@
                     </t>
                 </templates>
             </kanban>
+        </field>
+    </record> -->
+    
+    <record id="agile_sprint_tree_view" model="ir.ui.view">
+        <field name="name">Task Sprints</field>
+        <field name="priority">1</field>
+        <field name="model">agile.sprint</field>
+        <field name="arch" type="xml">
+            <tree create="0" edit="0">
+                <field name="project_id"/>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="id" optional="hide"/>
+            </tree>
         </field>
     </record>
 
@@ -77,6 +91,10 @@
             <search>
                 <field name="project_id"/>
                 <field name="name"/>
+                
+                <filter string="Company" name="group_by_status" context="{'group_by':'company_id'}"/>
+                <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
+                <filter string="Board" name="group_by_board" context="{'group_by':'board_id'}"/>
             </search>
         </field>
     </record>
@@ -84,8 +102,9 @@
     <record id="action_agile_sprint" model="ir.actions.act_window">
         <field name="name">Agile Sprints</field>
         <field name="res_model">agile.sprint</field>
-        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_mode">tree</field>
         <field name="view_id" ref="agile_sprint_tree_view"/>
+        <field name="context">{'search_default_group_by_project': True, 'search_default_group_by_board': True}</field>
         <field name="search_view_id" ref="project_management.agile_sprint_search_view"/>
     </record>
 </odoo>

@@ -9,10 +9,10 @@
     </menuitem>
 
     <menuitem id="wt_migration.wt_field_clone_rules"
-              name="Clone Rules"
+              name="Issue Migration Rules"
               action="wt_migration.wt_clone_rule_action"
               sequence="2"
-              parent="project_management.settings"
+              parent="project_management.operations"
               >
     </menuitem>
     
