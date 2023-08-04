@@ -265,7 +265,7 @@ class WtProject(models.Model):
         if start_date:
             start_date = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M:%S%z").astimezone(pytz.utc)
             start_date = start_date.replace(tzinfo=None)
-        for issue in self:
+        for issue in self.with_context(bypass_rounding=True):
             record = issue._get_suitable_log()
             log_ids |= record.env['wt.time.log'].create({
                 'description': values.get('description', ''),
