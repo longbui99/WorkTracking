@@ -86,6 +86,8 @@ class WtTimeLog(models.Model):
             elif 'duration' in values:
                 employee = self.env.user.employee_id
                 values['duration'] = self.rouding_log(values['duration'], employee)
+        else:
+            values['duration'] = convert_log_format_to_second(values['time'], employee)
 
     def write(self, values):
         self.rounding(values)
