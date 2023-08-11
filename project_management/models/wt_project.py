@@ -88,6 +88,11 @@ class WtProject(models.Model):
         sheet.write(1, 0, self.project_key, text_format)
         return workbook
 
+    def create(self, values):
+        if 'allowed_manager_ids' in values:
+            values['allowed_user_ids'] = values['allowed_manager_ids']
+        return super().create(values)
+
     def write(self, values):
         res = super().write(values)
         if len(values.get('allowed_manager_ids', [])):
