@@ -134,7 +134,7 @@
             <field name="name">User Limited Access</field>
             <field name="model_id" ref="model_agile_sprint"/>
             <field name="groups" eval="[(4, ref('base.group_user'))]"/>
-            <field name="domain_force">[('project_id.allowed_user_ids', '=', user.id), '|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
+            <field name="domain_force">['|', ('project_id','=',False), ('project_id.allowed_user_ids', '=', user.id), '|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
         </record>
 
 
