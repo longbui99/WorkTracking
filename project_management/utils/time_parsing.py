@@ -18,8 +18,8 @@ def convert_second_to_time_format(time):
 
 
 def convert_second_to_log_format(time):
-    data = [{'key': 'w', 'duration': 604800},
-            {'key': 'd', 'duration': 86400},
+    data = [{'key': 'w', 'duration': 201600},
+            {'key': 'd', 'duration': 28800},
             {'key': 'h', 'duration': 3600},
             {'key': 'm', 'duration': 60},
             {'key': 's', 'duration': 1}]
@@ -35,7 +35,7 @@ def convert_second_to_log_format(time):
 def convert_log_format_to_second(log_data, employee_id):
     logs = log_data.strip().split(' ')
     total_time = 0
-    data = {'w': 604800, 'd': 86400, 'h': 3600, 'm': 60, 's': 1, '-1': 0}
+    data = {'w': 201600, 'd': 28800, 'h': 3600, 'm': 60, 's': 1, '-1': 0}
     for log in logs:
         operand = 0
         if len(log):
