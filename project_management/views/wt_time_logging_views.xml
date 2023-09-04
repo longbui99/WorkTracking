@@ -62,20 +62,9 @@
                 <filter string="Epic" name="group_by_user_id" context="{'group_by':'epic_id'}"/>
                 <filter string="Issue" name="group_by_issue_id" context="{'group_by':'issue_id'}"/>
                 <filter string="User" name="group_by_user_id" context="{'group_by':'user_id'}"/>
+                <filter string="Issue" name="group_by_issue_id" context="{'group_by':'issue_id'}"/>
                 <filter string="Billable" name="group_by_billable_state" context="{'group_by':'billable_state'}"/>
             </search>
-        </field>
-    </record>
-
-    <record model="ir.ui.view" id="wt_time_log_graph_view">
-        <field name="name">wt.work.log.graph.view</field>
-        <field name="model">wt.time.log</field>
-        <field name="arch" type="xml">
-            <graph string="Time Logs" type="pie">
-                <field name="project_id" type="row"/>
-                <field name="issue_id" />
-                <field name="duration_hrs"  type="measure" string="Total Hours"/>
-            </graph>
         </field>
     </record>
 
@@ -94,9 +83,8 @@
     <record id="action_wt_time_log" model="ir.actions.act_window">
         <field name="name">Work Logs</field>
         <field name="res_model">wt.time.log</field>
-        <field name="view_mode">tree,graph,form</field>
+        <field name="view_mode">tree,form</field>
         <field name="context">{'search_default_group_by_project_id': True, 'search_default_group_by_user_id': True, 'search_default_group_by_issue_id': True, 'search_default_filter_by_my_log': True}</field>
-        <field name="view_id" ref="wt_time_log_graph_view"/>
+        <field name="view_id" ref="wt_time_log_tree_view"/>
         <field name="search_view_id" ref="project_management.wt_time_log_search_view"/>
     </record>
-</odoo>

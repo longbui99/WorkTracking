@@ -10,6 +10,7 @@
     "depends": ['hr', 'digest'],
     "license": "LGPL-3",
     "data": [
+        'data/mail_template.xml',
         'data/project_data.xml',
         'data/digest_email_template.xml',
         'data/system_data.xml',
@@ -30,6 +31,8 @@
         'views/digest_email_views.xml',
         'views/wt_billable_rule_views.xml',
         'views/wt_issue_template_views.xml',
+        'views/wt_budget_views.xml',
+        'views/wt_finance_views.xml',
 
         'views/menus.xml',
 

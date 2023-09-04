@@ -17,3 +17,5 @@ from . import wt_label
 from . import wt_priority
 from . import billable_rule
 from . import wt_issue_template
+from . import wt_budget
+from . import wt_finance

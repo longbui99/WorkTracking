@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_budget_tree_view" model="ir.ui.view">
+        <field name="name">wt.budget.tree.view</field>
+        <field name="model">wt.budget</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="(state == 'invoiced')">
+                <field name="currency_id" invisible="1"/>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="project_id" optional="show"/>
+                <field name="finance_id" optional="show"/>
+                <field name="duration" optional="show"/>
+                <field name="amount" widget="monetary" optional="hide"/>
+                <field name="company_id" optional="hide"/>
+                <field name="state" decoration-success="state == 'invoiced'" decoration-info="state != 'invoiced'" widget="badge" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_budget_form_view" model="ir.ui.view">
+        <field name="name">wt.budget.form.view</field>
+        <field name="model">wt.budget</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_invoiced" type="object" class="btn btn-secondary" string="Invoiced" attrs="{'invisible': [('state', '=', 'invoiced')]}"/>
+                    <button name="action_draft" type="object" class="btn btn-secondary" string="Set to draft" attrs="{'invisible': [('state', '=', 'in_progress')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="in_progress,invoiced"/>
+                </header>
+                <field name="currency_id" invisible="1"/>
+                <sheet>
+                    <div class="oe_button_box">
+                        <button type="object"
+                            name="action_open_logs"
+                            class="oe_stat_button"
+                            icon="fa-calendar"
+                            attrs="{'invisible': [('log_count', '=', 0)]}">
+                            <field name="log_count" widget="statinfo" string="Work Logs"/>
+                        </button>
+                    </div>
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="project_id" domain="[('company_id','=',company_id)]"/>
+                            <field name="amount"/>
+                            <label for="duration"/>
+                            <div name="duration_segment">
+                                <field name="duration"/>
+                                <span style="font-size: 0.85em;font-weight:700;">
+                                    (
+                                    <field name="duration_used" class="text-warning" string="Billing Hours" attrs="{'invisible': [('duration_percent_used', '&gt;=', 100)]}"/> 
+                                    <field name="duration_used" class="text-info" string="Billing Hours" attrs="{'invisible': [('duration_percent_used', '!=', 100)]}"/> 
+                                    <field name="duration_used" class="text-danger" string="Billing Hours" attrs="{'invisible': [('duration_percent_used', '&lt;=', 100)]}"/>
+                                    , <field name="duration_percent_used"/>%)
+                                </span>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="description" readonly="1" nolabel="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="applicable_domain" string="Applicable Logs" widget="domain" options="{'model': 'wt.time.log', 'in_dialog': True}"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Security" name="security">
+                            <group>
+                                <field name="readable_user_ids" widget="many2many_tags"/>
+                                <field name="editable_user_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                        <page string="Alert" name="alert">
+                            <group>
+                                <group>
+                                    <field name="alert_duration"/>
+                                </group>
+                                <group>
+                                    <field name="notification_type"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Miscellaneous" name="miscellaneous">
+                            <group>
+                                <field name="company_id"/>
+                                <field name="finance_id" domain="[('company_id','=',company_id)]" options="{'no_open': True}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_budget_search_view" model="ir.ui.view">
+        <field name="name">wt.budget.search.view</field>
+        <field name="model">wt.budget</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="finance_id"/>
+                <field name="project_id"/>
+                <field name="company_id"/>
+                <field name="project_id"/>
+                <filter string="My Own" name="filter_my_plan" domain="[('create_uid','=', uid)]"/>
+                <filter string="Readonly" name="filter_readonly_plan" domain="[('readable_user_ids', 'in', uid)]"/>
+                <separator/>
+                <filter string="Editable" name="filter_editable_plan" domain="[('editable_user_ids', 'in', uid)]"/>
+                <separator/>
+                <filter string="Archived" name="filter_archived" domain="[('active','=', False)]"/>
+                <filter string="Company" name="group_by_company" context="{'group_by':'company_id'}"/>
+                <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
+                <filter string="Finance" name="group_by_finance" context="{'group_by':'finance_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_wt_budget" model="ir.actions.act_window">
+        <field name="name">Budget Planning</field>
+        <field name="res_model">wt.budget</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+                            'search_default_group_by_company': True, 
+                            'search_default_group_by_project': True}
+        </field>
+        <field name="view_id" ref="wt_budget_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_budget_search_view"/>
+    </record>
+
+</odoo>

@@ -48,8 +48,24 @@
                     action="project_management.action_wt_time_log"/>
         </menuitem>
         <menuitem
-                id="project_management.operations"
+                id="project_management.Budget"
                 sequence="40"
+                name="Budget">
+                <menuitem
+                        id="project_management.menu_finance_analytic"
+                        sequence="10"
+                        name="Finance Analytic"
+                        action="project_management.action_wt_finance"/>
+                <menuitem
+                        id="project_management.menu_budget_planning"
+                        sequence="20"
+                        name="Budget Planning"
+                        action="project_management.action_wt_budget"
+                />
+        </menuitem>
+        <menuitem
+                id="project_management.operations"
+                sequence="50"
                 name="Operations">
                 <menuitem
                         id="project_management.menu_issue_template"

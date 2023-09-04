@@ -137,6 +137,66 @@
             <field name="domain_force">['|', ('project_id','=',False), ('project_id.allowed_user_ids', '=', user.id), '|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
         </record>
 
+        <record id="wt_budget_admin_rule" model="ir.rule">
+            <field name="name">Admin Full Access</field>
+            <field name="model_id" ref="model_wt_budget"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_admin'))]"/>
+        </record>
 
+        <record id="wt_budget_user_limited_owner_rule" model="ir.rule">
+            <field name="name">User Limited Owner Access</field>
+            <field name="model_id" ref="model_wt_budget"/>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        </record>
+
+        <record id="wt_budget_user_limited_readonly_rule" model="ir.rule">
+            <field name="name">User Limited Read Access</field>
+            <field name="model_id" ref="model_wt_budget"/>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_user'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_write" eval="0"/>
+            <field name="perm_unlink" eval="0"/>
+            <field name="domain_force">[('readable_user_ids', 'in', user.id)]</field>
+        </record>
+
+        <record id="wt_budget_user_limited_edit_rule" model="ir.rule">
+            <field name="name">User Limited Edit Access</field>
+            <field name="model_id" ref="model_wt_budget"/>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_user'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+            <field name="domain_force">[('editable_user_ids', 'in', user.id)]</field>
+        </record>
+
+
+        <record id="wt_finance_admin_rule" model="ir.rule">
+            <field name="name">Admin Full Access</field>
+            <field name="model_id" ref="model_wt_finance"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_admin'))]"/>
+        </record>
+
+        <record id="wt_finance_user_limited_owner_rule" model="ir.rule">
+            <field name="name">User Limited Owner Access</field>
+            <field name="model_id" ref="model_wt_finance"/>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        </record>
+
+        <record id="wt_finance_user_limited_readonly_rule" model="ir.rule">
+            <field name="name">User Limited Read Access</field>
+            <field name="model_id" ref="model_wt_finance"/>
+            <field name="groups" eval="[(4, ref('project_management.group_wt_user'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+            <field name="domain_force">[('access_user_ids', 'in', user.id)]</field>
+        </record>
     </data>
 </odoo>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="budget_notification_email">
+            <div>
+                Hello,
+                <br/>
+                <p>This is an automate message to notify that your Budget Plan: <t t-esc="budget.display_name"/> is exceed.</p>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td><strong>Project</strong></td>
+                            <td><t t-esc="budget.project_id.display_name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Finance Plan</strong></td>
+                            <td><t t-esc="budget.finance_id.display_name"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Budget</strong></td>
+                            <td><t t-esc="budget.duration"/></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Used</strong></td>
+                            <td><t t-esc="budget.duration_used"/> (<t t-esc="budget.duration_percent_used"/>%)</td>
+                        </tr>
+                    </tbody>
+                </table>               
+            </div>
+        </template>
+        <template id="message_budget_notification">
+            <div>
+                <div t-out="message.body"/>
+                <div t-if="signature" t-out="signature" style="font-size: 13px;"/>
+            </div>
+        </template>
+    </data>
+</odoo>
