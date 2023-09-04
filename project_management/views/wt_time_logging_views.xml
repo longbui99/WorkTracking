@@ -88,3 +88,4 @@
         <field name="view_id" ref="wt_time_log_tree_view"/>
         <field name="search_view_id" ref="project_management.wt_time_log_search_view"/>
     </record>
+</odoo>
