@@ -13,7 +13,7 @@ class WtBudget(models.Model):
 
     sequence = fields.Integer(string="Sequence")
     name = fields.Char(string='Name', required=True)
-    active = fields.Boolean(string="Active", default=False)
+    active = fields.Boolean(string="Active", default=True)
     description = fields.Text(string="Description")
     project_id = fields.Many2one("wt.project", string="Project", required=True)
     finance_id = fields.Many2one("wt.finance", string="Finance Analytic")
@@ -57,7 +57,7 @@ class WtBudget(models.Model):
         for budget in self:
             logs = TimeLogEnv.search(ast.literal_eval(budget.applicable_domain))
             budget.duration_used = sum(logs.mapped('duration_hrs'))
-            budget.duration_percent_used = round((budget.duration_used / budget.duration)*100, 2)
+            budget.duration_percent_used = round((budget.duration_used / budget.duration)*100, 2) if budget.duration else 0
             budget.log_count = len(logs)
 
     # ====================================================== ACTION =============================================================

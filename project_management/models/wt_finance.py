@@ -25,7 +25,7 @@ class WtFinance(models.Model):
         for finance in self:
             finance.duration = sum(finance.wt_budget_ids.mapped('duration'))
             finance.duration_used = sum(finance.wt_budget_ids.mapped('duration_used'))
-            finance.duration_percent_used = 100*finance.duration_used/finance.duration
+            finance.duration_percent_used = 100*finance.duration_used/finance.duration if finance.duration else 0
             finance.budget_count = len(finance.wt_budget_ids)
             finance.amount = sum(finance.wt_budget_ids.mapped('amount'))
 

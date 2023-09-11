@@ -574,7 +574,7 @@ class TaskMigration(models.Model):
         return res
 
     def get_local_issue_data(self, domain=[]):
-        refresh_month = self.env['ir.config_parameter'].get('wt_migration.refresh_duration_month')
+        refresh_month = self.env['ir.config_parameter'].sudo().get_param('wt_migration.refresh_duration_month')
         if refresh_month and int(refresh_month):
             domain = domain + [('write_date' ,'>=', fields.Datetime.now() + relativedelta(months=int(refresh_month)))]
         return {
