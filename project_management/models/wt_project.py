@@ -87,7 +87,8 @@ class WtProject(models.Model):
         sheet.write(0, 0, self.display_name, header_format)
         sheet.write(1, 0, self.project_key, text_format)
         return workbook
-
+    
+    @api.model
     def create(self, values):
         if 'allowed_manager_ids' in values:
             values['allowed_user_ids'] = values['allowed_manager_ids']
