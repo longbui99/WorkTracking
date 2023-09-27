@@ -100,20 +100,20 @@ class TaskMigration(models.Model):
 
     def __load_master_data(self):
         self.ensure_one()
-        self.load_all_users()
-        self.load_statuses()
-        self.load_types()
-        self.load_projects()
-        self.load_priorities()
-        self.load_boards()
-        own_boards = self.env['board.board'].sudo().search([('company_id', '=', self.company_id.id)])
-        self.load_sprints(own_boards)
+        # self.load_all_users()
+        # self.load_statuses()
+        # self.load_types()
+        # self.load_projects()
+        # self.load_priorities()
+        # self.load_boards()
+        # own_boards = self.env['board.board'].sudo().search([('company_id', '=', self.company_id.id)])
+        # self.load_sprints(own_boards)
         self.env['wt.field.map'].create_template(self)
 
     @api.model
     def create(self, values):
         migration = super().create(values)
-        migration.__load_master_data()
+        # migration.__load_master_data()
         return migration
     
     def unlink(self):

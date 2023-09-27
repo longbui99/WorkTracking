@@ -207,11 +207,12 @@ class OdooMigration(models.Model):
             gather_logs_ids = self._context.get('gather_logs_ids')
             domain = []
             if gather_logs_ids:
-                domain = [('id', 'in', gather_logs_ids)]
+                domain += [('id', 'in', gather_logs_ids)]
             forced_log_domain = self._context.get('forced_log_domain') or []
             domain += forced_log_domain
             domain += [('write_date', '>=', str_updated_date)]
             rpc = self.make_rpc_agent()
+            _logger.warning(domain)
             log_datas = rpc('account.analytic.line', 'search_read', [
                 domain,
                 ['date', 'user_id', 'name', 'project_id', 'task_id', 'unit_amount', 'create_date', 'write_date']
@@ -274,7 +275,7 @@ class OdooMigration(models.Model):
             res = self.env['wt.time.log']
             for user in users:
                 user_self = self.with_user(user)
-                domain = ('project_id', 'in', projects.mapped(lambda r: int(r['external_id'])))
+                domain = [('project_id', 'in', projects.mapped(lambda r: int(r['external_id'])))]
                 res |= user_self.with_context(forced_log_domain=domain).load_logs_by_unix(unix)
             return res
         else:
