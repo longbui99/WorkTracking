@@ -48,8 +48,6 @@
                         <group name="general_settings" string="General Settings">
                             <field name="company_id"/>
                             <field name="admin_user_ids" widget="many2many_tags"/>
-                            <field name="is_round_robin" attrs="{'invisible': [('admin_user_ids', '!=', [])]}"/>
-                            <field name="full_sync"/>
                             <field name="allowed_user_ids" widget="many2many_tags"/>
                         </group>
                     </group>
@@ -62,13 +60,14 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Pull Ops">
-                            <group>
+                        <page string="Ops">
+                            <group>                                <group>
+                                    <field name="is_round_robin" attrs="{'invisible': [('admin_user_ids', '!=', [])]}"/>
+                                    <field name="full_sync"/>
+                                </group>
                                 <group>
                                     <field name="import_work_log"/>
                                     <field name="is_load_acs"/>
-                                </group>
-                                <group>
                                     <field name="auto_export_work_log"/>
                                 </group>
                             </group>
