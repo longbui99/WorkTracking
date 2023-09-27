@@ -336,25 +336,28 @@ class OdooMigration(models.Model):
             return super().load_work_logs(issue_ids, paging, domain, load_all)
     
     def _search_load(self, res, delay=False):
-        issue_ids = self.env['wt.issue']
-        if 'issue' in res:
-            domain = [('id', 'in', res['issue'])]
+        if self.migration_type == "odoo":
+            issue_ids = self.env['wt.issue']
+            if 'issue' in res:
+                domain = [('id', 'in', res['issue'])]
+            else:
+                domain = []
+                if 'project' in res:
+                    if not isinstance(res['project'], (list, tuple)):
+                        res['project'] = [res['project']]
+                    domain += [('project_id', 'in', res['project'])]
+                if "mine" in res:
+                    domain += [('user_ids.login', '=', self.env.user.login)]
+                if "text" in res:
+                    domain += [('name', 'ilike', f"%{res['text']}%")]
+            issue_ids = self.with_context(forced_issue_domain=domain).load_all_issues()
+            if delay:
+                self.with_delay().load_work_logs(issue_ids)
+            else:
+                self.load_work_logs(issue_ids)
+            return issue_ids
         else:
-            domain = []
-            if 'project' in res:
-                if not isinstance(res['project'], (list, tuple)):
-                    res['project'] = [res['project']]
-                domain += [('project_id', 'in', res['project'])]
-            if "mine" in res:
-                domain += [('user_ids.login', '=', self.env.user.login)]
-            if "text" in res:
-                domain += [('name', 'ilike', f"%{res['text']}%")]
-        issue_ids = self.with_context(forced_issue_domain=domain).load_all_issues()
-        if delay:
-            self.with_delay().load_work_logs(issue_ids)
-        else:
-            self.load_work_logs(issue_ids)
-        return issue_ids
+            return super()._search_load(res, delay)
 
     @api.model
     def _prepare_odoo_timesheet_log_vals(self, log):

@@ -843,7 +843,6 @@ class TaskMigration(models.Model):
 
     def load_all_issues(self):
         issue_ids = self.load_issues(load_all=True)
-
         if issue_ids and self.import_work_log:
             for issue_id in issue_ids:
                 self.with_delay().load_work_logs(issue_id)
