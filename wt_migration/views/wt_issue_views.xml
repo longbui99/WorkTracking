@@ -9,6 +9,9 @@
                 <filter string="In Progress" name="filter_in_progress"
                         domain="[('status_value','in', ('new','indeterminate'))]"/>
             </filter>
+            <filter name="group_by_status" position="after">
+                <filter string="Host" name="group_by_host" context="{'group_by':'wt_migration_id'}"/>
+            </filter>
         </field>
     </record>
 
