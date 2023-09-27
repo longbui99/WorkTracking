@@ -246,6 +246,9 @@ class TaskMigration(models.Model):
         self.env.user.token_clear_cache()
         return projects    
     
+    def load_initial_projects(self):
+        return self.load_projects()
+    
     # def update_projects_id(self):
     #     self.ensure_one()
     #     headers = self.__get_request_headers()

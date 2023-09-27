@@ -343,8 +343,6 @@ class OdooMigration(models.Model):
             else:
                 domain = []
                 if 'project' in res:
-                    if not isinstance(res['project'], (list, tuple)):
-                        res['project'] = [res['project']]
                     domain += [('project_id', 'in', res['project'])]
                 if "mine" in res:
                     domain += [('user_ids.login', '=', self.env.user.login)]
@@ -403,3 +401,9 @@ class OdooMigration(models.Model):
                 rpc('account.analytic.line', 'unlink', [time_log_ids.mapped('id_on_wt')])
         else:
             return super().delete_time_logs(issue_id, time_log_ids)
+
+    def load_initial_projects(self):
+        res = super().load_initial_projects()
+        if self.migration_type == "odoo":
+            self._search_load({'all': []})
+        return res

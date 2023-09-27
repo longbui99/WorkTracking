@@ -28,11 +28,10 @@ class ResUsers(models.Model):
         fetch_ok = False
         if existing_migration:
             to_fetch_projects = self.env['wt.project'].search(['|', ('wt_migration_id', '=', existing_migration.id), ('company_id', '=', existing_migration.company_id.id)])
-            to_fetch_projects |= existing_migration.load_projects()
+            to_fetch_projects |= existing_migration.load_initial_projects()
             fetch_ok = True
             if not fetch_ok:
                 raise UserError(_("The Token is invalid, please check again"))
-            self.env['ir.config_parameter'].sudo().set_param('latest_unix', int(datetime.now().timestamp() * 1000))
 
     def token_exists(self, migration):
         existing_token_users = self.env['res.users']
