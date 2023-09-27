@@ -66,3 +66,4 @@ class ResUsers(models.Model):
         return users
 
     def token_clear_cache(self):
+        self.env['token.storage'].clear_caches()
