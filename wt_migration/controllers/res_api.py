@@ -39,8 +39,7 @@ class WtIssueMigration(WtIssue):
         if not issue_id:
             return Exception("Need to provide issue id")
         issue_id = request.env['wt.issue'].browse(issue_id)
-        res = {'issue': [issue_id.issue_key]}
-        issue_id.wt_migration_id.with_context(bypass_cross_user=True)._search_load(res)
+        issue_id.import_issue_wt()
         data = self._get_issue(issue_id)
         return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
 

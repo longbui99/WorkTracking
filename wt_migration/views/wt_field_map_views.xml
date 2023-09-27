@@ -27,7 +27,7 @@
     </record>
 
     <record id="action_wt_field_map" model="ir.actions.act_window">
-        <field name="name">SDK Field Mapping</field>
+        <field name="name">Map Fields</field>
         <field name="res_model">wt.field.map</field>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="wt_migration.wt_field_map_tree_view"/>

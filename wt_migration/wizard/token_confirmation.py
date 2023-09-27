@@ -7,6 +7,7 @@ class TokenConfirmation(models.TransientModel):
     _description = "Token Confirmation"
 
     employee_id = fields.Many2one("hr.employee", string="Employee")
+    migration_id = fields.Many2one("wt.migration", string="Host")
     token = fields.Char(string="Token", required=True)
 
     def action_confirm(self):
@@ -15,6 +16,6 @@ class TokenConfirmation(models.TransientModel):
         elif self.employee_id.user_id.id != self.env.user.id:
             raise exceptions.UserError("Cannot update token on other user")
         
-        self.employee_id.update_token(self.token)
+        self.employee_id.update_token(self.migration_id, self.token)
         self.update({'token': True})
         

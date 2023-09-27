@@ -17,7 +17,7 @@ def get_search_request(string):
         'favorite': ('favorite', 0, True),
         'today': ('today', 0, True),
         'tomorrow': ('tomorrow', 0, True),
-        'mine': ('mine', 0, True),
+        '[ \.]?mine[ \.]?': ('mine', 0, True),
         '\[[a-zA-Z0-9]+\]': ('project', 1, -1),
         '[a-zA-Z0-9]+-[0-9]+': ('issue', 0, True),
         '[A-Z]{2,}': ('project', 0, True),

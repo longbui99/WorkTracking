@@ -45,6 +45,7 @@ class WtProject(models.Model):
             record.wt_migration_id.export_acceptance_criteria(record)
 
     def import_issue_wt(self):
+        self = self.with_context(bypass_cross_user=True)
         res = {'issue': self.mapped('issue_key')}
         self.wt_migration_id._search_load(res)
 

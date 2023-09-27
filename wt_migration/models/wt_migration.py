@@ -32,11 +32,14 @@ class UnaccessTokenUsers(models.Model):
 
 class TaskMigration(models.Model):
     _name = 'wt.migration'
-    _description = 'Task Migration'
+    _description = 'Host'
     _order = 'sequence asc'
     _rec_name = 'name'
 
     name = fields.Char(string='Name', required=True)
+    migration_type = fields.Selection([
+        ('atlassian', 'Atlassian')
+    ], default='atlassian', string="Host", required=True)
     sequence = fields.Integer(string='Sequence')
     timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
     auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type",
@@ -46,15 +49,27 @@ class TaskMigration(models.Model):
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
     is_load_acs = fields.Boolean(string="Import Checklist?")
-    wt_server_url = fields.Char(string='Task Server URL', store=True, compute="_compute_api_url", compute_sudo=True, readonly=True)
-    wt_agile_url = fields.Char(string="Task Agile URL", store=True, compute="_compute_api_url", compute_sudo=True, readonly=True)
-    base_url = fields.Char(string="Base URL", default="")
+    wt_server_url = fields.Char(string='Server Endpoint', store=True, compute="_compute_api_url", compute_sudo=True, readonly=True)
+    wt_agile_url = fields.Char(string="Agile Endpoint", store=True, compute="_compute_api_url", compute_sudo=True, readonly=True)
+    base_url = fields.Char(string="Domain", default="")
     admin_user_ids = fields.Many2many("res.users", string="Admins")
     active = fields.Boolean(string="Active?", default=True)
     is_round_robin = fields.Boolean(string="Share Sync?")
     company_id = fields.Many2one('res.company', string='Company', required=True)
     template_id = fields.Many2one('wt.migration.map.template', string="Export Issue Template")
     unaccess_token_user_ids = fields.One2many("wt.unaccess.token", "wt_migration_id", string="Unaccess Token")
+
+    def name_get(self):
+        name_dict = dict(self._fields['migration_type'].selection)
+        ret_list = []
+        for record in self:
+            name = '[%s] %s' % (name_dict[record.migration_type], record.name)
+            ret_list.append((record.id, name))
+        return ret_list
+    
+    def get_prefix(self):
+        self.ensure_one()
+        return f"{self.migration_type}::{self.id}::"
 
     def get_unaccess_token_users(self):
         self.ensure_one()
@@ -70,6 +85,9 @@ class TaskMigration(models.Model):
         _logger.error(sql_stmt)
         self.env.cr.execute(sql_stmt)
 
+    def map_endpoint_url(self):
+        return
+
     @api.depends('base_url')
     def _compute_api_url(self):
         for migration in self:
@@ -77,6 +95,7 @@ class TaskMigration(models.Model):
             migration.base_url = server_url
             migration.wt_server_url = f"{migration.base_url}/rest/api/2"
             migration.wt_agile_url = f"{migration.base_url}/rest/agile/1.0"
+            migration.map_endpoint_url()
 
     def __load_master_data(self):
         self.ensure_one()
@@ -90,14 +109,8 @@ class TaskMigration(models.Model):
         self.load_sprints(own_boards)
         self.env['wt.field.map'].create_template(self)
 
-    def sanity_check(self, company_id):
-        if company_id:
-            if self.search([('company_id', '=', company_id)], limit=1):
-                raise UserError("Cannot create duplicated Migration for Company %s"%self.env['res.company'].browse(company_id).display_name)
-
     @api.model
     def create(self, values):
-        self.sanity_check(values.get('company_id'))
         migration = super().create(values)
         migration.__load_master_data()
         return migration
@@ -107,9 +120,7 @@ class TaskMigration(models.Model):
             self.env['wt.status'].search([('company_id', '=', record.company_id.id)]).unlink()
             self.env['wt.type'].search([('company_id', '=', record.company_id.id)]).unlink()
             self.env['wt.field.map'].search([('migration_id', '=', record.id)]).unlink()
-            self.env.cr.execute("""
-                DELETE FROM wt_time_log WHERE company_id = %s
-            """%record.company_id.id)
+            self.env.cr.execute("""DELETE FROM wt_time_log WHERE company_id = %s"""%record.company_id.id)
         super().unlink()
 
     def action_toggle(self):
@@ -129,7 +140,7 @@ class TaskMigration(models.Model):
     def __get_request_headers(self):
         self.ensure_one()
         user = self.env.user
-        wt_private_key = user.get_jira_token()
+        wt_private_key = user.get_token(self)
         if self.auth_type == 'api_token':
             wt_private_key = "Basic " + base64.b64encode(
                 f"{user.partner_id.email or user.login}:{wt_private_key}".encode('utf-8')).decode('utf-8')
@@ -233,35 +244,35 @@ class TaskMigration(models.Model):
         self.env.user.token_clear_cache()
         return projects    
     
-    def update_projects_id(self):
-        self.ensure_one()
-        headers = self.__get_request_headers()
-        result = requests.get(f"{self.wt_server_url}/project", headers=headers)
-        existing_project = self.env['wt.project'].search([])
-        existing_project_dict = {f"{r.project_key}": r for r in existing_project}
-        user_id = self.env.user
-        new_project = []
-        for record in json.loads(result.text):
-            if not existing_project_dict.get(record.get('key', False), False):
-                res = {
-                    'project_name': record['name'],
-                    'project_key': record['key'],
-                    'wt_migration_id': self.id,
-                    'allow_to_fetch': True,
-                    'company_id': self.company_id.id,
-                    'external_id': record['id']
-                }
-                if user_id:
-                    res['allowed_manager_ids'] = [(4, user_id.id, False)]
-                new_project.append(res)
-            else:
-                project = existing_project_dict.get(record.get('key', False), False)
-                if user_id:
-                    project.sudo().allowed_manager_ids = [(4, user_id.id, False)]
-        projects = self.env['wt.project']
-        if new_project:
-            projects = self.env['wt.project'].sudo().create(new_project)
-        return projects
+    # def update_projects_id(self):
+    #     self.ensure_one()
+    #     headers = self.__get_request_headers()
+    #     result = requests.get(f"{self.wt_server_url}/project", headers=headers)
+    #     existing_project = self.env['wt.project'].search([])
+    #     existing_project_dict = {f"{r.project_key}": r for r in existing_project}
+    #     user_id = self.env.user
+    #     new_project = []
+    #     for record in json.loads(result.text):
+    #         if not existing_project_dict.get(record.get('key', False), False):
+    #             res = {
+    #                 'project_name': record['name'],
+    #                 'project_key': record['key'],
+    #                 'wt_migration_id': self.id,
+    #                 'allow_to_fetch': True,
+    #                 'company_id': self.company_id.id,
+    #                 'external_id': record['id']
+    #             }
+    #             if user_id:
+    #                 res['allowed_manager_ids'] = [(4, user_id.id, False)]
+    #             new_project.append(res)
+    #         else:
+    #             project = existing_project_dict.get(record.get('key', False), False)
+    #             if user_id:
+    #                 project.sudo().allowed_manager_ids = [(4, user_id.id, False)]
+    #     projects = self.env['wt.project']
+    #     if new_project:
+    #         projects = self.env['wt.project'].sudo().create(new_project)
+    #     return projects
 
     @api.model
     def make_request(self, request_data, headers):

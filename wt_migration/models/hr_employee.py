@@ -12,5 +12,5 @@ class HREmployee(models.AbstractModel):
         action['context'] = {'default_employee_id': self.id}
         return action
 
-    def update_token(self, token):
-        self.user_id and self.user_id.set_jira_token(token)
+    def update_token(self, migration, token):
+        self.user_id and self.user_id.set_token(migration, token)

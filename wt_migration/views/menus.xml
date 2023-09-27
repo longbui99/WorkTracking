@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <menuitem id="wt_migration.migration_dashboard"
-              name="Migration"
+              name="Hosts"
               action="wt_migration.action_wt_migration"
               sequence="1"
               groups="project_management.group_wt_user"
@@ -17,7 +17,7 @@
     </menuitem>
     
     <menuitem id="wt_migration.wt_field_map_dashboard"
-              name="Field Mapping"
+              name="Map Fields"
               action="wt_migration.action_wt_field_map"
               sequence="3"
               parent="project_management.settings"
