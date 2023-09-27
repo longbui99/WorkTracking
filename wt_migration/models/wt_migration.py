@@ -56,6 +56,7 @@ class TaskMigration(models.Model):
     admin_user_ids = fields.Many2many("res.users", string="Admins")
     active = fields.Boolean(string="Active?", default=True)
     is_round_robin = fields.Boolean(string="Share Sync?")
+    full_sync = fields.Boolean(string="All Users Pull?")
     company_id = fields.Many2one('res.company', string='Company', required=True)
     template_id = fields.Many2one('wt.migration.map.template', string="Export Issue Template")
     unaccess_token_user_ids = fields.One2many("wt.unaccess.token", "wt_migration_id", string="Unaccess Token")

@@ -49,6 +49,7 @@
                             <field name="company_id"/>
                             <field name="admin_user_ids" widget="many2many_tags"/>
                             <field name="is_round_robin" attrs="{'invisible': [('admin_user_ids', '!=', [])]}"/>
+                            <field name="full_sync"/>
                         </group>
                     </group>
                     <group>

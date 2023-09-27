@@ -43,24 +43,28 @@ class WtProject(models.Model):
                     user_ids = []
                     if not project.wt_migration_id.is_round_robin and project.wt_migration_id.admin_user_ids:
                         user_ids = allowed_user_ids & project.wt_migration_id.admin_user_ids
-                    elif project.allowed_manager_ids:
-                        user_ids = allowed_user_ids & project.allowed_manager_ids
                     elif project.allowed_user_ids:
                         user_ids = allowed_user_ids & project.allowed_user_ids
-                    
-                    if not len(user_ids):
-                        continue
-                    applicable_user = user_ids[0]
-                    for user in user_ids:
-                        if user in  user_by_migration[migration]:
-                            applicable_user = user
-                            break
-                    user_by_migration[migration].add(applicable_user)
-                    if not project.last_update and applicable_user and project.wt_migration_id:
-                        new_projects_by_user[applicable_user] |= project
-                    else:
-                        project_by_user_by_migration[migration][applicable_user.id] |= project
+                    elif project.allowed_manager_ids:
+                        user_ids = allowed_user_ids & project.allowed_manager_ids
 
+                    if not (user_ids):
+                        continue
+                    applicable_users = user_ids
+                    if not migration.full_sync:
+                        applicable_users = user_ids[0]
+                        for user in user_ids:
+                            if user in user_by_migration[migration]:
+                                applicable_users = user
+                                break
+                        user_by_migration[migration].add(applicable_users)
+
+                    if not project.last_update and applicable_users and project.wt_migration_id:
+                        for user in applicable_users:
+                            new_projects_by_user[user] |= project
+                    else:
+                        for user in applicable_users:
+                            project_by_user_by_migration[migration][user.id] |= project
         
         if new_projects_by_user:
             for user, projects in new_projects_by_user.items():
