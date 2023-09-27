@@ -384,7 +384,7 @@ class OdooMigration(models.Model):
                     log['id_on_wt'] = ex_id
                 return res
         else:
-            return super().update_time_logs(issue_id, time_log_ids)
+            return super().add_time_logs(issue_id, time_log_ids)
 
     def update_time_logs(self, issue_id, time_log_ids):
         if self.migration_type == "odoo":
