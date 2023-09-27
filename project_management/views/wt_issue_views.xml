@@ -210,10 +210,11 @@
                 <filter string="Billable" name="billable" domain="[('billable_state', '=', 'bill')]"/>
                 <filter string="Non-Billable" name="non_billable" domain="[('billable_state', '=', 'non-bill')]"/>
                 <separator/>
+                <filter string="Company" name="group_by_status" context="{'group_by':'company_id'}"/>
+                <filter string="Host" name="group_by_host" context="{'group_by':'wt_migration_id'}"/>
                 <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
                 <filter string="Epic" name="group_by_epic" context="{'group_by':'epic_id'}"/>
                 <filter string="Status" name="group_by_status" context="{'group_by':'status_id'}"/>
-                <filter string="Company" name="group_by_status" context="{'group_by':'company_id'}"/>
                 <filter string="Billable" name="group_by_billable_state" context="{'group_by':'billable_state'}"/>
             </search>
         </field>

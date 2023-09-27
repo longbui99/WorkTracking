@@ -9,7 +9,6 @@
                 <field name="sequence" widget="handle"/>
                 <field name="migration_type"/>
                 <field name="name"/>
-                <field name="wt_server_url"/>
                 <field name="company_id" optional="hide"/>
             </tree>
         </field>
