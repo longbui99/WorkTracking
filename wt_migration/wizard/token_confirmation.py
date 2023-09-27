@@ -7,7 +7,7 @@ class TokenConfirmation(models.TransientModel):
     _description = "Token Confirmation"
 
     employee_id = fields.Many2one("hr.employee", string="Employee")
-    migration_id = fields.Many2one("wt.migration", string="Host")
+    migration_id = fields.Many2one("wt.migration", string="Host", domain=lambda self:[('allowed_user_ids', '=', self.env.user.id)])
     token = fields.Char(string="Token", required=True)
 
     def action_confirm(self):

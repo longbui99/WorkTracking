@@ -50,6 +50,7 @@
                             <field name="admin_user_ids" widget="many2many_tags"/>
                             <field name="is_round_robin" attrs="{'invisible': [('admin_user_ids', '!=', [])]}"/>
                             <field name="full_sync"/>
+                            <field name="allowed_user_ids" widget="many2many_tags"/>
                         </group>
                     </group>
                     <group>

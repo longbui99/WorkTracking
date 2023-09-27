@@ -60,6 +60,7 @@ class TaskMigration(models.Model):
     company_id = fields.Many2one('res.company', string='Company', required=True)
     template_id = fields.Many2one('wt.migration.map.template', string="Export Issue Template")
     unaccess_token_user_ids = fields.One2many("wt.unaccess.token", "wt_migration_id", string="Unaccess Token")
+    allowed_user_ids = fields.Many2many("res.users", "allowed_user_migration_rel", string="Allowed Users")
 
     def name_get(self):
         name_dict = dict(self._fields['migration_type'].selection)
