@@ -200,7 +200,7 @@ class OdooMigration(models.Model):
             issue_ids = self.with_context(forced_issue_domain=domain).load_all_issues()
             _logger.info(f"{project_id.project_name}: {len(issue_ids)}")
         else:
-            return super()._update_project()
+            return super()._update_project(project_id, project_last_update)
 
     def load_logs_by_unix(self, unix):
             str_updated_date = datetime.fromtimestamp(unix / 1000).strftime('%Y-%m-%d %H:%M')
