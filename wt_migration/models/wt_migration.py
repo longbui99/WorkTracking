@@ -1,3 +1,4 @@
+import ast
 import requests
 import json
 import pytz
@@ -515,12 +516,15 @@ class TaskMigration(models.Model):
                     if value.strip() == (curd_data[keys[index]] or '').strip():
                         del curd_data[keys[index]]
                 elif float(value):
-                    try:
-                        float("0%s"%curd_data[keys[index]])
-                    except Exception as e:
-                        error_msg = "%s:\n %s" % (e, json.dumps(existing_record, indent=4))
-                        raise error_msg
-                    if float(value) == float("0%s"%curd_data[keys[index]]):
+                    temp = curd_data[keys[index]]
+                    if isinstance(temp, str):
+                        try:
+                            temp = "0%s"%temp if not temp.startswith('-') else temp
+                            temp = float(temp) 
+                        except Exception as e:
+                            error_msg = "%s-%s:\n %s" % (e, str(existing_record), json.dumps(curd_data, indent=4))
+                            raise Exception(error_msg)
+                    if float(value) == temp:
                         del curd_data[keys[index]]
             else:
                 del curd_data[keys[index]]

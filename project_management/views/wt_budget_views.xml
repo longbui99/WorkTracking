@@ -7,12 +7,13 @@
             <tree decoration-muted="(state == 'invoiced')">
                 <field name="currency_id" invisible="1"/>
                 <field name="sequence" widget="handle"/>
+                <field name="company_id" optional="hide"/>
                 <field name="name"/>
                 <field name="project_id" optional="show"/>
                 <field name="finance_id" optional="show"/>
                 <field name="duration" optional="show"/>
                 <field name="amount" widget="monetary" optional="hide"/>
-                <field name="company_id" optional="hide"/>
+                <field name="duration_percent_used" widget="progressbar" nolabel="1"/>
                 <field name="state" decoration-success="state == 'invoiced'" decoration-info="state != 'invoiced'" widget="badge" optional="show"/>
             </tree>
         </field>
