@@ -24,37 +24,43 @@ class NotFound(Exception):
 
 class WtIssue(http.Controller):
 
+    def _get_issue_data(self, issue_id):
+        return {
+            "id": issue_id.id,
+            "name": issue_id.issue_name,
+            "key": issue_id.issue_key,
+            "point": issue_id.story_point,
+            "estimate_unit": issue_id.story_point_unit,
+            "project": issue_id.project_id.project_name,
+            "projectKey": issue_id.project_id.project_key,
+            "assignee": issue_id.assignee_id.partner_id.name,
+            "assigneeEmail": issue_id.assignee_id.partner_id.email,
+            "tester": issue_id.tester_id.partner_id.name,
+            "status": issue_id.status_id.name,
+            "status_key": issue_id.status_id.wt_key,
+            "total_duration": issue_id.duration,
+            "my_total_duration": issue_id.my_total_duration,
+            "active_duration": issue_id.active_duration,
+            "last_start": issue_id.last_start and issue_id.last_start.isoformat() or False,
+            "url": issue_id.issue_url,
+            'type_url': issue_id.issue_type_id.img_url or "https://novobi.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+            'type_name': issue_id.issue_type_id.name,
+            'sprint': issue_id.sprint_id.name,
+            'applicable_date': issue_id.applicable_date.isoformat(),
+        }
+    
+    def _get_issues_data(self, issues):
+        res = []
+        for issue in issues:
+            res.append(self._get_issue_data(issue))
+        return res
+    
     def _get_issue(self, issue_ids):
         if issue_ids and isinstance(issue_ids, list) or isinstance(issue_ids, int):
             issue_ids = request.env['wt.issue'].browse(issue_ids)
             if not issue_ids.exists():
                 return str(MissingError("Cannot found issue in our system!"))
-        res = []
-        for issue_id in issue_ids:
-            res.append({
-                "id": issue_id.id,
-                "name": issue_id.issue_name,
-                "key": issue_id.issue_key,
-                "point": issue_id.story_point,
-                "estimate_unit": issue_id.story_point_unit,
-                "project": issue_id.project_id.project_name,
-                "projectKey": issue_id.project_id.project_key,
-                "assignee": issue_id.assignee_id.partner_id.name,
-                "assigneeEmail": issue_id.assignee_id.partner_id.email,
-                "tester": issue_id.tester_id.partner_id.name,
-                "status": issue_id.status_id.name,
-                "status_key": issue_id.status_id.wt_key,
-                "total_duration": issue_id.duration,
-                "my_total_duration": issue_id.my_total_duration,
-                "active_duration": issue_id.active_duration,
-                "last_start": issue_id.last_start and issue_id.last_start.isoformat() or False,
-                "url": issue_id.issue_url,
-                'type_url': issue_id.issue_type_id.img_url or "https://novobi.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
-                'type_name': issue_id.issue_type_id.name,
-                'sprint': issue_id.sprint_id.name,
-                'applicable_date': issue_id.applicable_date.isoformat()
-            })
-        return res
+        return self._get_issues_data(issue_ids)
 
     @handling_req_res
     @http.route(['/management/issue/get/<int:issue_id>'], type="http", cors="*", methods=['GET'], csrf=False, auth='jwt')

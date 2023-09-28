@@ -4,6 +4,7 @@ from odoo.http import request
 from odoo.addons.project_management.controllers.issue import WtIssue
 from odoo.addons.project_management.controllers.auth import Auth
 from odoo.addons.project_management.utils.error_tracking import handling_req_res
+from odoo.addons.web.controllers.main import Binary
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -12,6 +13,15 @@ class WtIssueMigration(WtIssue):
     def _get_work_log(self, log): 
         res = super()._get_work_log(log)
         res['exported'] = log.export_state
+        return res
+
+    def _get_issue_data(self, issue):
+        res = super()._get_issue_data(issue)
+        res['host_image_url'] = issue.wt_migration_id.host_image_url
+        return res
+
+    def _get_issues_data(self, issues):
+        res = super()._get_issues_data(issues)
         return res
 
     @handling_req_res
@@ -68,3 +78,11 @@ class AuthInherited(Auth):
                                                           order='create_date desc',
                                                           offset=employee_id.maximum_connection).unlink()
         return res
+
+
+class Content:
+
+    @http.route(['/public_image/<int:id>',], type='http', auth="none")
+    def content_image(self, *args, **kwargs):
+        # other kwargs are ignored on purpose
+        return Binary.content_image(args,kwargs)
