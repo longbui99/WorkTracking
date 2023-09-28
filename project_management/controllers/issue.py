@@ -43,7 +43,7 @@ class WtIssue(http.Controller):
             "active_duration": issue_id.active_duration,
             "last_start": issue_id.last_start and issue_id.last_start.isoformat() or False,
             "url": issue_id.issue_url,
-            'type_url': issue_id.issue_type_id.img_url or "https://novobi.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium",
+            'type_url': "https://novobi.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10318?size=medium" or issue_id.issue_type_id.img_url,
             'type_name': issue_id.issue_type_id.name,
             'sprint': issue_id.sprint_id.name,
             'applicable_date': issue_id.applicable_date.isoformat(),
