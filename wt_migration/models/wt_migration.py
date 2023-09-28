@@ -98,7 +98,8 @@ class TaskMigration(models.Model):
     
     @api.depends('avatar')
     def _compute_host_image_url(self):
-        base_url = self.env['ir.config_parameter'].get_param('web.public.url') or self.env['ir.config_parameter'].get_param('web.base.url')
+        env = self.env['ir.config_paramter'].sudo()
+        base_url = env.get_param('web.public.url') or env.get_param('web.base.url')
         attachments = self.get_linked_avatar()
         for migration in self:
             attachment = attachments.filtered(lambda r: r.res_id == migration.id)
