@@ -62,7 +62,7 @@ class TaskMigration(models.Model):
     unaccess_token_user_ids = fields.One2many("wt.unaccess.token", "wt_migration_id", string="Unaccess Token")
     allowed_user_ids = fields.Many2many("res.users", "allowed_user_migration_rel", string="Allowed Users")
     avatar = fields.Binary(string="Avatar", store=True, attachment=True)
-    host_image_url = fields.Char(string="Host Image URL", compute="_compute_host_image_url", store=True)
+    host_image_url = fields.Char(string="Host Image URL", compute="_compute_host_image_url")
 
     def name_get(self):
         name_dict = dict(self._fields['migration_type'].selection)
@@ -93,10 +93,13 @@ class TaskMigration(models.Model):
     def map_endpoint_url(self):
         return
     
+    def get_linked_avatar(self):
+        return self.env['ir.attachment'].search([('res_model', '=', 'wt.migration'), ('res_id', 'in', self.ids), ('res_field', '=', 'avatar')])
+    
     @api.depends('avatar')
     def _compute_host_image_url(self):
-        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
-        attachments = self.env['ir.attachment'].search([('res_model', '=', 'wt.migration'), ('res_id', 'in', self.ids), ('res_field', '=', 'avatar')])
+        base_url = self.env['ir.config_parameter'].get_param('web.public.url') or self.env['ir.config_parameter'].get_param('web.base.url')
+        attachments = self.get_linked_avatar()
         for migration in self:
             attachment = attachments.filtered(lambda r: r.res_id == migration.id)
             migration.host_image_url = f"{base_url}/web/image/{attachment.id}"if attachment else False
@@ -126,7 +129,15 @@ class TaskMigration(models.Model):
     def create(self, values):
         migration = super().create(values)
         # migration.__load_master_data()
+        if 'avatar' in values:
+            migration.get_linked_avatar().write({'public': True})
         return migration
+    
+    def write(self, values):
+        res = super().write(values)
+        if 'avatar' in values:
+            self.get_linked_avatar().write({'public': True})
+        return res
     
     def unlink(self):
         for record in self:
