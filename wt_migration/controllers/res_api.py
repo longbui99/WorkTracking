@@ -11,8 +11,10 @@ _logger = logging.getLogger(__name__)
 class WtIssueMigration(WtIssue):
 
     def _get_work_log(self, log): 
+        log.mapped('issue_id.wt_migration_id.host_image_url')
         res = super()._get_work_log(log)
         res['exported'] = log.export_state
+        res['host_image_url'] = log.issue_id.wt_migration_id.host_image_url
         return res
 
     def _get_issue_data(self, issue):
