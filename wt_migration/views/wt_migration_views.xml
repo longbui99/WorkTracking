@@ -64,6 +64,9 @@
                     </group>
                     <notebook>
                         <page string="Ops">
+                            <group>
+                                <field name="base_issue_url"/>
+                            </group>
                             <group>                                <group>
                                     <field name="is_round_robin" attrs="{'invisible': [('admin_user_ids', '!=', [])]}"/>
                                     <field name="full_sync"/>

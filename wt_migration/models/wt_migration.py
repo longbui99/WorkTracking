@@ -63,6 +63,7 @@ class TaskMigration(models.Model):
     allowed_user_ids = fields.Many2many("res.users", "allowed_user_migration_rel", string="Allowed Users")
     avatar = fields.Binary(string="Avatar", store=True, attachment=True)
     host_image_url = fields.Char(string="Host Image URL", compute="_compute_host_image_url")
+    base_issue_url = fields.Char(string="Issue URL Template")
 
     def name_get(self):
         name_dict = dict(self._fields['migration_type'].selection)

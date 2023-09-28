@@ -183,7 +183,8 @@ class OdooMigration(models.Model):
                         'issue_key': f"{project_key}-{issue_data['id']}",
                         'assignee_id': assignee_id,
                         'wt_id': issue_data['id'],
-                        'wt_migration_id': self.id
+                        'wt_migration_id': self.id,
+                        'issue_url': self.base_issue_url%issue_data['id']
                     })
             return issues | issue_env.create(value_list)
         else:
