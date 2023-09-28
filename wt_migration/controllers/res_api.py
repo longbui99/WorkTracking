@@ -10,6 +10,15 @@ _logger = logging.getLogger(__name__)
 
 class WtIssueMigration(WtIssue):
 
+    def _fill_default_type_url(self, records):
+        default_type_url = False
+        for record in records:
+            if not record['type_url']:
+                if not default_type_url:
+                    default_type_url = request.env['ir.config_parameter'].sudo().get_param('default.type.url')
+                record['type_url'] = default_type_url
+        return records
+
     def _get_work_log(self, log): 
         log.mapped('issue_id.wt_migration_id.host_image_url')
         res = super()._get_work_log(log)
@@ -17,6 +26,10 @@ class WtIssueMigration(WtIssue):
         res['host_image_url'] = log.issue_id.wt_migration_id.host_image_url
         return res
 
+    def _get_work_logs(self, log_ids):
+        res = super()._get_work_logs(log_ids)
+        return self._fill_default_type_url(res)
+    
     def _get_issue_data(self, issue):
         res = super()._get_issue_data(issue)
         res['host_image_url'] = issue.wt_migration_id.host_image_url
@@ -24,7 +37,7 @@ class WtIssueMigration(WtIssue):
 
     def _get_issues_data(self, issues):
         res = super()._get_issues_data(issues)
-        return res
+        return self._fill_default_type_url(res)
 
     @handling_req_res
     @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
