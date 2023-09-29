@@ -88,7 +88,7 @@ class OdooMigration(models.Model):
                     if user_id:
                         res['allowed_manager_ids'] = [(4, user_id.id, False)]
                     value_list.append(res)
-            projects |= projects.create(value_list)
+            projects |= projects.sudo().create(value_list)
             return projects
         else:
             return super().load_projects()
@@ -269,7 +269,7 @@ class OdooMigration(models.Model):
                     if odoo_log.description != log['name']:
                         vals['description'] != log['name']
                     odoo_log.update(vals)
-            return self.env['wt.time.log'].create(value_list)
+            return self.env['wt.time.log'].sudo().create(value_list)
 
     def load_missing_work_logs_by_unix(self, unix, users, projects, batch=900, end_unix=-1):
         if self.migration_type == "odoo":
