@@ -33,6 +33,14 @@ access_wt_issue_template_manager,wt.issue.template,model_wt_issue_template,proje
 access_wt_issue_template_line_user,wt.issue.template.line,model_wt_issue_template_line,project_management.group_wt_user,1,1,1,0
 access_wt_issue_template_line_manager,wt.issue.template.line,model_wt_issue_template_line,project_management.group_wt_manager,1,1,1,1
 
-access_wt_finance,wt.finance,model_wt_finance,project_management.group_wt_manager,1,1,1,1
+access_hr_employee_role,hr.employee_role,model_hr_employee_role,project_management.group_wt_user,1,0,0,0
+access_hr_employee_role,hr.employee_role,model_hr_employee_role,project_management.group_wt_manager,1,1,1,1
 
-access_wt_budget,wt.budget,model_wt_budget,project_management.group_wt_manager,1,1,1,1
+access_wt_finance,wt.finance,model_wt_finance,project_management.group_wt_finance_user,1,0,0,0
+access_wt_finance,wt.finance,model_wt_finance,project_management.group_wt_finance_manager,1,1,1,1
+access_wt_budget,wt.budget,model_wt_budget,project_management.group_wt_finance_user,1,0,0,0
+access_wt_budget,wt.budget,model_wt_budget,project_management.group_wt_finance_manager,1,1,1,1
+access_wt_allocation,wt.allocation,model_wt_allocation,project_management.group_wt_finance_user,1,0,0,0
+access_wt_allocation,wt.allocation,model_wt_allocation,project_management.group_wt_finance_manager,1,1,1,1
+access_wt_allocation_group,wt.allocation.group,model_wt_allocation_group,project_management.group_wt_finance_user,1,0,0,0
+access_wt_allocation_group,wt.allocation.group,model_wt_allocation_group,project_management.group_wt_finance_manager,1,1,1,1

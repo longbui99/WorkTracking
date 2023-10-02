@@ -26,13 +26,26 @@
                             attrs="{'invisible': [('budget_count', '=', 0)]}">
                             <field name="budget_count" widget="statinfo" string="Budgets"/>
                         </button>
+                        <button type="object"
+                            name="action_open_allocation"
+                            class="oe_stat_button"
+                            icon="fa-clock-o"
+                            string="Allocations" 
+                            attrs="{'invisible': [('budget_count', '=', 0)]}">
+                        </button>
                     </div>
                     <label for="name" class="oe_edit_only"/>
                     <h1>
                         <field name="name"/>
                     </h1>
                     <group>
-                        <field name="access_user_ids" widget="many2many_tags"/>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="due_date" widget="date"/>
+                        </group>
+                        <group>
+                            <field name="access_user_ids" widget="many2many_tags"/>
+                        </group>
                     </group>
                     <group>
                         <group>

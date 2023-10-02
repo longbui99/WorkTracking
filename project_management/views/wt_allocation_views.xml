@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="wt_allocation_pivot_view" model="ir.ui.view">
+        <field name="name">Task Allocation Pivots</field>
+        <field name="model">wt.allocation</field>
+        <field name="arch" type="xml">
+            <pivot string="Allocations Analysis" sample="1">
+                <field name="user_id" type="col"/>
+                <field name="start_date" interval="week" type="row"/>
+                <field name="allocation" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="wt_allocation_tree_view" model="ir.ui.view">
+        <field name="name">Task Allocations</field>
+        <field name="model">wt.allocation</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="employee_id" invisible="1"/>
+                <field name="project_id" optional="hide"/>
+                <field name="finance_id" optional="show"/>
+                <field name="user_id" optional="show"/>
+                <field name="allocation" optional="show"/>
+                <field name="start_date" optional="hide"/>
+                <field name="end_date" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_allocation_cost_tree_view" model="ir.ui.view">
+        <field name="name">task.allocation.resource</field>
+        <field name="model">wt.allocation</field>
+        <field name="inherit_id" ref="project_management.wt_allocation_tree_view"/>
+        <field name="groups_id" eval="[(4, ref('project_management.group_wt_finance_user'))]"/>
+        <field name="arch" type="xml">
+            <field name="allocation" position="after">
+                <field name="currency_id" invisible="1"/>
+                <field name="cost_per_hour" optional="hide"/>
+                <field name="employee_role_id" optional="hide" attrs="{'invisible': [('user_id', '=', False)]}" groups="project_management.group_wt_user" context="{'default_employee_id': employee_id}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="wt_allocation_search_view" model="ir.ui.view">
+        <field name="name">Task Allocations</field>
+        <field name="model">wt.allocation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="project_id"/>
+                <field name="finance_id"/>
+                <field name="user_id"/>
+                <filter string="My Allocations" name="filter_my_allocation" domain="[('user_id','=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="wt_allocation_group_form_view" model="ir.ui.view">
+        <field name="name">Task Allocations</field>
+        <field name="model">wt.allocation.group</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_allocations" confirm="This action will generate allocations" string="Generate Allocations" type="object" class="btn btn-primary"/>
+                    <button name="action_clear_allocations" confirm="Perform this action will clear generated allocation" string="Clear Allocations" type="object" class="btn btn-danger"/>
+                </header>
+                <sheet>
+                    <field name="employee_id" invisible="1"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group string="General Information">
+                        <group>
+                            <field name="project_id"/>
+                            <field name="finance_id"/>
+                            <field name="user_id"/>
+                            <field name="employee_role_id" attrs="{'invisible': [('user_id', '=', False)]}" groups="project_management.group_wt_user" context="{'default_employee_id': employee_id}"/>
+                        </group>
+                        <group>
+                            <field name="allocation"/>
+                            <field name="cost_per_hour"/>
+                            <field name="is_compute_timeline"/>
+                        </group>
+                    </group>
+                    <group string="Allocation Duration">
+                        <group>
+                            <label for="start_date" string="Date"/>
+                            <div class="o_row">
+                                <field name="start_date" widget="daterange" options='{"related_end_date": "end_date"}'/>
+                                <i class="fa fa-long-arrow-right mx-2 oe_edit_only" aria-label="Arrow icon" title="Arrow"/>
+                                <i class="fa fa-long-arrow-right mx-2 oe_read_only" aria-label="Arrow icon" title="Arrow" attrs="{'invisible': [('start_date', '=', False), ('end_date', '=', False)]}"/>
+                                <field name="end_date" widget="daterange" options='{"related_start_date": "start_date"}'/>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="allocation_type"/>
+                        </group>
+                    </group>
+                    <field name="allocation_ids" readonly="1" context="{'tree_view_ref': 'project_management.wt_allocation_tree_view'}"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_allocation_group_tree_view" model="ir.ui.view">
+        <field name="name">Task Allocations</field>
+        <field name="model">wt.allocation.group</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="project_id" optional="hide"/>
+                <field name="finance_id" optional="show"/>
+                <field name="user_id" optional="show"/>
+                <field name="allocation" optional="show"/>
+                <field name="start_date" optional="hide"/>
+                <field name="end_date" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="wt_allocation_group_search_view" model="ir.ui.view">
+        <field name="name">Task Allocations</field>
+        <field name="model">wt.allocation.group</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="finance_id"/>
+                <field name="user_id"/>
+                <field name="allocation_type"/>
+                <filter string="My Allocations" name="filter_my_allocation" domain="[('user_id','=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_wt_group_allocation" model="ir.actions.act_window">
+        <field name="name">Task Allocation Action</field>
+        <field name="res_model">wt.allocation.group</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="wt_allocation_group_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_allocation_group_search_view"/>
+    </record>
+
+    <record id="action_wt_allocation" model="ir.actions.act_window">
+        <field name="name">Task Allocations</field>
+        <field name="res_model">wt.allocation</field>
+        <field name="view_mode">tree,pivot</field>
+        <field name="view_id" ref="wt_allocation_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_allocation_search_view"/>
+    </record>
+
+    <record id="action_wt_cost_allocation" model="ir.actions.act_window">
+        <field name="name">Task Allocations</field>
+        <field name="res_model">wt.allocation</field>
+        <field name="view_mode">tree,pivot</field>
+        <field name="view_id" ref="wt_allocation_cost_tree_view"/>
+        <field name="search_view_id" ref="project_management.wt_allocation_search_view"/>
+    </record>
+</odoo>

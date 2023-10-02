@@ -186,7 +186,10 @@ class OdooMigration(models.Model):
                         'wt_migration_id': self.id,
                         'issue_url': self.base_issue_url%issue_data['id']
                     })
-            return issues | issue_env.create(value_list)
+            issues = issues | issue_env.create(value_list)
+            if self.import_work_log:
+                self.with_context(bypass_cross_user=True).load_work_logs(issues)
+            return issues
         else:
             return super().load_all_issues()
         
@@ -309,7 +312,7 @@ class OdooMigration(models.Model):
                 project_ids = list(map(int,self.env['wt.project'].search([('wt_migration_id', 'in', self.ids)]).mapped('external_id')))
                 issues = self.env['wt.issue'].search([('wt_migration_id', 'in', self.ids)])
                 task_ids = issues.mapped('wt_id')
-                local_logs = issues.mapped('time_log_ids')
+                local_logs = issues.mapped('time_log_ids').filtered(lambda r: r.export_state != 0)
                 local_log_ex_ids = set(local_logs.mapped('id_on_wt'))
                 log_data_set = set()
                 for user in users:
@@ -323,7 +326,7 @@ class OdooMigration(models.Model):
                         res |= user_self.with_context(rpc=rpc, forced_log_domain=domain).load_logs_by_unix(unix)
                 to_delete_ex_ids = local_log_ex_ids - log_data_set
                 if to_delete_ex_ids:
-                    self.env['wt.time.log'].search([('id_on_wt', 'in', list(to_delete_ex_ids))]).unlink()
+                    self.env['wt.time.log'].search([('id_on_wt', 'in', list(to_delete_ex_ids)), ('wt_migration_id', 'in', self.ids)]).unlink()
             return res
         else:
             return super().load_work_logs_by_unix(unix, users, batch)

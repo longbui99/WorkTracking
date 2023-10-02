@@ -48,8 +48,11 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box">
-                        <button class="oe_stat_button" name="action_open_sprint"
-                                type="object" icon="fa-issue" string="Open Sprint">
+                        <button class="oe_stat_button" 
+                                name="action_open_allocation"
+                                type="object" 
+                                icon="fa-file-text-o"
+                                string="Open Allocations">
                         </button>
                     </div>
                     <label for="project_name" class="oe_edit_only"/>

@@ -48,9 +48,9 @@
                     action="project_management.action_wt_time_log"/>
         </menuitem>
         <menuitem
-                id="project_management.Budget"
+                id="project_management.menu_budget"
                 sequence="40"
-                name="Budget">
+                name="Finance">
                 <menuitem
                         id="project_management.menu_finance_analytic"
                         sequence="10"
@@ -64,8 +64,24 @@
                 />
         </menuitem>
         <menuitem
-                id="project_management.operations"
+                id="project_management.menu_resource"
                 sequence="50"
+                name="Resource"
+                >
+                <menuitem
+                        id="project_management.menu_wt_allocation_group"
+                        sequence="10"
+                        name="Allocated Groups"
+                        action="project_management.action_wt_group_allocation"/>
+                <menuitem
+                        id="project_management.menu_wt_allocation"
+                        sequence="20"
+                        name="Allocations"
+                        action="project_management.action_wt_allocation"/>
+        </menuitem>
+        <menuitem
+                id="project_management.operations"
+                sequence="60"
                 name="Operations">
                 <menuitem
                         id="project_management.menu_issue_template"
@@ -81,7 +97,7 @@
         </menuitem>
         <menuitem
                 id="project_management.settings"
-                sequence="60"
+                sequence="70"
                 name="Configuration">
                 <menuitem
                         id="project_management.menu_status"

@@ -1,3 +1,5 @@
+import json
+
 from odoo import api, fields, models, _
 
 
@@ -29,11 +31,11 @@ class WtProject(models.Model):
             project.name = '%s - %s' % (project.project_key, project.project_name)
 
     @api.model
-    def name_search(self, name, args=None, operator='ilike', limit=100):
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
         if len(name):
             args = ['|', ('project_name', 'ilike', name), ('project_key', 'ilike', name)]
-        print(args)
-        return super().name_search(name, args, operator, limit)
+        return super()._name_search(name, args, operator, limit, name_get_uid)
+
 
     def fetch_user_from_issue(self):
         for record in self:
@@ -69,6 +71,15 @@ class WtProject(models.Model):
         self.ensure_one()
         action = self.env['ir.actions.actions']._for_xml_id("project_management.action_wt_active_sprint")
         action["domain"] = [('project_id', '=', self.id)]
+        return action
+
+    def action_open_allocation(self):
+        self.ensure_one()
+        action = self.env['ir.actions.actions']._for_xml_id("project_management.action_wt_allocation")
+        action["domain"] = [('project_id', '=', self.id)]
+        context = json.loads(action['context'])
+        context['default_project_id'] = self.id
+        action['context'] = context
         return action
 
     def action_export_record(self, workbook):

@@ -22,6 +22,37 @@
             <field name="implied_ids" eval="[(4, ref('project_management.group_wt_manager'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         </record>
+
+        <record model="ir.module.category" id="module_category_wt_finance">
+            <field name="name">Finance</field>
+        </record>
+
+        <record id="group_wt_finance_user" model="res.groups">
+            <field name="name">Finance User</field>
+            <field name="category_id" ref="project_management.module_category_wt_finance"/>
+        </record>
+
+        <record id="group_wt_finance_manager" model="res.groups">
+            <field name="name">Finance Manager</field>
+            <field name="category_id" ref="project_management.module_category_wt_finance"/>
+            <field name="implied_ids" eval="[(4, ref('project_management.group_wt_finance_user'))]"/>
+        </record>
+
+        <record model="ir.module.category" id="module_category_wt_resource">
+            <field name="name">Resources</field>
+        </record>
+
+        <record id="group_wt_resource_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="project_management.module_category_wt_resource"/>
+        </record>
+
+        <record id="group_wt_resource_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="project_management.module_category_wt_resource"/>
+            <field name="implied_ids" eval="[(4, ref('project_management.group_wt_finance_user'))]"/>
+        </record>
+
     </data>
 
     <data noupdate="1">

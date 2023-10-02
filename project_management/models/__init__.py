@@ -19,3 +19,5 @@ from . import billable_rule
 from . import wt_issue_template
 from . import wt_budget
 from . import wt_finance
+from . import allocation
+from . import hr_employee_role

@@ -17,8 +17,9 @@ class WtFinance(models.Model):
     duration_percent_used = fields.Float(string="Duration Used Percent", compute="_compute_current_duration_used")
     budget_count = fields.Integer(string="Budget Count", compute="_compute_current_duration_used")
     amount = fields.Float(string="Total Amount", compute="_compute_current_duration_used")
-
+    project_id = fields.Many2one("wt.project", string="Project", required=True)
     access_user_ids = fields.Many2many("res.users", "access_finance_user_rel", string="Accessible Users")
+    due_date = fields.Datetime(string="End Date", default=lambda self: fields.Datetime.now())
 
     def _compute_current_duration_used(self):
         self.mapped('wt_budget_ids.duration_used')
@@ -36,3 +37,8 @@ class WtFinance(models.Model):
         action['domain'] = [('id', 'in', self.wt_budget_ids.ids)]
         return action
 
+    def action_open_allocation(self):
+        action = self.env["ir.actions.actions"]._for_xml_id("project_management.action_wt_allocation")
+        action['domain'] = [('finance_id', 'in', self.ids)]
+        action['context'] = {'default_finance_id': self.id, 'default_project_id': self.project_id.id}
+        return action
