@@ -43,10 +43,10 @@ class WtProject(models.Model):
                     user_ids = []
                     if not project.wt_migration_id.is_round_robin and project.wt_migration_id.admin_user_ids:
                         user_ids = allowed_user_ids & project.wt_migration_id.admin_user_ids
-                    elif project.allowed_user_ids or project.wt_migration_id.full_sync:
-                        user_ids = allowed_user_ids & project.allowed_user_ids
-                    elif project.allowed_manager_ids:
+                    elif project.allowed_manager_ids or not project.wt_migration_id.full_sync:
                         user_ids = allowed_user_ids & project.allowed_manager_ids
+                    elif project.allowed_user_ids:
+                        user_ids = allowed_user_ids & project.allowed_user_ids
 
                     if not (user_ids):
                         continue
