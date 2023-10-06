@@ -326,7 +326,7 @@ class OdooMigration(models.Model):
                         res |= user_self.with_context(rpc=rpc, forced_log_domain=domain).load_logs_by_unix(unix)
                 to_delete_ex_ids = local_log_ex_ids - log_data_set
                 if to_delete_ex_ids:
-                    self.env['wt.time.log'].search([('id_on_wt', 'in', list(to_delete_ex_ids)), ('wt_migration_id', 'in', self.ids)]).unlink()
+                    self.env['wt.time.log'].search([('id_on_wt', 'in', list(to_delete_ex_ids)), ('issue_id.wt_migration_id', 'in', self.ids)]).unlink()
             return res
         else:
             return super().load_work_logs_by_unix(unix, users, batch)
