@@ -270,7 +270,7 @@ class OdooMigration(models.Model):
                     if odoo_log.start_date.date != log['date']:
                         vals['start_date'] = log['date']
                     if odoo_log.description != log['name']:
-                        vals['description'] != log['name']
+                        vals['description'] = log['name']
                     odoo_log.update(vals)
             return self.env['wt.time.log'].sudo().create(value_list)
 
