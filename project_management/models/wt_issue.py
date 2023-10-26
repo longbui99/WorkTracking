@@ -1,15 +1,19 @@
+
+import base64
 import datetime
 import json
-import pytz
-import logging
-from dateutil.relativedelta import relativedelta
 from collections import defaultdict
+import logging
+import pytz
+from Crypto.Cipher import AES
+from dateutil.relativedelta import relativedelta
+
 from odoo import api, fields, models, _
 from odoo.osv import expression
+
 from odoo.addons.project_management.utils.search_parser import get_search_request
 from odoo.addons.project_management.utils.time_parsing import convert_second_to_log_format
-from Crypto.Cipher import AES
-import base64
+from odoo.addons.wt_migration.utils.urls import find_url
 _logger = logging.getLogger(__name__)
 
 
@@ -49,7 +53,7 @@ class WtProject(models.Model):
     log_to_parent = fields.Boolean("Log to Parent?")
     children_issue_ids = fields.One2many("wt.issue", "parent_issue_id", store=False, copy=False)
     duration_in_text = fields.Char(string="Work Logs", compute="_compute_duration_in_text", store=True)
-    encode_string = fields.Char(string="Hash String", compute='_compute_encode_string')
+    encode_string = fields.Char(string="Hash String")
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
     sprint_id = fields.Many2one("agile.sprint", string="Sprint")
     label_ids = fields.Many2many("wt.label", string="Labels")
@@ -360,6 +364,9 @@ class WtProject(models.Model):
         return expression.AND([domain, ['|', ('personal', '=', False), ('project_id.personal_id', '=', self.env.user.id)]])
 
     def search_issue_by_criteria(self, payload):
+        urls = find_url(payload)
+        if len(urls):
+            _, payload = self.env['wt.migration'].get_host_and_issue_by_query(payload)
         employee = self._get_result_management()
         res = get_search_request(payload)
         domain = self.get_search_issue_domain(res, employee)

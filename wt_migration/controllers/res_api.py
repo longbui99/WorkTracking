@@ -38,6 +38,21 @@ class WtIssueMigration(WtIssue):
     def _get_issues_data(self, issues):
         res = super()._get_issues_data(issues)
         return self._fill_default_type_url(res)
+    
+    @handling_req_res
+    @http.route(['/management/issue/search'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
+    def search_issue_post(self, **kwargs):
+        try:
+            res = super().search_issue_post(**kwargs)
+            offset = int(kwargs.get('offset', 0))
+            if res.data == b'[]' and offset == 0:
+                issue_ids = request.env['wt.migration'].query_candidate_issue(kwargs.get('query', ''))
+                if issue_ids:
+                    data = self._get_issue(issue_ids)
+                    return http.Response(json.dumps(data), content_type='application/json', status=200)
+        except Exception as e:
+            return http.Response(str(e), content_type='application/json', status=400)
+        return res
 
     @handling_req_res
     @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
@@ -47,7 +62,7 @@ class WtIssueMigration(WtIssue):
             res = super().search_issue(keyword, **kwargs)
             offset = int(kwargs.get('offset', 0))
             if res.data == b'[]' and offset == 0:
-                issue_ids |= request.env['wt.migration'].query_candidate_issue()
+                issue_ids = request.env['wt.migration'].query_candidate_issue(keyword)
                 if issue_ids:
                     data = self._get_issue(issue_ids)
                     return http.Response(json.dumps(data), content_type='application/json', status=200)

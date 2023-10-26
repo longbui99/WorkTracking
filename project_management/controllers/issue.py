@@ -90,6 +90,15 @@ class WtIssue(http.Controller):
         return http.Response(json.dumps(data), content_type='application/json', status=200)
     
     @handling_req_res
+    @http.route(['/management/issue/search'], type="http", cors="*", methods=['POST'],auth='jwt')
+    def search_issue_post(self, **kwargs):
+        offset = int(kwargs.get('offset', 0))
+        keyword = kwargs.get('query', '')
+        issue_ids = request.env['wt.issue'].with_context(offset=offset).search_issue_by_criteria(keyword)
+        data = self._get_issue(issue_ids)
+        return http.Response(json.dumps(data), content_type='application/json', status=200)
+    
+    @handling_req_res
     @http.route(['/management/issue/my-active'], type="http", cors="*", methods=["GET"], csrf=False, auth="jwt")
     def get_related_active(self, **kwargs):
         active_issue_ids = request.env['wt.issue'].get_all_active(json.loads(request.params.get("payload", '{}')))

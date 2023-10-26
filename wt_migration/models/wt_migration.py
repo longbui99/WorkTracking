@@ -15,6 +15,7 @@ from odoo.addons.wt_migration.utils.ac_parsing import parsing, unparsing
 from odoo.addons.wt_migration.utils.mapping_table import IssueMapping, ACMapping
 from odoo.addons.wt_sdk.jira.import_jira_formatter import ImportingJiraIssue, ImportingJiraWorkLog
 from odoo.addons.base.models.res_partner import _tz_get
+from odoo.addons.wt_migration.utils.urls import find_url
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -67,13 +68,6 @@ class TaskMigration(models.Model):
     avatar = fields.Binary(string="Avatar", store=True, attachment=True)
     host_image_url = fields.Char(string="Host Image URL", compute="_compute_host_image_url")
     base_issue_url = fields.Char(string="Issue URL Template")
-
-
-    URL_PATTERN = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-
-    def find_url(self, string=""):
-        url = re.findall(self.URL_PATTERN, string or "")
-        return [x[0] for x in url]
 
     def name_get(self):
         name_dict = dict(self._fields['migration_type'].selection)
@@ -332,7 +326,7 @@ class TaskMigration(models.Model):
 
     @api.model
     def get_host_by_query_string(self, query):
-        urls = self.find_url(query)
+        urls = find_url(query)
         if len(urls):
             host = self.get_host_by_endpoint(urls[0])
         else:
