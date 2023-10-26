@@ -100,4 +100,5 @@ class WtProject(models.Model):
     def create(self, value_list):
         res = super().create(value_list)
         _logger.info("NEW PROJECT: %s" % res.mapped('project_key'))
+        res.load_new_project()
         return res

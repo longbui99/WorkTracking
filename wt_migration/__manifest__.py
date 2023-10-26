@@ -29,6 +29,7 @@
         'wizard/export_by_pivot_time_views.xml',
         'wizard/token_confirmation.xml',
         'wizard/clone_to_migration_views.xml',
+        'wizard/fetch_issue_views.xml'
 
     ],
     "application": False,

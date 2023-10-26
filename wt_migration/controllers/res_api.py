@@ -47,9 +47,7 @@ class WtIssueMigration(WtIssue):
             res = super().search_issue(keyword, **kwargs)
             offset = int(kwargs.get('offset', 0))
             if res.data == b'[]' and offset == 0:
-                issue_ids = request.env['wt.issue']
-                for migrate in request.env['wt.migration'].sudo().search([]):
-                    issue_ids |= migrate.sudo().search_issue(keyword)
+                issue_ids |= request.env['wt.migration'].query_candidate_issue()
                 if issue_ids:
                     data = self._get_issue(issue_ids)
                     return http.Response(json.dumps(data), content_type='application/json', status=200)

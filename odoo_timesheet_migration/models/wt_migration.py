@@ -3,6 +3,7 @@ import logging
 import xmlrpc.client
 from functools import reduce
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs
 
 from odoo import models, api, fields, _
 
@@ -35,11 +36,15 @@ class OdooMigration(models.Model):
     
     @api.model
     def parse_name_to_key(self, name):
-        names = name.split(' ')[:3]
+        names = name.split(' ')
         res = ""
+        count = 0
         for segment in names:
-            if segment.strip():
+            if segment.strip().isalnum():
                 res += segment[0].upper()
+                count +=1
+                if count == 3:
+                    break
         return "O" + res
 
     def make_rpc_agent(self):
@@ -162,6 +167,17 @@ class OdooMigration(models.Model):
             local_user_by_email = self.generate_record_by_key(self.env['res.users'].with_context(active_test=False).search([]), 'login')
             local_project_by_id = self.generate_record_by_key(self.env['wt.project'].search([('wt_migration_id', '=', self.id)]), 'external_id')
             external_user_by_id = self.generate_record_by_key(user_emails, 'id')
+            
+            to_fetch_projects = []
+            for issue_data in issue_datas:
+                ex_project_id = issue_data['project_id'] and issue_data['project_id'][0] or False
+                if ex_project_id and str(ex_project_id) not in local_project_by_id:
+                    to_fetch_projects.append(ex_project_id)
+
+            if len(to_fetch_projects):
+                projects = self.with_context(gather_project_ids=to_fetch_projects).load_projects()
+                extend_projects = self.generate_record_by_key(projects, 'external_id')
+                local_project_by_id.update(extend_projects)
 
             value_list = []
             for issue_data in issue_datas:
@@ -207,6 +223,7 @@ class OdooMigration(models.Model):
             return super()._update_project(project_id, project_last_update)
 
     def load_logs_by_unix(self, unix):
+            self = self.with_context(bypass_cross_user=True)
             str_updated_date = datetime.fromtimestamp(unix / 1000).strftime('%Y-%m-%d %H:%M')
             gather_logs_ids = self._context.get('gather_logs_ids')
             domain = []
@@ -230,6 +247,17 @@ class OdooMigration(models.Model):
             local_user_by_email = self.generate_record_by_key(self.env['res.users'].with_context(active_test=False).search([]), 'login')
             external_user_by_id = self.generate_record_by_key(user_emails, 'id')
             issue_by_wt_id = self.generate_record_by_key(self.env['wt.issue'].with_context(active_test=False).search([('wt_migration_id', '=', self.id)]), 'wt_id')
+            to_fetch_issues = []
+            for log in log_datas:
+                issue_id = False
+                issue = issue_by_wt_id.get(log['task_id'][0])
+                if not issue:
+                    to_fetch_issues.append(log['task_id'][0])
+
+            if to_fetch_issues:
+                issues = self.with_context(gather_issue_ids=to_fetch_issues).load_all_issues()
+                concat_issue_by_wt_id = self.generate_record_by_key(issues, 'wt_id')
+                issue_by_wt_id.update(concat_issue_by_wt_id)
 
             value_list = []
             for log in log_datas:
@@ -279,7 +307,7 @@ class OdooMigration(models.Model):
             res = self.env['wt.time.log']
             for user in users:
                 user_self = self.with_user(user)
-                domain = [('project_id', 'in', projects.mapped(lambda r: int(r['external_id'])))]
+                domain = []
                 res |= user_self.with_context(forced_log_domain=domain).load_logs_by_unix(unix)
             return res
         else:
@@ -322,8 +350,7 @@ class OdooMigration(models.Model):
                     log_data_set.update(log_data_ids)
                     add_ids = set(log_data_ids) - local_log_ex_ids
                     if add_ids:
-                        domain = [('id', 'in', list(add_ids))]
-                        res |= user_self.with_context(rpc=rpc, forced_log_domain=domain).load_logs_by_unix(unix)
+                        res |= user_self.with_context(rpc=rpc).load_logs_by_unix(unix)
                 to_delete_ex_ids = local_log_ex_ids - log_data_set
                 if to_delete_ex_ids:
                     self.env['wt.time.log'].search([('id_on_wt', 'in', list(to_delete_ex_ids)), ('issue_id.wt_migration_id', 'in', self.ids)]).unlink()
@@ -338,12 +365,30 @@ class OdooMigration(models.Model):
             return res
         else:
             return super().load_work_logs(issue_ids, paging, domain, load_all)
-    
+
+    def _fetch_odoo_issue_by_endpoint(self, endpoint):
+        self.ensure_one()
+        params = parse_qs(urlparse(endpoint.replace("#", "?")).query)
+        task_id = 0
+        if params.get('model') and params['model'][0] == "project.task" and params.get('id') and params['id'][0]:
+            task_id = int(params['id'][0])
+        return task_id
+
     def _search_load(self, res, delay=False):
         if self.migration_type == "odoo":
             issue_ids = self.env['wt.issue']
             if 'issue' in res:
-                domain = [('id', 'in', res['issue'])]
+                if not isinstance(res['issue'], list):
+                    res['issue'] = [res['issue']]
+                issue_ids = []
+                for issue in res['issue']:
+                    if isinstance(issue, str):
+                        params = issue.split('-')
+                        if len(params) == 2:
+                            issue_ids.append(int(params[1]))
+                    elif isinstance(issue, int):
+                        issue_ids.append(issue)
+                domain = [('id', 'in', issue_ids)]
             else:
                 domain = []
                 if 'project' in res:

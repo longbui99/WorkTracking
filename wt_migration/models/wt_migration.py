@@ -1,13 +1,13 @@
-import ast
-import requests
+import re
 import json
-import pytz
 import logging
 import base64
 import time
 from datetime import datetime
 from collections import defaultdict
 from urllib.parse import urlparse
+import requests
+import pytz
 from dateutil.relativedelta import relativedelta
 
 from odoo.addons.project_management.utils.search_parser import get_search_request
@@ -18,6 +18,9 @@ from odoo.addons.base.models.res_partner import _tz_get
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import re
+
+
 
 _logger = logging.getLogger(__name__)
 
@@ -64,6 +67,13 @@ class TaskMigration(models.Model):
     avatar = fields.Binary(string="Avatar", store=True, attachment=True)
     host_image_url = fields.Char(string="Host Image URL", compute="_compute_host_image_url")
     base_issue_url = fields.Char(string="Issue URL Template")
+
+
+    URL_PATTERN = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+
+    def find_url(self, string=""):
+        url = re.findall(self.URL_PATTERN, string or "")
+        return [x[0] for x in url]
 
     def name_get(self):
         name_dict = dict(self._fields['migration_type'].selection)
@@ -272,36 +282,80 @@ class TaskMigration(models.Model):
     
     def load_initial_projects(self):
         return self.load_projects()
+
+    def get_host_by_endpoint(self, endpoint=""):
+        _self = self
+        if not _self:
+            _self =  self.search([])
+        migration_id = False
+        for host in _self:
+            host_by_loc = urlparse(host.base_url).netloc
+            endpoint_loc = urlparse(endpoint).netloc
+            if endpoint_loc == host_by_loc:
+                migration_id = host
+                break
+        return migration_id
     
-    # def update_projects_id(self):
-    #     self.ensure_one()
-    #     headers = self.__get_request_headers()
-    #     result = requests.get(f"{self.wt_server_url}/project", headers=headers)
-    #     existing_project = self.env['wt.project'].search([])
-    #     existing_project_dict = {f"{r.project_key}": r for r in existing_project}
-    #     user_id = self.env.user
-    #     new_project = []
-    #     for record in json.loads(result.text):
-    #         if not existing_project_dict.get(record.get('key', False), False):
-    #             res = {
-    #                 'project_name': record['name'],
-    #                 'project_key': record['key'],
-    #                 'wt_migration_id': self.id,
-    #                 'allow_to_fetch': True,
-    #                 'company_id': self.company_id.id,
-    #                 'external_id': record['id']
-    #             }
-    #             if user_id:
-    #                 res['allowed_manager_ids'] = [(4, user_id.id, False)]
-    #             new_project.append(res)
-    #         else:
-    #             project = existing_project_dict.get(record.get('key', False), False)
-    #             if user_id:
-    #                 project.sudo().allowed_manager_ids = [(4, user_id.id, False)]
-    #     projects = self.env['wt.project']
-    #     if new_project:
-    #         projects = self.env['wt.project'].sudo().create(new_project)
-    #     return projects
+    def get_host_by_key(self, issue_key=""):
+        splitted_params = (issue_key or "").strip().split('-')
+        host = False
+        if len(splitted_params) == 2:
+            host = self.env['wt.project'].search([('project_key', '=', splitted_params[0])], limit=1).wt_migration_id
+        return host
+
+    def _fetch_atlassian_issue_by_endpoint(self, endpoint):
+        self.ensure_one()
+        host_by_loc = urlparse(self.base_url).netloc
+        endpoint_loc = urlparse(endpoint).netloc
+        if host_by_loc != endpoint_loc:
+            raise UserError(_(f"Cannot Fetch issue of another enpoint: {host_by_loc} and {endpoint_loc}"))
+        match = re.search(r"(?<=browse\/)[a-zA-Z0-9]+-[a-zA-Z0-9]+", endpoint)
+        if not match:
+            raise UserError(_(f"Cannot find the issue on the system {host_by_loc}: \n {endpoint}"))
+        if match:
+            match = match[0]
+        return match
+
+    def fetch_issue_by_enpoint(self, endpoint=""):
+        self.ensure_one()
+        function = getattr(self, "_fetch_%s_issue_by_endpoint"%(self.migration_type))
+        return function(endpoint)
+
+    # @api.model
+    # def search_issue_by_link(self, link):
+    #     migration = self.get_host_by_endpoint(link)
+    #     return migration.fetch_issue_by_enpoint(link)
+
+    # @api.model
+    # def query_standard_issue(self, issue_key):
+    #     return self._search_load({"issue": issue_key})
+
+    @api.model
+    def get_host_by_query_string(self, query):
+        urls = self.find_url(query)
+        if len(urls):
+            host = self.get_host_by_endpoint(urls[0])
+        else:
+            host = self.get_host_by_key(query)
+        return host, len(urls)
+
+    @api.model
+    def get_host_and_issue_by_query(self, query):
+        host, url_mode = self.get_host_by_query_string(query)
+        issue_key = False
+        if url_mode:
+            try:
+                issue_key = host.fetch_issue_by_enpoint(query)
+            except Exception as e:
+                _logger.error(str(e))
+        if not issue_key:
+            host = False
+        return host, issue_key
+
+    def query_candidate_issue(self, query):
+        finding_host, issue_key = self.get_host_and_issue_by_query(query)
+        host = self or finding_host
+        return host._search_load({"issue": issue_key})
 
     @api.model
     def make_request(self, request_data, headers):

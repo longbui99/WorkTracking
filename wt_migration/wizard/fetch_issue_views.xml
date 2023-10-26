@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="fetch_by_endpoint_form_view" model="ir.ui.view">
+        <field name="name">Fetch By Enpoint</field>
+        <field name="model">wt.fetch.issue</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="query"/>
+                        <field name="migration_id"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_load" string="Load" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="wt_fetch_issue_action_form" model="ir.actions.act_window">
+        <field name="name">Fetch Issues</field>
+        <field name="res_model">wt.fetch.issue</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="fetch_by_endpoint_form_view"/>
+        <field name="target">new</field>
+    </record>
+    
+    <menuitem id="wt_migration.wt_fetch_issue_menu"
+              name="Fetch Issue"
+              action="wt_migration.wt_fetch_issue_action_form"
+              sequence="1"
+              parent="project_management.operations"
+              >
+    </menuitem>
+</odoo>
