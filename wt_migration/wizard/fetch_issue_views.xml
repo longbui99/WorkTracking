@@ -9,6 +9,7 @@
                     <group>
                         <field name="query"/>
                         <field name="migration_id"/>
+                        <field name="user_id"/>
                     </group>
                 </sheet>
                 <footer>

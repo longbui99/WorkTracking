@@ -8,6 +8,7 @@ class FetchIssue(models.Model):
 
     query = fields.Char(string="Query", required=True)
     migration_id = fields.Many2one("wt.migration", string="Host", compute="_compute_suitable_migration_id")
+    user_id = fields.Many2one("res.users", string="Load As", groups="base.group_system")
 
     @api.depends('query')
     def _compute_suitable_migration_id(self):
@@ -19,5 +20,7 @@ class FetchIssue(models.Model):
         self.ensure_one()
         if not self.migration_id:
             raise UserError(_("Cannot find suitable Host for this link!"))
+        if self.user_id and self.env.user.has_group('base.group_system'):
+            self = self.with_user(self.user_id)
         self.migration_id.query_candidate_issue(self.query)
         
