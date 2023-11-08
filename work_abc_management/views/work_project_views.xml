@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_project_tree_view" model="ir.ui.view">
+        <field name="name">Task Projects</field>
+        <field name="priority">1</field>
+        <field name="model">work.project</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="project_name"/>
+                <field name="project_key"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_project_kanban_view" model="ir.ui.view">
+        <field name="name">Task Projects</field>
+        <field name="priority">1</field>
+        <field name="model">work.project</field>
+        <field name="arch" type="xml">
+            <kanban string="Mail Groups" sample="1">
+                <field name="sequence" widget="handle"/>
+                <field name="project_name"/>
+                <field name="project_key"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <field name="project_name"/>
+                            <field name="project_key"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="work_project_form_view" model="ir.ui.view">
+        <field name="name">Task Projects</field>
+        <field name="priority">1</field>
+        <field name="model">work.project</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_latest_chain" string="Start Latest Chain" type="object"
+                            class="btn-primary"/>
+                    <button name="action_start_kick_off" string="Chain Work" type="object" class="btn-primary"/>
+                    <button name="fetch_user_from_task" string="Fetch User" type="object" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box">
+                        <button class="oe_stat_button" 
+                                name="action_open_allocation"
+                                type="object" 
+                                icon="fa-file-text-o"
+                                string="Open Allocations">
+                        </button>
+                    </div>
+                    <label for="project_name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="project_name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="project_key"/>
+                        </group>
+                        <group>
+
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Securities">
+                            <group>
+                                <field name="allowed_user_ids" widget="many2many_tags"/>
+                                <field name="allowed_manager_ids" widget="many2many_tags"
+                                       domain="[('id','in', allowed_user_ids)]"/>
+                            </group>
+                        </page>
+                        <page string="Chain Works">
+                            <field name="chain_work_ids">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="create_uid"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="work_project_search_view" model="ir.ui.view">
+        <field name="name">Task Projects</field>
+        <field name="model">work.project</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="project_key"/>
+                <field name="project_name"/>
+                <field name="company_id"/>
+                <filter string="My projects" name="filter_my_project" domain="[('allowed_user_ids','=', uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_work_project" model="ir.actions.act_window">
+        <field name="name">Task Projects</field>
+        <field name="res_model">work.project</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_filter_my_project': True}</field>
+        <field name="view_id" ref="work_project_tree_view"/>
+        <field name="search_view_id" ref="work_abc_management.work_project_search_view"/>
+    </record>
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="action_host_work_project_reset_last_update" model="ir.actions.server">
+        <field name="name">Reset last update</field>
+        <field name="groups_id" eval="[(4, ref('work_abc_management.group_work_manager'))]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_project" />
+        <field name="binding_model_id" ref="model_work_project" />
+        <field name="state">code</field>
+        <field name="code">records.reset_state()</field>
+    </record>
+
+    <record id="action_host_work_project_fetch_record" model="ir.actions.server">
+        <field name="name">Fetch tasks</field>
+        <field name="groups_id" eval="[(4, ref('work_abc_management.group_work_manager'))]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_project" />
+        <field name="binding_model_id" ref="model_work_project" />
+        <field name="state">code</field>
+        <field name="code">records.cron_fetch_task()</field>
+    </record>
+
+    <record id="work_project_form_view" model="ir.ui.view">
+        <field name="model">work.project</field>
+        <field name="name">work.project..inherited</field>
+        <field name="inherit_id" ref="work_abc_management.work_project_form_view"/>
+        <field name="arch" type="xml">
+            <field name="project_key" position="after">
+                <field name="allow_to_fetch" widget="boolean_toggle"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="action_host_force_fetch_all" model="ir.actions.server">
+        <field name="name">Allow to Fetc</field>
+        <field name="groups_id" eval="[(4, ref('work_abc_management.group_work_manager'))]"/>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_project" />
+        <field name="binding_model_id" ref="model_work_project" />
+        <field name="state">code</field>
+        <field name="code">records.write({'allow_to_fetch': True})</field>
+    </record>
+</odoo>

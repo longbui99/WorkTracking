@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_finance_tree_view" model="ir.ui.view">
+        <field name="name">work.finance.tree.view</field>
+        <field name="model">work.finance</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_finance_form_view" model="ir.ui.view">
+        <field name="name">work.finance.form.view</field>
+        <field name="model">work.finance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box">
+                        <button type="object"
+                            name="action_open_budgets"
+                            class="oe_stat_button"
+                            icon="fa-money"
+                            invisible="not budget_count">
+                            <field name="budget_count" widget="statinfo" string="Budgets"/>
+                        </button>
+                        <button type="object"
+                            name="action_open_allocation"
+                            class="oe_stat_button"
+                            icon="fa-clock-o"
+                            string="Allocations" 
+                            invisible="not budget_count">
+                        </button>
+                    </div>
+                    <label for="name" class="oe_edit_only"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="due_date" widget="date"/>
+                        </group>
+                        <group>
+                            <field name="access_user_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <label for="duration"/>
+                            <div name="duration_segment">
+                                <field name="duration"/>
+                                <span style="font-size: 0.85em;font-weight:700;">
+                                    (
+                                    <field name="duration_used" class="text-warning" string="Billing Hours" invisible="duration_percent_used &gt;= 100"/> 
+                                    <field name="duration_used" class="text-info" string="Billing Hours" invisible="duration_percent_used != 100"/> 
+                                    <field name="duration_used" class="text-danger" string="Billing Hours" invisible="duration_percent_used &lt;= 100"/>
+                                    , <field name="duration_percent_used"/>%)
+                                </span>
+                            </div>
+                        </group>
+                        <group>
+                            <field name="amount"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Budgets" name="budgets">
+                            <field name="work_budget_ids" readonly="1"/>
+                        </page>
+                        <page string="Miscellaneous" name="miscellaneous">
+                            <group>
+                                <field name="company_id"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="work_finance_search_view" model="ir.ui.view">
+        <field name="name">work.finance.search.view</field>
+        <field name="model">work.finance</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="company_id"/>
+                <filter string="Company" name="group_by_company" context="{'group_by':'company_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_work_finance" model="ir.actions.act_window">
+        <field name="name">Finance Planning</field>
+        <field name="res_model">work.finance</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="work_finance_tree_view"/>
+        <field name="search_view_id" ref="work_abc_management.work_finance_search_view"/>
+    </record>
+</odoo>

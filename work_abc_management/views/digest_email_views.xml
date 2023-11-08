@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="digest_email_work_abc_management_inherited" model="ir.ui.view">
+        <field name="name">digest.email.project.management.inherited</field>
+        <field name="model">digest.digest</field>
+        <field name="inherit_id" ref="digest.digest_digest_view_form"/>
+        <field name="arch" type="xml">
+            <group name="kpi_general" position="after">
+                <group name="kpi_work_base_integration" string="Time Management">
+                    <field name="work_time_management"/>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

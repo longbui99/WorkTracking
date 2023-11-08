@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_field_map_tree_view" model="ir.ui.view">
+        <field name="name">Field Mapping</field>
+        <field name="model">work.field.map</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="key"/>
+                <field name="type" optional="hide"/>
+                <field name="value"/>
+                <field name="host_id" optional="hide"/>
+                <field name="field_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_field_map_search_view" model="ir.ui.view">
+        <field name="name">Host Field Mapping</field>
+        <field name="model">work.field.map</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="key"/>
+                <field name="value"/>
+                <field name="host_id"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_work_field_map" model="ir.actions.act_window">
+        <field name="name">Map Fields</field>
+        <field name="res_model">work.field.map</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="work_base_integration.work_field_map_tree_view"/>
+    </record>
+
+</odoo>

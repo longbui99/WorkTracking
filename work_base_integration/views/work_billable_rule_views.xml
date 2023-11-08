@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_billable_rule_form_View" model="ir.ui.view">
+        <field name="name">Billable Rule</field>
+        <field name="model">work.billable.rule</field>
+        <field name="inherit_id" ref="work_abc_management.work_billable_rule_form_View"/>
+        <field name="arch" type="xml">
+            <field name="project_ids" position="before">
+                <field name="host_ids" widget="many2many_tags" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}"/>
+            </field>
+        </field>
+    </record>
+</odoo>

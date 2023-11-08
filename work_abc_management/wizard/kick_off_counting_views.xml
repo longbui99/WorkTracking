@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="chain_work_base_form_view" model="ir.ui.view">
+        <field name="name">Chain Work</field>
+        <field name="model">work.chain.work.base</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="type" widget="radio"/>
+                        <field name="template"/>
+                        <field name="name"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_start" string="Confirm" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="chain_work_base_action" model="ir.actions.act_window">
+        <field name="name">Chain Work</field>
+        <field name="res_model">work.chain.work.base</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="chain_work_base_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="chain_work_base_mobile_action" model="ir.actions.act_window">
+        <field name="name">Chain Work</field>
+        <field name="res_model">work.chain.work.base</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="chain_work_base_form_view"/>
+    </record>
+
+
+    <record id="chain_work_session_form_view" model="ir.ui.view">
+        <field name="name">Chain Work</field>
+        <field name="model">work.chain.work.session</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,progress,done"/>
+                </header>
+                <sheet>
+                    <group invisible="state == 'logged'">
+
+                        <group invisible="state == 'done'">
+                            <field name="task_id" readonly="1" invisible="not task_id"/>
+                            <field name="start" readonly="1"/>
+                            <field name="description"/>
+                        </group>
+                        <group colspan="4">
+                            <field name="task_chain_work_ids" nolabel="1">
+                                <kanban js_class="lunch_kanban" cedit="0" class="o_kanban_mobile" decoration-muted="state == 'done'" decoration-info="state=='progress'">
+                                    <field name="task_id"/>
+                                    <field name="time"/>
+                                    <field name="state"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div t-attf-class="oe_kanban_content {{ (record.state.raw_value=='done') and 'text-muted' or ((record.state.raw_value=='progress') and 'text-info' or '')}}">
+                                                <div class="row">
+                                                    <div class="col-10">
+                                                        <div>
+                                                            <field name="task_id"/>
+                                                        </div>
+                                                        <t t-if="record.time.raw_value">
+                                                            [<field name="time"/>]
+                                                        </t>
+                                                        <t t-if="record.state.raw_value">
+                                                            [<field name="state"/>]
+                                                        </t>
+                                                    </div>
+                                                    <t t-if="record.state != 'done'">
+                                                        <button class="btn btn-primary col-2" name="action_next_on_line" type="object">Start</button>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                                <tree editable="bottom" decoration-muted="state == 'done'"
+                                      decoration-info="state=='progress'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="task_id"/>
+                                    <field name="time"/>
+                                    <field name="state" invisible="1"/>
+                                </tree>
+                            </field>
+                        </group>
+                        <group>
+                            <field name="logging_type" widget="radio"/>
+                            <field name="log_to_task_id"
+                                   />
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <group >
+                        <button name="action_next" string="Start" type="object" class="btn-primary"
+                                />
+                        <button string="Save" special="save" class="btn-secondary"
+                                />
+                        <group >
+                            <button name="action_next" string="Next" type="object" class="btn-primary"
+                                    />
+                            <button name="action_done" string="Done" type="object" class="btn-secondary"
+                                    />
+                            <button name="action_done" string="Confirm" type="object" class="btn-primary"
+                                    />
+                            <!--                    <button name="action_done" string="Done" type="object" class="btn-primary"/>-->
+                            <!--                    <button name="action_log_separated" string="Log Separated" type="object" class="btn-primary"/>-->
+                            <!--                    <button name="action_log_base" string="Log Base" type="object" class="btn-secondary"/>-->
+                        </group>
+                    </group>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="chain_work_session_form_line_view" model="ir.ui.view">
+        <field name="name">Chain Work Line</field>
+        <field name="model">work.chain.work.session.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="task_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="log_work_action_form_view" model="ir.actions.act_window">
+        <field name="name">Chain Work</field>
+        <field name="res_model">work.chain.work.session</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="chain_work_session_form_view"/>
+        <field name="target">new</field>
+    </record>
+
+    <record id="log_work_action_form_mobile_view" model="ir.actions.act_window">
+        <field name="name">Chain Work</field>
+        <field name="res_model">work.chain.work.session</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="chain_work_session_form_view"/>
+    </record>
+</odoo>

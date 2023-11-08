@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <menuitem id="work_base_integration._dashboard"
+              name="Hosts"
+              action="work_base_integration.action_work_base_integration"
+              sequence="1"
+              groups="work_abc_management.group_work_user"
+              parent="work_abc_management.settings">
+    </menuitem>
+
+    <menuitem id="work_base_integration.work_field_clone_rules"
+              name="Work Integration Rules"
+              action="work_base_integration.work_clone_rule_action"
+              sequence="2"
+              parent="work_abc_management.operations"
+              >
+    </menuitem>
+    
+    <menuitem id="work_base_integration.work_field_map_dashboard"
+              name="Map Fields"
+              action="work_base_integration.action_work_field_map"
+              sequence="3"
+              parent="work_abc_management.settings"
+              groups="base.group_no_one"
+              >
+    </menuitem>
+
+</odoo>

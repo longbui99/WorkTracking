@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_time_log_search_view" model="ir.ui.view">
+        <field name="name">Work Logs</field>
+        <field name="model">work.time.log</field>
+        <field name="inherit_id" ref="work_abc_management.work_time_log_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_by_my_log" position="after">
+                <separator/>
+                <filter string="Un-Exported" name="filter_un_exported" domain="[('export_state','=', 0)]"/>
+            </filter>
+        </field>
+    </record>
+    
+    <record id="action_host_work_time_log_batch_update" model="ir.actions.server">
+        <field name="name">Import Logs</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_time_log" />
+        <field name="binding_model_id" ref="model_work_time_log" />
+        <field name="state">code</field>
+        <field name="code">records.import_work_logs()</field>
+    </record>
+    
+    <record id="action_host_work_time_log_batch_export" model="ir.actions.server">
+        <field name="name">Export Logs</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_time_log" />
+        <field name="binding_model_id" ref="model_work_time_log" />
+        <field name="state">code</field>
+        <field name="code">records.action_export_work_logs()</field>
+    </record>
+    
+</odoo>

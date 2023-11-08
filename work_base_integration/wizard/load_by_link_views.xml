@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="load_by_link_form_views" model="ir.ui.view">
+        <field name="name">Load By Links</field>
+        <field name="model">work.load.by.link</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="type" widget="radio"/>
+                        <field name="link_line_ids">
+                            <tree editable="bottom">
+                                <field name="url"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="load" string="LOAD" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="load_by_link_action_form" model="ir.actions.act_window">
+        <field name="name">Load By Links</field>
+        <field name="res_model">work.load.by.link</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="load_by_link_form_views"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

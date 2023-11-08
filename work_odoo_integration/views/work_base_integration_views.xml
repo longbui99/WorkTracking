@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_base_integration_form_view" model="ir.ui.view">
+        <field name="name">Hosts</field>
+        <field name="priority">1</field>
+        <field name="model">work.base.integration</field>
+        <field name="inherit_id" ref="work_base_integration.work_base_integration_form_view"/>
+        <field name="arch" type="xml">
+            <group name="atlassian" position="after">
+                <group name="odoo_timesheet" string="Odoo Credentials" invisible="host_type != 'odoo'">
+                    <field name="database" required="host_type == 'odoo'"/>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>

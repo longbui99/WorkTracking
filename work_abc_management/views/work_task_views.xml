@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_task_tree_view" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="priority">1</field>
+        <field name="model">work.task</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="epic_id"/>
+                <field name="task_name"/>
+                <field name="task_key"/>
+                <field name="story_point"/>
+                <field name="task_url"/>
+                <field name="status_id"/>
+                <field name="duration_hrs"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_task_form_view" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="priority">1</field>
+        <field name="model">work.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="suitable_assignee" invisible="1"/>
+                <field name="company_id" invisible="1"/>
+                <header>
+                    <button name="generate_progress_work_log" string="Start" type="object" class="btn-primary"/>
+                    <button name="action_pause_work_log" string="Pause" type="object" class="btn-success"
+                            invisible="not progress_cluster_id"/>
+                    <button name="action_done_work_log" string="Done Progress" type="object" class="btn-primary"
+                            invisible="not progress_cluster_id"/>
+                    <button name="action_done_work" string="Log Work" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="task_key" readonly="1" nolabel="1"/>
+                        </group>
+                        <group>
+                            <field name="task_url" widget="url" readonly="1" nolabel="1"/>
+                        </group>
+                    </group>
+                    <h1>
+                        <field name="task_name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="epic_id" domain="[['epic_ok','=',True], ['project_id','=',project_id]]"/>
+                            <field name="task_type_id" domain="[['company_id','=',company_id]]"/>
+                            <field name="priority_id" domain="[['company_id','=',company_id]]"/>
+                            <field name="label_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="assignee_id" domain="[('id','in', suitable_assignee)]"/>
+                            <field name="tester_id" domain="[('id','in', suitable_assignee)]"/>
+                            <field name="story_point"/>
+                            <field name="duration_in_text"/>
+                            <field name="billable_state"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Checklist" name="checklist">
+                            <field name="ac_ids" widget="section_and_note_one2many_html">
+                                <tree editable="bottom">
+                                    <field name="display_type" invisible="1"/>
+                                    <field name="is_header" invisible="1"/>
+                                    <control>
+                                        <create name="create" string="Add a AC"/>
+                                        <create name="add_section_control" string="Add a section"
+                                                context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note"
+                                                context="{'default_display_type': 'line_note'}"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" widget="section_and_note_html"/>
+                                    <field name="checked" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Work Logs" name="work_log">
+                            <field name="time_log_ids" context="{'default_company_id': company_id}">
+                                <tree editable="bottom">
+                                    <field name="state"/>
+                                    <field name="time"/>
+                                    <field name="description"/>
+                                    <field name="user_id"/>
+                                    <field name="duration" optional="hide"/>
+                                    <field name="source" optional="hide"/>
+                                    <field name="write_date" optional="hide"/>
+                                    <field name="create_date" optional="hide"/>
+                                    <field name="start_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Work Log Breakdowns">
+                            <field name="work_log_ids" context="{'default_company_id': company_id}">
+                                <tree editable="bottom" decoration-muted="state == 'cancel'">
+                                    <field name="state"/>
+                                    <field name="start"/>
+                                    <field name="end"/>
+                                    <field name="duration" optional="hide"/>
+                                    <field name="description"/>
+                                    <field name="user_id"/>
+                                    <field name="source" optional="hide"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Subtasks">
+                            <group>
+                                <group>
+                                    <field name="parent_task_id" domain="[('project_id','=',project_id)]"
+                                            required="log_to_parent" context="{'default_company_id': company_id}"/>
+                                </group>
+                                <group>
+                                    <field name="log_to_parent" widget="boolean_toggle"/>
+                                </group>
+                            </group>
+                            <field name="children_task_ids">
+                                <tree edit="0">
+                                    <field name="task_key"/>
+                                    <field name="duration_hrs"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Miscellaneous">
+                            <group>
+                                <group>
+                                    <field name="progress_cluster_id"/>
+                                </group>
+                                <group>
+                                    <field name="last_start" groups="base.group_no_one"/>
+                                    <field name="active_duration" groups="base.group_no_one"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="work_task_kanban_view" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="priority">1</field>
+        <field name="model">work.task</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status_id">
+                <field name="status_id" options="{'group_by_tooltip': {'name': 'Description'}}"/>
+                <field name="task_name"/>
+                <field name="task_key"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                            <div>
+                                [<field name="task_key"/>]:
+                                <field name="task_name"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="work_task_kanban_mobile_view" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="priority">1</field>
+        <field name="model">work.task</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="task_key"/>
+                <field name="task_name"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_content oe_kanban_global_click">
+                            <div class="row">
+                                <div class="col-12">
+                                    [<field name="task_key"/>]:
+                                    <field name="task_name"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="work_task_search_view" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="model">work.task</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="task_key"/>
+                <field name="task_name"/>
+                <field name="epic_id"/>
+                <field name="project_id"/>
+                <field name="company_id"/>
+                <field name="sprint_id"/>
+                <filter string="My tasks" name="filter_my_task" domain="[('assignee_id','=', uid)]"/>
+                <separator/>
+                <filter string="Epic" name="filter_epic" domain="[('epic_ok','=', True)]"/>
+                <separator/>
+                <filter string="In Progress" name="filter_in_progress" domain="[('status_value','=', 'new')]"/>
+                <separator/>
+                <filter string="Billable" name="billable" domain="[('billable_state', '=', 'bill')]"/>
+                <filter string="Non-Billable" name="non_billable" domain="[('billable_state', '=', 'non-bill')]"/>
+                <separator/>
+                <filter string="Company" name="group_by_status" context="{'group_by':'company_id'}"/>
+                <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
+                <filter string="Epic" name="group_by_epic" context="{'group_by':'epic_id'}"/>
+                <filter string="Status" name="group_by_status" context="{'group_by':'status_id'}"/>
+                <filter string="Billable" name="group_by_billable_state" context="{'group_by':'billable_state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_work_active_sprint" model="ir.actions.act_window">
+        <field name="name">Sprints</field>
+        <field name="res_model">work.task</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="context">{'search_default_filter_my_task': True}</field>
+        <field name="view_id" ref="work_task_tree_view"/>
+        <field name="search_view_id" ref="work_abc_management.work_task_search_view"/>
+    </record>
+
+    <record id="action_work_task" model="ir.actions.act_window">
+        <field name="name">Task Tasks</field>
+        <field name="res_model">work.task</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_filter_my_task': True, 'search_default_group_by_project': True}
+        </field>
+        <field name="domain">[['personal','=',False]]</field>
+        <field name="view_id" ref="work_task_tree_view"/>
+        <field name="search_view_id" ref="work_abc_management.work_task_search_view"/>
+    </record>
+
+    <record id="action_work_task_personal" model="ir.actions.act_window">
+        <field name="name">Task Tasks</field>
+        <field name="res_model">work.task</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_filter_my_task': True, 'search_default_group_by_project': True}
+        </field>
+        <field name="domain">[['personal','=',True]]</field>
+        <field name="view_id" ref="work_task_tree_view"/>
+        <field name="search_view_id" ref="work_abc_management.work_task_search_view"/>
+    </record>
+    
+    <record id="action_host_mark_bill" model="ir.actions.server">
+        <field name="name">Mark Billable</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_task" />
+        <field name="binding_model_id" ref="model_work_task" />
+        <field name="state">code</field>
+        <field name="code">records.mark_billable()</field>
+    </record>
+    
+    <record id="action_host_mark_nonbill" model="ir.actions.server">
+        <field name="name">Mark Non-Billable</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_task" />
+        <field name="binding_model_id" ref="model_work_task" />
+        <field name="state">code</field>
+        <field name="code">records.mark_nonbillable()</field>
+    </record>
+
+</odoo>

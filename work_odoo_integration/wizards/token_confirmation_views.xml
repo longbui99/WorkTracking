@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="token_confirmation_form_views" model="ir.ui.view">
+        <field name="name">Update Token</field>
+        <field name="model">token.confirmation</field>
+        <field name="inherit_id" ref="work_base_integration.token_confirmation_form_views"/>
+        <field name="arch" type="xml">
+            <field name="token" position="before">
+                <field name="login_required" invisible="1"/>
+                <field name="login" required="login_required" invisible="not login_required"/>
+            </field>
+        </field>
+    </record>
+</odoo>

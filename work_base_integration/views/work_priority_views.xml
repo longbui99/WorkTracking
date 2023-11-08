@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_priority_tree_view_inherited" model="ir.ui.view">
+        <field name="name">Priority</field>
+        <field name="model">work.priority</field>
+        <field name="inherit_id" ref="work_abc_management.work_priority_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <field name="host_id" optional="hide"/>
+            </field>
+        </field>
+    </record>
+</odoo>

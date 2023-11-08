@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_hr_form_view_inherited" model="ir.ui.view">
+        <field name="name">Task Configurations</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook[1]" position="inside">
+                <page string="Task Configurations">
+                    <group>
+                        <group string="General Settings" name="general_settings">
+                            <field name="rouding_up"/>
+                            <field name="default_unit"/>
+                            <field name="todo_transition"/>
+                            <field name="move_threshold" invisible="not todo_transition"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Extension Search" name="search_parser">
+                            <field name="order_style"/>
+                            <field name="maximum_search_result"/>
+                            <field name="maximum_relative_result"/>
+                            <field name="default_nbr_days"/>
+                        </group>
+                        <group string="Extension Access">
+                            <field name="auto_remove_access"/>
+                            <field name="maximum_connection" invisible="not auto_remove_access"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            <field name="work_location_id" position="after">
+                <field name="week_start" require="1"/>
+            </field>
+            <xpath expr="//header" position="inside">
+                <button name="action_reset_extension_token" type="object" string="Reset Extension Token" class="btn-secondary"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="work_hr_form_view_public_inherited" model="ir.ui.view">
+        <field name="name">Task Configurations</field>
+        <field name="model">hr.employee.public</field>
+        <field name="inherit_id" ref="hr.hr_employee_public_view_form"/>
+        <field name="arch" type="xml">
+           <xpath expr="//notebook[1]" position="inside">
+                <page string="Task Configurations">
+                    <group>
+                        <group string="General Settings" name="general_settings">
+                            <field name="rouding_up"/>
+                            <field name="default_unit"/>
+                            <field name="todo_transition"/>
+                            <field name="move_threshold" invisible="not todo_transition"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Extension Search" name="search_parser">
+                            <field name="order_style"/>
+                            <field name="maximum_search_result"/>
+                            <field name="maximum_relative_result"/>
+                            <field name="default_nbr_days"/>
+                        </group>
+                        <group string="Extension Access">
+                            <field name="auto_remove_access"/>
+                            <field name="maximum_connection" invisible="not auto_remove_access"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+            <field name="work_location_id" position="after">
+                <field name="week_start" require="1"/>
+            </field>
+            <xpath expr="//header" position="inside">
+                <button name="action_reset_extension_token" type="object" string="Reset Extension Token" class="btn-secondary"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

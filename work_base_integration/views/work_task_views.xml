@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_task_search_view" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="model">work.task</field>
+        <field name="inherit_id" ref="work_abc_management.work_task_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_in_progress" position="replace">
+                <filter string="In Progress" name="filter_in_progress"
+                        domain="[('status_value','in', ('new','indeterminate'))]"/>
+            </filter>
+            <filter name="group_by_status" position="after">
+                <filter string="Host" name="group_by_host" context="{'group_by':'host_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="work_task_form_view_inherited" model="ir.ui.view">
+        <field name="name">Task Tasks</field>
+        <field name="model">work.task</field>
+        <field name="inherit_id" ref="work_abc_management.work_task_form_view"/>
+        <field name="arch" type="xml">
+            <button name="action_done_work" position="after">
+                <button name="import_task_work" string="Import Task" type="object" class="btn-secondary"/>
+                <button name="export_time_log_to_work" string="Export Work Log" type="object" class="btn-secondary"/>
+                <button name="export_ac_to_work" string="Export Checklist" type="object" class="btn-secondary"/>
+            </button>
+            <field name="project_id" position="after">
+                <field name="last_export"/>
+            </field>
+            <field name="task_type_id" position="before">
+                <field name="sprint_id" domain="[('project_id','=', project_id)]"/>
+            </field>
+            <xpath expr="//field[@name='ac_ids']//field[@name='checked']" position="after">
+                <field name="work_raw_name" optional="hide"/>
+            </xpath>
+            <xpath expr="//field[@name='ac_ids']//field[@name='name']" position="attributes">
+                <attribute name="readonly">work_raw_name</attribute>
+            </xpath>
+            <page name="checklist" position="before">
+                <page string="Host" name="host">
+                    <group>
+                        <field name="host_id"/>
+                        <field name="cloned_task_ids" widget="many2many_tags"/>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+    
+    <record id="action_host_work_task_batch_update" model="ir.actions.server">
+        <field name="name">Export Work Logs</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_task" />
+        <field name="binding_model_id" ref="model_work_task" />
+        <field name="state">code</field>
+        <field name="code">action = records.render_batch_update_wizard()</field>
+    </record>
+    
+    <record id="action_host_export_" model="ir.actions.server">
+        <field name="name">Export To JIRA</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_task" />
+        <field name="binding_model_id" ref="model_work_task" />
+        <field name="state">code</field>
+        <field name="code">action = records.export_to_host()</field>
+    </record>
+    
+    <record id="clone_task_to_host" model="ir.actions.server">
+        <field name="name">Clone</field>
+        <field name="type">ir.actions.server</field>
+        <field name="model_id" ref="model_work_task" />
+        <field name="binding_model_id" ref="model_work_task" />
+        <field name="state">code</field>
+        <field name="code">action = records.clone_to_host()</field>
+    </record>
+</odoo>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_budget_invoice_readonly_tree_view" model="ir.ui.view">
+        <field name="name">work.budget.invoice.tree.view</field>
+        <field name="model">work.budget.invoice</field>
+        <field name="arch" type="xml">
+            <tree >
+                <field name="currency_id" invisible="1"/>
+                <field name="work_budget_id" optional="hide"/>
+                <field name="invoice_date"/>
+                <field name="invoice_hours"/>
+                <field name="invoice_amount" optional="hide"/>
+                <field name="last_invoice_date" optional="hide"/>
+                <button name="action_open_work_logs" type="object"  string="Open Logs" class="btn btn-secondary"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_budget_invoice_editable_tree_view" model="ir.ui.view">
+        <field name="name">work.budget.invoice.tree.view</field>
+        <field name="model">work.budget.invoice</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="currency_id" invisible="1"/>
+                <field name="work_budget_id" optional="hide"/>
+                <field name="last_invoice_date" optional="hide"/>
+                <field name="invoice_date"/>
+                <field name="invoice_hours"/>
+                <field name="invoice_amount" optional="hide"/>
+                <field name="log_hours"/>
+                <field name="billable_rate" widget="progressbar"/>
+                <button name="action_open_work_logs" type="object"  string="Open Logs" class="btn btn-secondary"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

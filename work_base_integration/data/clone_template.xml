@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="field_rule_task_name" model="work.clone.field.rule">
+        <field name="field_id" eval="ref('work_abc_management.field_work_task_host_task_name')"/>
+        <field name="template" type="html">
+            <t>
+                [<t t-out="src.task_key">KEY</t>] <t t-out="dest.task_name">Summary</t>
+            </t>
+        </field>
+    </record>
+
+    <record id="src_dest_jira_" model="work.clone.rule">
+        <field name="name">Source - Destination</field>
+        <field name="clone_field_ids" 
+        eval="[
+            (4, ref('work_base_integration.field_rule_task_name')),
+            ]"/>
+    </record>
+</odoo>
