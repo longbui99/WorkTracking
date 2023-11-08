@@ -3,6 +3,7 @@ import json
 import logging
 import base64
 import time
+import traceback
 from datetime import datetime
 from collections import defaultdict
 from urllib.parse import urlparse
@@ -1481,8 +1482,14 @@ class TaskMigration(models.Model):
             'endpoint': f"""{self.wt_agile_url}/board/{board.id_on_wt}/sprint?maxResults=50""",
             'method': 'get',
         }
-        data = self.make_request(request_data, headers)
-        self._map_sprint_values(data.get('values') or [], local)
+        try:
+            data = self.make_request(request_data, headers)
+            self._map_sprint_values(data.get('values') or [], local)
+        except Exception as e:
+            error_str = traceback.format_exc()
+            error_str += "\n %s"%board
+            board.active = False
+            raise Exception(error_str)
 
     def __get_sprint_by_id(self, sprint_id, local):
         try:
@@ -1494,6 +1501,7 @@ class TaskMigration(models.Model):
             data = self.make_request(request_data, headers)
             self._map_sprint_values([data], local)
         except Exception as e:
+            sprint_id.active = False
             raise e
 
     def update_issue_for_sprints(self, sprint_ids=False):

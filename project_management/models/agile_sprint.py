@@ -14,6 +14,7 @@ class AgileSprint(models.Model):
     issue_ids = fields.Many2many("wt.issue", string="Issues")
     company_id = fields.Many2one("res.company", related="project_id.company_id", store=True)
     state_sequence = fields.Integer(string="State Sequence", compute="_compute_state_sequence", compute_sudo=True, store=True)
+    active = fields.Boolean(string="Active", default=True)
 
     def name_get(self):
         state_name = dict(self._fields['state'].selection)

@@ -12,6 +12,7 @@ class Board(models.Model):
     sprint_ids = fields.One2many("agile.sprint", 'board_id', string="Sprints")
     is_favorite = fields.Boolean("Favorite")
     company_id = fields.Many2one("res.company", related="project_id.company_id", store=True)
+    active = fields.Boolean(string="Active", default=True)
 
     def open_board_sprint(self):
         self.ensure_one()

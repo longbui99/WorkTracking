@@ -31,6 +31,7 @@
         'views/digest_email_views.xml',
         'views/wt_billable_rule_views.xml',
         'views/wt_issue_template_views.xml',
+        'views/wt_budget_invoice_views.xml',
         'views/wt_budget_views.xml',
         'views/wt_finance_views.xml',
         'views/wt_allocation_views.xml',

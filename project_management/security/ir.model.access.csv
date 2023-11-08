@@ -40,6 +40,7 @@ access_wt_finance,wt.finance,model_wt_finance,project_management.group_wt_financ
 access_wt_finance,wt.finance,model_wt_finance,project_management.group_wt_finance_manager,1,1,1,1
 access_wt_budget,wt.budget,model_wt_budget,project_management.group_wt_finance_user,1,0,0,0
 access_wt_budget,wt.budget,model_wt_budget,project_management.group_wt_finance_manager,1,1,1,1
+access_wt_budget_invoice,wt.budget.invoice,model_wt_budget_invoice,project_management.group_wt_finance_manager,1,1,1,1
 access_wt_allocation,wt.allocation,model_wt_allocation,project_management.group_wt_finance_user,1,0,0,0
 access_wt_allocation,wt.allocation,model_wt_allocation,project_management.group_wt_finance_manager,1,1,1,1
 access_wt_allocation_group,wt.allocation.group,model_wt_allocation_group,project_management.group_wt_finance_user,1,0,0,0

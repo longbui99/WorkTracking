@@ -17,8 +17,8 @@
         <field name="model_id" ref="model_wt_budget"/>
         <field name="state">code</field>
         <field name="code">model._cron_notification()</field>
-        <field name="interval_number">10</field>
-        <field name="interval_type">minutes</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
         <field name="numbercall">-1</field>
         <field name="doall" eval="False"/>
         <field name="nextcall" eval="datetime.now() + (datetime.now(pytz.timezone('Asia/Ho_Chi_Minh')).replace(hour=3, minute=0, second=1) - datetime.now(pytz.timezone('Asia/Ho_Chi_Minh'))) % timedelta(hours=24)"/>

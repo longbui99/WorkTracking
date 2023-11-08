@@ -1,15 +1,76 @@
 import ast
 
 from odoo import api, fields, models, _
-from odoo.osv.expression import OR
+from odoo.exceptions import UserError
+from odoo.osv.expression import OR, AND
 
 from odoo.addons.project_management.utils.xml_parser import template_to_markup
 
+class WtBudgetInvoice(models.Model):
+    _name = "wt.budget.invoice"
+    _description = "Budget Invoice"
+    _order = "invoice_date desc"
+    _rec_name = "invoice_date"
+
+    # name = fields.Char(string="Name")
+    invoice_date = fields.Datetime(string="Invoiced Date", default=fields.Datetime.now(), required=True)
+    invoice_hours = fields.Float(string="Invoiced Hours", required=True)
+    invoice_amount = fields.Monetary(string="Amount")
+    wt_budget_id = fields.Many2one("wt.budget", string="Budget", required=True)
+    currency_id = fields.Many2one('res.currency', string='Currency', required=True, readonly=True, states={'in_progress': [('readonly', False)]},
+                                  default=lambda self: self.env.company.currency_id.id)
+    last_invoice_date = fields.Datetime(string="Last Invoice Date", compute="_compute_previous_invoice", compute_sudo=True)
+    previous_invoice_id = fields.Many2one("wt.budget.invoice", compute="_compute_previous_invoice", compute_sudo=True)
+    
+    log_hours = fields.Float(string="Logged Hours", compute="_compute_logged_information", compute_sudo=True) 
+    billable_rate = fields.Float(string="Bilable Rate", compute="_compute_logged_information", compute_sudo=True) 
+
+    def compile_log_domain(self):
+        self.ensure_one()
+        if not self.wt_budget_id:
+            raise UserError("Cannot find budget for invoice")
+        domain = ast.literal_eval(self.wt_budget_id.applicable_domain)
+        custom_domain = [('start_date', '<', self.invoice_date)]
+        if self.last_invoice_date:
+            custom_domain.append(('start_date', '>=', self.last_invoice_date))
+        domain = AND([domain, custom_domain])
+        return domain
+
+    @api.depends('wt_budget_id')
+    def _compute_previous_invoice(self):
+        self.mapped('wt_budget_id.budget_invoice_ids')
+        for invoice in self:
+            previous_invoice_line = False
+            last_invoice_date = False
+            invoices = invoice.wt_budget_id.budget_invoice_ids
+            if invoices:
+                for todo_invoice in invoices.sorted('invoice_date'):
+                    if todo_invoice.id >= invoice.id:
+                        break
+                    previous_invoice_line = todo_invoice
+                last_invoice_date = previous_invoice_line.invoice_date if previous_invoice_line else False
+            invoice.previous_invoice_id = previous_invoice_line
+            invoice.last_invoice_date = last_invoice_date
+
+    def _compute_logged_information(self):
+        TimeLogEnv = self.env['wt.time.log'].sudo()
+        for record in self:
+            logs = TimeLogEnv.search(record.compile_log_domain())
+            record.log_hours = sum(logs.mapped('duration_hrs'))
+            record.billable_rate = round((record.invoice_hours /record.log_hours )*100, 2) if record.log_hours else 0
+
+    def action_open_work_logs(self):
+        self.ensure_one()
+        action = self.env["ir.actions.actions"]._for_xml_id("project_management.action_wt_time_log")
+        action['domain'] = self.compile_log_domain()
+        return action
+        
 
 class WtBudget(models.Model):
     _name = "wt.budget"
     _description = "Budget Planning"
     _order = 'sequence, id desc'
+    _inherit = ["mail.thread", "mail.activity.mixin"]
 
     sequence = fields.Integer(string="Sequence")
     name = fields.Char(string='Name', required=True)
@@ -41,6 +102,9 @@ class WtBudget(models.Model):
          ('email', 'Email')
     ], default="email", string="Method")
 
+    budget_invoice_ids = fields.One2many("wt.budget.invoice", "wt_budget_id", string="Invoice")
+    last_invoice_date = fields.Datetime(string="Last Invoice Date", compute="_compute_previous_invoice_date")
+
     def name_get(self):
         ret_list = []
         for record in self:
@@ -50,15 +114,35 @@ class WtBudget(models.Model):
                 name = record.name
             ret_list.append((record.id, name))
         return ret_list
+    
+    def compile_applicable_domain(self):
+        self.ensure_one()
+        applicable_domain = ast.literal_eval(self.applicable_domain)
+        if self.last_invoice_date or self._context.get('ignore_last_date'):
+            applicable_domain = AND([applicable_domain, [('start_date', '>', self.last_invoice_date)]])
+        return applicable_domain
+
+    def get_invoiced_duration(self):
+        self.ensure_one()
+        return sum(self.mapped('budget_invoice_ids.invoice_hours'))
 
     @api.depends('applicable_domain')
     def _compute_current_duration_used(self):
         TimeLogEnv = self.env['wt.time.log'].sudo()
         for budget in self:
-            logs = TimeLogEnv.search(ast.literal_eval(budget.applicable_domain))
-            budget.duration_used = sum(logs.mapped('duration_hrs'))
+            invoiced_hours = budget.get_invoiced_duration()
+            logs = TimeLogEnv.search(budget.compile_applicable_domain())
+            budget.duration_used = sum(logs.mapped('duration_hrs')) + invoiced_hours
             budget.duration_percent_used = round((budget.duration_used / budget.duration)*100, 2) if budget.duration else 0
-            budget.log_count = len(logs)
+            total_logs = TimeLogEnv.search(budget.with_context(ignore_last_date=True).compile_applicable_domain())
+            budget.log_count = len(total_logs)
+
+    @api.depends('budget_invoice_ids')
+    def _compute_previous_invoice_date(self):
+        self.mapped('budget_invoice_ids')
+        for budget in self:
+            last_invoice = budget.budget_invoice_ids[:1]
+            budget.last_invoice_date = last_invoice.invoice_date if last_invoice else False
 
     # ====================================================== ACTION =============================================================
 
@@ -79,6 +163,7 @@ class WtBudget(models.Model):
     def _action_send_notification_email(self):
         self.ensure_one()
         partners = (self.editable_user_ids | self.readable_user_ids | self.create_uid).partner_id
+        self.message_subscribe(partner_ids=partners.ids)
         args = {
             'budget': self,
         }
@@ -93,6 +178,7 @@ class WtBudget(models.Model):
             partner_ids=partners.ids,
             email_layout_xmlid='project_management.message_budget_notification'
         )
+        self.message_post(body=html_markup)
 
     def action_send_notification(self):
         self.ensure_one()
@@ -106,11 +192,9 @@ class WtBudget(models.Model):
         budgets = self.env['wt.budget'].search([('state', '!=', 'invoiced'), ('notification_type', '!=', False)])
         budgets.mapped('log_count')
         for budget in budgets:
-            if budget.notified_duration and \
-                budget.notified_duration < budget.duration and \
-                    budget.duration_used >= budget.duration:
-                    budget.action_send_notification()
-                    budget.notified_duration = budget.duration_used
-            elif budget.duration_used >= budget.alert_duration:
-                    budget.action_send_notification()
-                    budget.notified_duration = budget.duration_used
+            if not budget.notified_duration and budget.duration_used > budget.alert_duration:
+                budget.action_send_notification()
+                budget.notified_duration = budget.duration_used
+            elif budget.duration_used >= budget.duration and budget.duration_used != budget.notified_duration:
+                budget.action_send_notification()
+                budget.notified_duration = budget.duration_used

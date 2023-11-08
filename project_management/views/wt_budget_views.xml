@@ -36,8 +36,8 @@
                             name="action_open_logs"
                             class="oe_stat_button"
                             icon="fa-calendar"
-                            attrs="{'invisible': [('log_count', '=', 0)]}">
-                            <field name="log_count" widget="statinfo" string="Work Logs"/>
+                            string="Work Logs">
+                            <!-- <field name="log_count" widget="statinfo" string="Work Logs"/> -->
                         </button>
                     </div>
                     <label for="name" class="oe_edit_only"/>
@@ -61,7 +61,8 @@
                             </div>
                         </group>
                         <group>
-                            <field name="description" readonly="1" nolabel="1"/>
+                            <field name="description"/>
+                            <field name="last_invoice_date"/>
                         </group>
                     </group>
                     <group>
@@ -72,6 +73,9 @@
                         </group>
                     </group>
                     <notebook>
+                        <page string="Invoices" name="invoices">
+                            <field name="budget_invoice_ids" context="{'tree_view_ref': 'project_management.wt_budget_invoice_editable_tree_view'}"/>
+                        </page>
                         <page string="Security" name="security">
                             <group>
                                 <field name="readable_user_ids" widget="many2many_tags"/>
@@ -96,6 +100,11 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>
