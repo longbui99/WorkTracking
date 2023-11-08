@@ -11,10 +11,10 @@ _logger = logging.getLogger(__name__)
 class WtIssueMigration(WtIssue):
 
     def _fill_default_type_url(self, records):
-        default_type_url = False
+        default_host_url = False
         for record in records:
             if not record['type_url']:
-                if not default_type_url:
+                if not default_host_url:
                     default_type_url = request.env['ir.config_parameter'].sudo().get_param('default.type.url')
                 record['type_url'] = default_type_url
         return records

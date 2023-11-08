@@ -134,7 +134,7 @@ class TaskMigration(models.Model):
     @api.model
     def create(self, values):
         migration = super().create(values)
-        # migration.__load_master_data()
+        migration.__load_master_data()
         if 'avatar' in values:
             migration.get_linked_avatar().write({'public': True})
         return migration
@@ -347,8 +347,21 @@ class TaskMigration(models.Model):
         return host, issue_key
 
     def query_candidate_issue(self, query):
+        to_fetch = False
+        res = get_search_request(query)
+        urls = find_url(query)
+        if urls:
+            query = urls[0]
+            to_fetch = True
+        if not to_fetch and 'issue' in res:
+            query = res['issue']
+            to_fetch = True
+        if not to_fetch:
+            return self.env['wt.issue']
         finding_host, issue_key = self.get_host_and_issue_by_query(query)
         host = self or finding_host
+        if not host:
+            raise UserError("Cannot find host for query %s, %s"%(query, issue_key))
         return host._search_load({"issue": issue_key})
 
     @api.model
