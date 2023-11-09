@@ -1488,7 +1488,7 @@ class TaskMigration(models.Model):
         except Exception as e:
             error_str = traceback.format_exc()
             error_str += "\n %s"%board
-            board.active = False
+            board.sudo().active = False
             raise Exception(error_str)
 
     def __get_sprint_by_id(self, sprint_id, local):
@@ -1501,7 +1501,7 @@ class TaskMigration(models.Model):
             data = self.make_request(request_data, headers)
             self._map_sprint_values([data], local)
         except Exception as e:
-            sprint_id.active = False
+            sprint_id.sudo().active = False
             raise e
 
     def update_issue_for_sprints(self, sprint_ids=False):
