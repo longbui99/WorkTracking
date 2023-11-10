@@ -16,12 +16,11 @@ class AgileSprint(models.Model):
     state_sequence = fields.Integer(string="State Sequence", compute="_compute_state_sequence", compute_sudo=True, store=True)
     active = fields.Boolean(string="Active", default=True)
 
-    def name_get(self):
+    @api.depends('name')
+    def _compute_display_name(self):
         state_name = dict(self._fields['state'].selection)
-        result = []
         for record in self:
-            result.append((record.id, "%s - %s"%(record.name, state_name.get(record.state) or 'Unknow' )))
-        return result
+            record.display_name = "%s - %s"%(record.name, state_name.get(record.state) or 'Unknow' )
     
     def _compute_state_sequence(self):
         for record in self:

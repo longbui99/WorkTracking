@@ -11,7 +11,7 @@ class WorkAllocation(models.Model):
 
     user_id = fields.Many2one(comodel_name="res.users", string="User", required=True)
     employee_id = fields.Many2one(comodel_name="hr.employee", string="Employee", related="user_id.employee_id", store=True)
-    finance_id = fields.Many2one(comodel_name="work.finance", string="Finance Plan", required=True)
+    finance_id = fields.Many2one(comodel_name="work.finance", string="Finance Plan")
     project_id = fields.Many2one(comodel_name="work.project", string="Project", required=True)
     allocation = fields.Float(string="Allocation (hrs)", required=True)
     employee_role_id = fields.Many2one(comodel_name="hr.employee.role", string="Role")
@@ -25,12 +25,12 @@ class WorkAllocation(models.Model):
 class WorkAllocationGroup(models.Model):
     _name = "work.allocation.group"
     _description = "WT Allocation Group"
-    _order = "id desc"
+    _order = "start_date desc, end_date desc"
 
     name = fields.Char(string="Name", compute="_compute_name", store=True)
     user_id = fields.Many2one(comodel_name="res.users", string="User", required=True)
     employee_id = fields.Many2one(comodel_name="hr.employee", string="Employee", related="user_id.employee_id", store=True)
-    finance_id = fields.Many2one(comodel_name="work.finance", string="Finance Plan", required=True)
+    finance_id = fields.Many2one(comodel_name="work.finance", string="Finance Plan")
     project_id = fields.Many2one(comodel_name="work.project", string="Project", required=True)
     employee_role_id = fields.Many2one(comodel_name="hr.employee.role", string="Role")
     allocation = fields.Float(string="Allocation (hrs)", required=True)
@@ -59,6 +59,7 @@ class WorkAllocationGroup(models.Model):
                 group.name = f"[{group.project_id.project_key}] {group.employee_role_id.name} - {group.user_id.name} ({start_date} - {end_date})"
             else:
                 group.name = "Creating..."
+
     def action_clear_allocations(self):
         self.mapped('allocation_ids').unlink()
 

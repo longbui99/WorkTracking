@@ -105,15 +105,13 @@ class WorkBudget(models.Model):
     budget_invoice_ids = fields.One2many("work.budget.invoice", "work_budget_id", string="Invoice")
     last_invoice_date = fields.Datetime(string="Last Invoice Date", compute="_compute_previous_invoice_date")
 
-    def name_get(self):
-        ret_list = []
+    @api.depends('project_id', 'name')
+    def _compute_display_name(self):
         for record in self:
             if record.project_id:
-                name = f"[{record.project_id.project_key}] {record.project_id.project_name}, {record.name}"
+                record.display_name = f"[{record.project_id.project_key}] {record.project_id.project_name}, {record.name}"
             else:
-                name = record.name
-            ret_list.append((record.id, name))
-        return ret_list
+                record.display_name = record.name
     
     def compile_applicable_domain(self):
         self.ensure_one()

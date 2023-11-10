@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 
 class TaskMapping:
-    def __init__(self, host_url, host_type):
+    def __init__(self, host_url, host_service):
         self.status = ['status', 'id']
         self.story_point = ['customfield_10008']
         self.estimate_hour = ['customfield_11102']
@@ -23,36 +23,36 @@ class TaskMapping:
         self.new_task_key = ['issuetype']
         host_url = urlparse(host_url).netloc
         self.map_url = lambda r: f"https://{host_url}/browse/{r}"
-        if host_type == "self_hosting":
+        if host_service == "self_hosting":
             pass
-        elif host_type == "cloud":
+        elif host_service == "cloud":
             self.assignee = ['assignee', 'emailAddress']
             self.estimate_hour = ['customfield_10052']
             self.story_point = ['customfield_10041']
             self.acceptance_criteria = ['customfield_10034']
         else:
-            raise TypeError("Doesn't support type: " + host_type)
+            raise TypeError("Doesn't support type: " + host_service)
 
 
 class WorkLogMapping:
-    def __init__(self, host_url, host_type):
+    def __init__(self, host_url, host_service):
         self.time = ['timeSpent']
         self.duration = ['timeSpentSeconds']
         self.description = ['comment']
         self.id_onhost = ['id']
         self.start_date = ['started']
         self.author = ['updateAuthor', 'name']
-        if host_type == "self_hosting":
+        if host_service == "self_hosting":
             pass
-        elif host_type == "cloud":
+        elif host_service == "cloud":
             self.author = ['updateAuthor', 'emailAddress']
         else:
-            raise TypeError("Doesn't support type: " + host_type)
+            raise TypeError("Doesn't support type: " + host_service)
 
 
 class ACMapping:
-    def __init__(self, host_url, host_type):
-        self.host_type = host_type
+    def __init__(self, host_url, host_service):
+        self.host_service = host_service
         self.host_url = host_url
 
     def cloud_parsing(self, values):
@@ -72,12 +72,12 @@ class ACMapping:
         return values
 
     def parsing(self):
-        if self.host_type == "cloud":
+        if self.host_service == "cloud":
             return self.cloud_parsing
-        elif self.host_type == "self_hosting":
+        elif self.host_service == "self_hosting":
             return self.self_hosted_parsing
         else:
-            raise TypeError("Doesn't support type: " + self.host_type)
+            raise TypeError("Doesn't support type: " + self.host_service)
 
     def self_hosted_exporting(self, ac_ids):
         return ac_ids.mapped(
@@ -99,9 +99,9 @@ class ACMapping:
         return res
 
     def exporting(self):
-        if self.host_type == "cloud":
+        if self.host_service == "cloud":
             return self.cloud_exporting
-        elif self.host_type == "self_hosting":
+        elif self.host_service == "self_hosting":
             return self.self_hosted_exporting
         else:
-            raise TypeError("Doesn't support type: " + self.host_type)
+            raise TypeError("Doesn't support type: " + self.host_service)

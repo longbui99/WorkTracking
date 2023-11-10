@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="work_hierarchy.work_hierarchy_line" owl="1">
+        <tr class="o_work_hierarchy_report_line" t-att-data-level="lineData.level" t-att-data-group="props.group">
+            <td>
+                <div t-att-style="'margin-left: ' + margin + 'px;'" class="display-name">
+                    <span t-attf-class="o_account_reports_caret_icon" t-on-click="toggleFoldState">
+                        <i class="fa fa-caret-down" role="img"
+                            aria-label="Unfolded" title="Unfolded"/>
+                        <i class="fa fa-caret-right" role="img"
+                            aria-label="Folded" title="Folded"/>
+                    </span>
+                    <a class="clickable" t-on-click="actionOpenRecord" href='#'><span t-esc="lineData.name || ''"/></a>
+                </div>
+            </td>
+            <td t-foreach="lineData.headers" t-as="header">
+                <span t-esc="lineData[header]"/>
+            </td>
+        </tr>
+    </t>
+</templates>

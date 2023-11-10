@@ -71,12 +71,12 @@ class WorkProject(models.Model):
         default='bill'
     )
 
-    def name_get(self):
-        # Prefetch the fields used by the `name_get`, so `browse` doesn't fetch other fields
-        self.browse(self.ids).read(['task_key', 'task_name'])
-        return [(template.id, '%s: %s' % (template.task_key and template.task_key or '', template.task_name))
-                for template in self]
-    
+    @api.depends('task_key', 'task_name')
+    def _compute_display_name(self):
+        self.read(['task_key', 'task_name'])
+        for record in self:
+            record.display_name = '%s: %s' % (record.task_key and record.task_key or '', record.task_name)
+
     def mark_billable(self):
         self.billable_state = 'bill'
 

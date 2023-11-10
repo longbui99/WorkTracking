@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="work_hierarchy.hierarchy_table" owl="1">
+        <table width="100%" class="o_work_hierarchy_expandable">
+            <thead>
+                <t t-call="work_hierarchy.hierarchy_table_header"/>
+            </thead>
+            <t t-foreach="data.initial_nodes || []" t-as="key">
+                <tbody>
+                    <Line key="key" level="0" root="true"/>
+                </tbody>
+            </t>
+        </table>
+    </t>
+
+    <t t-name="work_hierarchy.hierarchy_table_header" owl="1">
+        <tr>
+            <t t-foreach="header || []" t-as="h">
+                <th scope="col"><t t-esc="h"/></th>
+            </t>
+        </tr>
+    </t>
+</templates>

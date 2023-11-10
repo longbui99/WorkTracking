@@ -1,0 +1,162 @@
+.o_work_hierarchy_page {
+    background-color: $o-view-background-color;
+    margin: 16px auto;
+    padding: 24px 16px;
+
+    .o_work_hierarchy_header{
+        width: 100%;
+        display: flex;
+        flex-flow: column;
+        .top-panel{
+            width: 100%;
+        }
+        .inner-panel{
+            width: 100%;
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            .left-inner-panel{
+                width: 45%;
+            }
+            .right-inner-panel{
+                width: 45%;
+            }
+        }
+    }
+
+    // Manage expand icon
+    table.o_work_hierarchy_expandable {
+        thead tr {
+            border-width: 2px;
+            border-top-style: groove;
+            border-bottom-style: groove;
+        }
+        tbody tr {
+            border-width: 1px;
+            border-top-style: solid;
+            border-bottom-style: groove;
+        }
+        tbody, tfoot {
+            & > tr > td ~ td > span {
+                margin-left: 10px;
+            }
+        }
+    }
+    
+    .o_account_reports_caret_icon{
+        visibility: hidden;
+        cursor: pointer;
+        &:hover{
+            color: orange;
+        }
+    }
+    .foldable{
+        .o_account_reports_caret_icon{
+            visibility: visible;
+            width: 5px!important;
+            display: inline-block;
+        }
+    }
+
+    .fa-caret-down{
+        display: inline-block;
+        color: var(--primary);
+    }
+    .fa-caret-right{
+        display: none;
+        color: var(--primary);
+    }
+
+    .fold{
+        .fa-caret-down{
+            display: none;
+        }
+        .fa-caret-right{
+            display: inline-block;
+        }
+    }
+
+    .o_work_hierarchy_report_line {
+        td{
+
+            .o_account_reports_caret_icon{
+                padding: 0px;
+                margin: 0px;
+            }
+
+            span{
+                margin-left: 0px!important;
+                padding-left: 5px;
+            }
+
+            input{
+                margin-left: 0px!important;
+                padding-left: 5px;
+                border: solid 1px #969696;
+                box-sizing: border-box;
+                outline: none;
+                width: inherit;
+            }
+
+            button[name="tooltip"]{
+                position: absolute;
+                margin: 0;
+                padding: 0 10px;
+                top: 0;
+                right: 0;
+            }
+        }
+    }
+
+    @include media-breakpoint-down(sm) {
+        .o_work_hierarchy_report_line {
+            & .fa-caret-down, & .fa-caret-right {
+                font-size: 2em;
+                width: 2em;
+            }
+        }
+    }
+
+
+
+    @keyframes updatingBackground {
+        0% {
+            background-color: unset;
+        }
+        40% {
+            background-color: rgb(255, 174, 0);
+        }
+        60% {
+            background-color: rgb(255, 128, 1);
+        }
+        70% {
+            background-color: rgb(255, 187, 0);
+        }
+        100% {
+            background-color: unset;
+        }
+    }
+    
+    @keyframes updatingFontWeight {
+        0% {
+            font-weight: unset;
+        }
+        40% {
+            font-weight: 700;
+        }
+        60% {
+            font-weight: 900;
+        }
+        70% {
+            font-weight: 1000;
+        }
+        100% {
+            font-weight: unset;
+        }
+    }
+
+
+    .element-update{
+        animation: updatingBackground linear 0.5s, updatingFontWeight linear 10s;
+    }
+}

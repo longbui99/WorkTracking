@@ -17,6 +17,7 @@
         <field name="model">work.allocation</field>
         <field name="arch" type="xml">
             <tree editable="bottom">
+                <field name="currency_id" invisible="1"/>
                 <field name="employee_id" invisible="1"/>
                 <field name="project_id" optional="hide"/>
                 <field name="finance_id" optional="show"/>
@@ -24,7 +25,6 @@
                 <field name="allocation" optional="show"/>
                 <field name="start_date" optional="hide"/>
                 <field name="end_date" optional="hide"/>
-                <field name="currency_id" invisible="1"/>
                 <field name="cost_per_hour" optional="hide"/>
                 <field name="employee_role_id" optional="hide" invisible="not user_id" groups="work_abc_management.group_work_user" context="{'default_employee_id': employee_id}"/>
             </tree>

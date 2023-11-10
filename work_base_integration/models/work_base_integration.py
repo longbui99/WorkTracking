@@ -50,7 +50,7 @@ class TaskHost(models.Model):
     timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
     auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type",
                                  default="api_token")
-    host_type = fields.Selection([('self_hosting', 'Self-Hosted'), ('cloud', 'Cloud')], string="Server Type",
+    host_service = fields.Selection([('self_hosting', 'Self-Hosted'), ('cloud', 'Cloud')], string="Server Type",
                                    default="cloud")
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
@@ -70,13 +70,11 @@ class TaskHost(models.Model):
     host_image_url = fields.Char(string="Host Image URL", compute="_compute_host_image_url")
     base_task_url = fields.Char(string="Task URL Template")
 
-    def name_get(self):
+    @api.depends('host_type', 'name')
+    def _compute_display_name(self):
         name_dict = dict(self._fields['host_type'].selection)
-        ret_list = []
         for record in self:
-            name = '[%s] %s' % (name_dict[record.host_type], record.name)
-            ret_list.append((record.id, name))
-        return ret_list
+            record.display_name = '[%s] %s' % (name_dict[record.host_type], record.name)
     
     def get_prefix(self):
         self.ensure_one()
@@ -661,8 +659,8 @@ class TaskHost(models.Model):
         return res
 
     def export_acceptance_criteria(self, task_id):
-        task_mapping = TaskMapping(self.work_host_url, self.host_type)
-        ac_mapping = ACMapping(self.work_host_url, self.host_type).exporting()
+        task_mapping = TaskMapping(self.work_host_url, self.host_service)
+        ac_mapping = ACMapping(self.work_host_url, self.host_service).exporting()
         headers = self.__get_request_headers()
         request_data = {
             'endpoint': f"{self.work_host_url}/issue/{task_id.task_key}",
@@ -868,7 +866,7 @@ class TaskHost(models.Model):
     def processing_task_raw_data(self, local, raw):
         if not self.is_load_acs:
             local['dict_field_map']['checklist'] = False
-        importing_base = ImportingJiraTask(self.host_type, self.work_host_url, local['dict_field_map'])
+        importing_base = ImportingJiraTask(self.host_service, self.work_host_url, local['dict_field_map'])
         response = {
             'new': [],
             'updated': self.env['work.task']
@@ -1072,7 +1070,7 @@ class TaskHost(models.Model):
 
     def processing_worklog_raw_data(self, local, raw, mapping):
         if not mapping:
-            mapping = ImportingJiraWorkLog(self.host_type, self.work_host_url)
+            mapping = ImportingJiraWorkLog(self.host_service, self.work_host_url)
         response = {
             'new': [],
             'updated': self.env['work.time.log']
@@ -1089,7 +1087,7 @@ class TaskHost(models.Model):
         if self.import_work_log:
             for user in users:
                 last_page = False
-                mapping = ImportingJiraWorkLog(self.host_type, self.work_host_url)
+                mapping = ImportingJiraWorkLog(self.host_service, self.work_host_url)
                 headers = self.with_user(user).__get_request_headers()
                 task_ids = self.env['work.task'].search([('project_id', 'in', projects.ids)])
                 local_data = {
@@ -1160,7 +1158,7 @@ class TaskHost(models.Model):
         if self.import_work_log:
             for user in users:
                 last_page = False
-                mapping = ImportingJiraWorkLog(self.host_type, self.work_host_url)
+                mapping = ImportingJiraWorkLog(self.host_service, self.work_host_url)
                 headers = self.with_user(user).__get_request_headers()
                 task_ids = self.env['work.task'].search(
                     [('work_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
@@ -1248,7 +1246,7 @@ class TaskHost(models.Model):
     def load_work_logs(self, task_ids, paging=100, domain=[], load_all=False):
         self = self.with_context(bypass_cross_user=True)
         if self.import_work_log:
-            mapping = ImportingJiraWorkLog(self.host_type, self.work_host_url)
+            mapping = ImportingJiraWorkLog(self.host_service, self.work_host_url)
             headers = self.__get_request_headers()
             user_dict = self.with_context(active_test=False).get_user()
             for task_id in task_ids:
@@ -1283,7 +1281,7 @@ class TaskHost(models.Model):
         if self.import_work_log:
             new_logs = []
             for user in users:
-                mapping = ImportingJiraWorkLog(self.host_type, self.work_host_url)
+                mapping = ImportingJiraWorkLog(self.host_service, self.work_host_url)
                 headers = self.with_user(user).__get_request_headers()
                 local_data = {'dict_user': {}}
                 request = {

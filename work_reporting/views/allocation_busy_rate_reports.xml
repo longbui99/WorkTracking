@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <record id="action_allocation_rate_report" model="ir.actions.client">
+        <field name="name">Allocation Rate</field>
+        <field name="tag">allocation_busy_rate</field>
+        <field name="context" eval="{'model': 'work.allocation.report'}" />
+    </record>
+
+    <menuitem id="work_reporting.work_allocation_rate_report"
+              name="Busy Rates"
+              action="work_reporting.action_allocation_rate_report"
+              sequence="65"
+              parent="work_abc_management.menu_application"
+              >
+    </menuitem>
+
+</odoo>
