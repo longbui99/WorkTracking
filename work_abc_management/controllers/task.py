@@ -203,6 +203,8 @@ class WorkTask(http.Controller):
                 "projectName": log.project_id.project_name,
                 "task": log.task_id.id,
                 "taskName": log.task_id.task_name,
+                'issue': log.task_id.id,
+                'issueName': log.task_id.task_name,
                 "description": log.description,
                 "start_date": log.start_date.isoformat(),
                 'type_url': log.task_id.task_type_id.img_url
