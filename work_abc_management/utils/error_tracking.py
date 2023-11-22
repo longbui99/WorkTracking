@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 
 def log_error():
     error_str = traceback.format_exc()
-    params = json.dumps(request.params, indent=2)
+    params = json.dumps(request.share_params, indent=2)
     error_str += params
     _logger.error(error_str)
 

@@ -1,5 +1,6 @@
 import jwt
 import json
+from json import JSONDecodeError
 from odoo import models, exceptions
 from odoo.http import request, SessionExpiredException
 
@@ -13,10 +14,19 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _auth_method_jwt(cls):
         params = request.get_http_params()
+
+        if not len(params):
+            try:
+                params = request.get_json_data()
+            except JSONDecodeError:
+                params = {}
+
         if len(params) == 0:
             args = json.loads(request.httprequest.data)
-            request.http.args.update(args)
+            request.httprequest.args.update(args)
             params.update(args)
+            
+        request.share_params = params
         if not params.get('jwt'):
             raise exceptions.AccessDenied("The JWT uid is required")
         else:

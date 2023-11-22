@@ -40,7 +40,7 @@ class WorkTaskHost(WorkTask):
         return self._fill_default_type_url(res)
     
     @handling_req_res
-    @http.route(['/management/issue/search'], type="http", cors="*", methods=['POST'], auth='jwork', csrf=False)
+    @http.route(['/management/task/search'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def search_task_post(self, **kwargs):
         try:
             res = super().search_task_post(**kwargs)
@@ -55,8 +55,8 @@ class WorkTaskHost(WorkTask):
         return res
 
     @handling_req_res
-    @http.route(['/management/issue/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
-                auth='jwork', csrf=False)
+    @http.route(['/management/task/search/<string:keyword>'], type="http", cors="*", methods=['GET'],
+                auth='jwt', csrf=False)
     def search_task(self, keyword, **kwargs):
         try:
             res = super().search_task(keyword, **kwargs)
@@ -71,8 +71,8 @@ class WorkTaskHost(WorkTask):
         return res
 
     @handling_req_res
-    @http.route(['/management/issue/fetch/<int:task_id>'], type="http", cors="*", methods=["GET"],
-                auth="jwork", csrf=False)
+    @http.route(['/management/task/fetch/<int:task_id>'], type="http", cors="*", methods=["GET"],
+                auth="jwt", csrf=False)
     def fetch_task_from_host(self, task_id, **kwargs):
         if not task_id:
             return Exception("Need to provide task id")
@@ -82,14 +82,14 @@ class WorkTaskHost(WorkTask):
         return http.Response(json.dumps(data[0]), content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/issue/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwork", csrf=False)
+    @http.route(['/management/task/work-log/export'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def export_task_to_host(self, **kwargs):
         time_ids = request.env['work.time.log'].browse(kwargs.get('exportIds', [])).exists().force_export()
         data = self._get_work_logs(time_ids)
         return http.Response(json.dumps(data), content_type='application/json', status=200)
 
     @handling_req_res
-    @http.route(['/management/issue/work-log/compare'], type="http", cors="*", methods=["POST"], auth="jwork", csrf=False)
+    @http.route(['/management/task/work-log/compare'], type="http", cors="*", methods=["POST"], auth="jwt", csrf=False)
     def compare_log_to_host(self, **kwargs):
         data = request.env['work.time.log'].browse(kwargs.get('ids', [])).compare_with_external()
         return http.Response(json.dumps(data), content_type='application/json', status=200)
