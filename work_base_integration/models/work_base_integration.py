@@ -1318,7 +1318,7 @@ class TaskHost(models.Model):
         for log in time_log_ids:
             payload = self._get_time_log_payload(log)
             request_data['body'] = payload
-            # res = self.make_request(request_data, headers)
+            res = self.make_request(request_data, headers)
             log.id_onhost = res['id']
         time_log_ids.export_state = 1
 
@@ -1334,7 +1334,7 @@ class TaskHost(models.Model):
                 request_data['body'] = payload
                 request_clone = request_data.copy()
                 request_clone['endpoint'] += f"/{log.id_onhost}"
-                # res = self.make_request(request_clone, headers)
+                res = self.make_request(request_clone, headers)
             except:
                 continue
         time_log_ids.export_state = 1
@@ -1350,7 +1350,7 @@ class TaskHost(models.Model):
             request_data['body'] = payload
             request_clone = request_data.copy()
             request_clone['endpoint'] += f"/{log.id_onhost}"
-            # res = self.make_request(request_clone, headers)
+            res = self.make_request(request_clone, headers)
 
     def export_specific_log(self, task_id, log_ids):
         time_log_to_create_ids = log_ids.filtered(lambda x: not x.id_onhost and x.state == 'done')
