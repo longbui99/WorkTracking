@@ -1,5 +1,5 @@
 /** @odoo-module **/
-import { Component, useSubEnv } from "@odoo/owl";
+import { Component, useSubEnv, useService } from "@odoo/owl";
 
 class MessageBroker {
     constructor() {
@@ -77,12 +77,38 @@ class MessageBroker {
     }
 }
 
+export class serviceStorage{
+    constructor(){
+        this.storage = {}    
+    }
+
+    get(key){
+        return this.storage[key]
+    }
+
+    set(key, data){
+        this.storage[key] = data
+        return true
+    }
+}
+
+var storage = new serviceStorage()
+
+export function getStorage(key){
+    return storage.get(key)
+}
+
+export function setStorage(key, data){
+    return storage.set(key, data)
+}
+
 export class MessageBrokerComponent extends Component{
-    setup(){
+    setup(){ 
         super.setup()
         if (!this.env._bus){
             useSubEnv({
-                '_bus': new MessageBroker()
+                '_bus': new MessageBroker(),
+                'storage': (Math.random() + 1).toString(36).substring(7)
             })
         }
         this.eventLogs = {};

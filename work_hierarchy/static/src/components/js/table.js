@@ -2,23 +2,15 @@
 
 import { MessageBrokerComponent } from "@work_hierarchy/components/js/base";
 import { Line } from "@work_hierarchy/components/js/line"
-import { useSubEnv } from "@odoo/owl"
+import { getStorage } from "@work_hierarchy/components/js/base";
 
 export class Table extends MessageBrokerComponent {
     setup() {
         super.setup()
-        this.data = this.props.data
-        this.header = this.props.header
-        this.env.data = this.data.hierarchy_data;
-        this.env.isManager = this.data.manager;
-        useSubEnv(this.env)
+        let payload = getStorage(this.env.storage);
+        this.headers = payload.headers;
+        this.initialNodes = payload.initial_nodes;
     }
-    mounted(){
-        let res = super.mounted();
-
-        return res
-    }
-
 }
 
 Table.components = { Line };

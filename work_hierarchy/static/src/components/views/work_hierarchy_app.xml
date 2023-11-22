@@ -1,24 +1,40 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates>
-    <t t-name="work_hierarchy.hierarchy_app" class="o_action">
-        <div>
-            <ControlPanel display="controlPanelDisplay"></ControlPanel>
-            <div class="container-fluid o_work_hierarchy_page">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <h3 style="display:inline;"><t t-esc="displayName"/></h3>
+    <t t-name="work_hierarchy.hierarchy_app">
+        <div class="o_list_view o_view_controller o_action o_work_hierarchy_page">
+            <Layout display="display">
+                <t t-set-slot="control-panel-always-buttons">
+                    <t t-foreach="arch.headerButtons" t-as="button" t-key="button.id">
+                        <ViewButton
+                            className="button.className"
+                            clickParams="button.clickParams"
+                            icon="button.icon"
+                            string="button.string"
+                            title="button.title"
+                            tabindex="'-1'"
+                        />
+                    </t>
+                </t>
+                <t t-set-slot="control-panel-selection-actions">
+                    <div class="d-flex gap-1">
+                        <t t-foreach="archInfo.headerButtons" t-as="button" t-key="button.id">
+                            <ViewButton
+                                className="button.className"
+                                clickParams="button.clickParams"
+                                icon="button.icon"
+                                string="button.string"
+                                title="button.title"
+                                tabindex="'-1'"
+                            />
+                        </t>
                     </div>
-                    <div class="col-lg-12">
-                        <div class="mt16">
-                            <Header data="data"/>
-                        </div>
-                    </div>
-                    <div class="col-lg-12">
-                        <div class="mt16" t-ref="TableRef">
-                        </div>
+                </t>
+                <div class="o_content">
+                    <div class="o_list_renderer o_renderer table-responsive" >
+                        <Table props="something" data_version="state.data_version"/>
                     </div>
                 </div>
-            </div>
+            </Layout>
         </div>
     </t>
 </templates>

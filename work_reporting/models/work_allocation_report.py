@@ -1,109 +1,15 @@
-import json
-import types
-from typing import Any
+import logging
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
 
 from odoo import models, fields, api, _
 
-import logging
-
 _logger = logging.getLogger(__name__)
 
 
-# class UserAllocationReport:
-#     def __init__(self, user_data, logs, allocations, periodlist, period_func, context={}):
-#         self.user_data = user_data
-#         self.context = context
-#         self.logs = logs
-#         self.allocations = allocations
-#         self.periodlist = periodlist
-#         self.period_func = period_func
-
-#     def get_column_allocations_data(self, allocations):
-#         groupby_data = groupby_object(allocations, lambda allocation: self.period_func(allocation.start_date))
-#         res = {'name': 'Allocation'}
-#         for period in self.periodlist:
-#             log_data = groupby_data[period]
-#             res[self.get_period_key(period)] = sum(log_data.mapped('allocation'))
-#         return res        
-    
-#     def get_period_key(self, period):
-#         return f"period_{period}"
-    
-#     def get_default_data(self, record):
-#         res = {
-#             'name': record.display_name,
-#             'key': f"{record._name},{record.id}"
-#         }
-#         for period in self.periodlist:
-#             res[self.get_period_key(period)] = 0.0
-#         return res
-
-#     def get_column_log_data(self, log):
-#         log_period = self.period_func(log.start_date)
-#         res = self.get_default_data(log)
-#         for period in self.periodlist:
-#             if log_period != period:
-#                 res[self.get_period_key(period)] = 0
-#         return res        
-    
-#     def get_column_period_data(self, datas):
-#         res = {}
-#         for period in self.periodlist:
-#             key = self.get_period_key(period)
-#             res[key] = sum(map(lambda data: data[key], datas))
-#         return res        
-
-#     def recursive_get_logs_infos(self, groupby_list, logs, data_list,  higher_key=''):
-#         _logger.warning(groupby_list)
-#         if not len(groupby_list):
-#             res = [ self.get_column_log_data(log) for log in logs]
-#             return res
-#         groupby_data = groupby_object(logs, groupby_list[0])
-#         val_list = []
-#         for key, value in groupby_data.items():
-#             step_value = {'name': key.display_name, 'key': f"{higher_key},{key._name},{key.id}", 'id': key.id}
-#             res_list = self.recursive_get_logs_infos(groupby_list[1:], value, data_list, step_value['key'])
-#             step_value.update(self.get_column_period_data(res_list))
-#             step_value['children_nodes'] = list(map(lambda r: r['key'], res_list))
-#             val_list.append(step_value)
-#             data_list.extend(res_list)
-#         return val_list
-
-#     def get_groupby_infos(self):
-#         groupby_list = ['project_id']
-#         if self.context.get('show_task'):
-#             groupby_list.append('task_id')
-#         if self.context.get('show_log'):
-#             groupby_list.append('display_name')
-#         return groupby_list
-
-#     @property
-#     def data(self):
-#         data_list = []
-#         groupby_infos = self.get_groupby_infos()
-#         project_level_datas = self.recursive_get_logs_infos(groupby_infos, self.logs, data_list, self.user_data['key'])
-#         allocations_by_project_id = groupby_object(self.allocations, lambda allocation: allocation.project_id.id)
-#         travel_projects = set()
-#         for project_data in project_level_datas:
-#             travel_projects.add(project_data['id'])
-#             allocations = allocations_by_project_id[project_data['id']]
-#             allocation_data = self.get_column_allocations_data(allocations)
-#             allocation_data['key'] = f"{project_data['key']},allocation"
-#             project_data['children_nodes'].append(allocation_data['key'])
-#             self.user_data['children_nodes'].append(project_data['key'])
-
-#         for project_id, allocations in allocations_by_project_id.items():
-#             if project_id not in travel_projects:
-#                 default_data = self.get_default_data(self.env['work.project'].browse(project_id))
-#                 project_level_datas.append()
-#                 self.user_data['children_nodes'].append(default_data['key'])
-#         project_level_datas.extend(data_list)
-#         return project_level_datas
-
 SPECIAL_KEYS = {'id', 'name', 'key', 'children_nodes'}
-    
+
+
 def groupby_object(objects, key):
     return_vals = defaultdict(lambda: objects.env[objects._name])
     for record in objects:
@@ -121,21 +27,42 @@ class AllocationLogNode:
         if groupby_keys:
             self.groupby_key = groupby_keys[0]
             self.next_keys = groupby_keys[1:]
+
         self.this = this
-        self.records = records
+        self.records = records or []
         self.parent = parent
         self.childrens = []
         self.get_col = get_col
-        if parent and hasattr(parent, 'childrens'):
-            self.parent.childrens.append(self)
-        self._get_default_values(default_vals=default_values)
-        _logger.warning(records)
-        if self.groupby_key:
-            groupby_data = groupby_object(self.records, self.groupby_key)
-            for key, records in groupby_data.items():
-                AllocationLogNode(self, key, records, self.next_keys, get_col, default_values)
         
         self.lowest_representative = 'duration_hrs'
+        self.format = self.get_format()
+        self.rollup_data = True
+
+        self._get_default_values(default_vals=default_values)
+        if self.groupby_key and self.records:
+            groupby_data = groupby_object(self.records, self.groupby_key)
+            keys = list(groupby_data.keys())
+            if len(keys):
+                orm_keys = keys[0].concat(*keys).exists()
+                for key in orm_keys.sorted():
+                    child_node = self.__class__(self, key, groupby_data[key], self.next_keys, get_col, default_values)
+                    self.childrens.append(child_node)
+
+    def get_format(self):
+        return "%s"
+
+    def __repr__(self) -> str:
+        return self.key
+  
+    def get(self, key):
+        for child in self.childrens:
+            if child.key == key:
+                return child
+        return False
+
+    @property
+    def children_keys(self):
+        return [x.key for x in self.childrens]
     
     @staticmethod
     def _get_key_func(odoo_record):
@@ -145,18 +72,23 @@ class AllocationLogNode:
     def key(self):
         return self._get_key_func(self.this)
     
+    def set_rollup_state(self):
+        self.vals['rollup_data'] = self.rollup_data 
+    
     def _get_default_values(self, default_vals={}):
         self.vals = default_vals.copy()
         self.vals['key'] = self.key
-        self.vals['name'] = self.this.display_name if self.this else "NaN"
+        self.vals['name'] = self.format%self.this.display_name if self.this else "NaN"
         self.vals['children_nodes'] = []
+        self.set_rollup_state()
     
     def get_records_values(self):
         res = dict()
         for record in self.records:
             vals = self.vals.copy()
             vals['key'] = self._get_key_func(record)
-            vals[self.get_col(record.start_date)] = record[self.lowest_representative]
+            if hasattr(record, self.lowest_representative):
+                vals[self.get_col(record.start_date)] = round(record[self.lowest_representative], 2)
             res[vals['key']] = vals
         return res
 
@@ -167,33 +99,48 @@ class AllocationLogNode:
             children_datas.update(children.data)
             self.vals['children_nodes'].append(children.key)
         
+        to_process_datas = children_datas
         if not children_datas:
-            return self.get_records_values()
+            to_process_datas = self.get_records_values().values()
+        else:
+            to_process_datas = [children_datas[x] for x in self.vals['children_nodes']]
 
-        for child_key, child_data in children_datas.items():
-            for period in self.vals.keys():
-                if period not in SPECIAL_KEYS:
-                    self.vals[period] += child_data[period]
+        for child_data in to_process_datas:
+            if child_data.get('rollup_data'):
+                for period in self.vals.keys():
+                    if period not in SPECIAL_KEYS:
+                        self.vals[period] += child_data[period]
         
+        self.set_rollup_state()
         children_datas[self.key] = self.vals
         return children_datas
     
-    def __or__(self, obj):
+    def merge(self, obj):
         for children in self.childrens:
             is_merged = False
             for obj_children in obj.childrens:
                 if children.key == obj_children.key:
-                    children.key | obj_children.key
+                    children | obj_children
                     is_merged = True
                     break
             if not is_merged:
                 self.childrens.append(children)
-            
+
+    def __or__(self, obj):
+        self.merge(obj)
+
     
 class AllocationResourceNode(AllocationLogNode):
     def __init__(self, parent, this, records, groupby_keys, get_col, default_values={}):
         super().__init__(parent, this, records, groupby_keys, get_col, default_values)
         self.lowest_representative = "allocation"
+
+    def get_format(self):
+        return "Allocation - %s"
+    
+    @staticmethod
+    def _get_key_func(odoo_record):
+        return f"all-{odoo_record._name},{odoo_record.id}" if odoo_record else None
 
 
 class WorkAllocationReport(models.Model):
@@ -207,7 +154,7 @@ class WorkAllocationReport(models.Model):
             users = self.env['res.users'].browse(user_ids).exists()
         else:
             current_employee = self.env.user.employee_id
-            launch_domain = [('employee_id', 'child_of', current_employee.id)]
+            launch_domain = [('id', '=', current_employee.id)]
             viewable_employees = self.env['hr.employee'].search(launch_domain)
             users = viewable_employees.mapped('user_id')
         if self._context.get('include_current'):
@@ -233,38 +180,78 @@ class WorkAllocationReport(models.Model):
         allocations = self.sudo().env['work.allocation'].search([('start_date', '>=', start_date), ('end_date', '<=', end_date), ('user_id', 'in', users.ids)])
         allocations.mapped('allocation')
         return allocations
+    
+    def convert_log_to_resource_key(self, key):
+        return "all-" + key
 
     @api.model
-    def launch_allocation_reports(self, group_by='weekly', user_ids=[], start_date=fields.Datetime.now()-relativedelta(months=1), end_date=fields.Datetime.now()):
+    def launch_report(self, expansion_modes=[], group_by='weekly',  user_ids=[], start_date=fields.Datetime.now()-relativedelta(months=1), end_date=fields.Datetime.now()):
         users = self.get_readable_users(user_ids)
         logs = self.get_work_logs(start_date, end_date, users)
         allocations = self.get_allocations(start_date, end_date, users)
         get_col = lambda todo_datetime: f"week_{todo_datetime.isocalendar().week}"
         period_list = self.get_period_label_list(start_date, end_date, get_col, weeks=1)
-        values = {weeknum:0.0 for weeknum in period_list}
+        values = {weeknum:0.0  for weeknum in period_list}
 
-        groupby_logs_keys = ['user_id', 'project_id', 'task_id']
+        groupby_logs_keys = ['user_id', 'project_id'] + expansion_modes
         allocation_logs = AllocationLogNode(None, None, logs, groupby_logs_keys, get_col, values)
         
         groupby_resources_keys = ['user_id', 'project_id']
         allocation_resources = AllocationResourceNode(None, None, allocations, groupby_resources_keys, get_col, values)
 
+        for user in users:
+            key = f"{user._name},{user.id}"
+            user_resources = allocation_resources.get(self.convert_log_to_resource_key(key))
+            if user_resources:
+                user_logs = allocation_logs.get(key)
+                if user_logs:
+                    projects = user_logs.childrens
+                    index = 0
+                    while index < len(projects):
+                        project = projects[index]
+                        resource_key = self.convert_log_to_resource_key(project.key)
+                        if resource_key in user_resources.children_keys:
+                            resource_index = user_resources.children_keys.index(resource_key)
+                            resource_project = user_resources.childrens[resource_index]
+                            resource_project.this = project.this
+                            resource_project.rollup_data = False
+                            projects.insert(index+1, resource_project)
+                        else:
+                            cloned_project = AllocationResourceNode(None, project.this, None, [], get_col, values)
+                            cloned_project.rollup_data = False
+                            projects.insert(index+1, cloned_project)
+                        index += 2
 
-        datas = allocation_resources.data
+                    for project in user_resources.childrens:
+                        if project not in projects:
+                            project.rollup_data = False
+                            projects.append(project)
 
-        # logs_by_user = groupby_object(logs, 'user_id')
-        # allocations_by_user = groupby_object(allocations, 'user_id')
-        # datas = []
-        # user_datas = []
-        # for user in users:
-        #     user_data = {
-        #         'name': user.display_name,
-        #         'key': f"res.users,{user.id}",
-        #         'children_nodes': []
-        #     }
-        #     user_logs = logs_by_user[user]
-        #     user_allocations = allocations_by_user[user]
-        #     user_allocation_report = UserAllocationReport(user_data, user_logs, user_allocations, period_list, period_func, self._context)
-        #     user_datas.append(user_data)
-        #     datas.extend(user_allocation_report.data)
-        return json.dumps(datas, indent=4)
+        datas = allocation_logs.data
+
+        get_headers = lambda todo_datetime: todo_datetime.isocalendar().week
+        period_list = self.get_period_label_list(start_date, end_date, get_headers, weeks=1)
+        header_values = [{"key": f"week_{weeknum}", "label": f"Week {weeknum}"} for weeknum in period_list]
+        res = {
+            'datas': datas,
+            'headers': header_values,
+            'initial_nodes': allocation_logs.children_keys,
+            'archInfo': {
+                'headerButtons': [
+                    {
+                        'string': "View Task",
+                        'title': 'Task Expansion',
+                        'id': '2',
+                        'clickParams': {
+                            'type': 'object',
+                            'kwargs': {
+                                'expansion_modes': ['task_id']
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+
+        
+        return res

@@ -50,7 +50,7 @@
         <record id="group_work_resource_manager" model="res.groups">
             <field name="name">Manager</field>
             <field name="category_id" ref="work_abc_management.module_category_work_resource"/>
-            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_resource_user'))]"/>
         </record>
 
     </data>

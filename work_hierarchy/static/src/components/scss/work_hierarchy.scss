@@ -1,46 +1,49 @@
 .o_work_hierarchy_page {
-    background-color: $o-view-background-color;
-    margin: 16px auto;
-    padding: 24px 16px;
+    // background-color: $o-view-background-color;
+    // margin: 16px auto;
+    // padding: 24px 16px;
 
-    .o_work_hierarchy_header{
-        width: 100%;
-        display: flex;
-        flex-flow: column;
-        .top-panel{
-            width: 100%;
-        }
-        .inner-panel{
-            width: 100%;
-            display: flex;
-            align-items: start;
-            justify-content: space-between;
-            .left-inner-panel{
-                width: 45%;
-            }
-            .right-inner-panel{
-                width: 45%;
-            }
-        }
-    }
+    // .o_work_hierarchy_header{
+    //     width: 100%;
+    //     display: flex;
+    //     flex-flow: column;
+    //     .top-panel{
+    //         width: 100%;
+    //     }
+    //     .inner-panel{
+    //         width: 100%;
+    //         display: flex;
+    //         align-items: start;
+    //         justify-content: space-between;
+    //         .left-inner-panel{
+    //             width: 45%;
+    //         }
+    //         .right-inner-panel{
+    //             width: 45%;
+    //         }
+    //     }
+    // }
 
-    // Manage expand icon
-    table.o_work_hierarchy_expandable {
-        thead tr {
-            border-width: 2px;
-            border-top-style: groove;
-            border-bottom-style: groove;
-        }
-        tbody tr {
-            border-width: 1px;
-            border-top-style: solid;
-            border-bottom-style: groove;
-        }
-        tbody, tfoot {
-            & > tr > td ~ td > span {
-                margin-left: 10px;
-            }
-        }
+    // // Manage expand icon
+    // table.o_work_hierarchy_expandable {
+    //     thead tr {
+    //         border-width: 2px;
+    //         border-top-style: groove;
+    //         border-bottom-style: groove;
+    //     }
+    //     tbody tr {
+    //         border-width: 1px;
+    //         border-top-style: solid;
+    //         border-bottom-style: groove;
+    //     }
+    //     tbody, tfoot {
+    //         & > tr > td ~ td > span {
+    //             margin-left: 10px;
+    //         }
+    //     }
+    // }
+    .o_list_number_th {
+        max-width: 150px;
     }
     
     .o_account_reports_caret_icon{
@@ -49,6 +52,7 @@
         &:hover{
             color: orange;
         }
+        margin-right: 5px;
     }
     .foldable{
         .o_account_reports_caret_icon{
@@ -77,35 +81,36 @@
     }
 
     .o_work_hierarchy_report_line {
-        td{
+        cursor: pointer;
+        // td{
 
-            .o_account_reports_caret_icon{
-                padding: 0px;
-                margin: 0px;
-            }
+        //     .o_account_reports_caret_icon{
+        //         padding: 0px;
+        //         margin: 0px;
+        //     }
 
-            span{
-                margin-left: 0px!important;
-                padding-left: 5px;
-            }
+        //     span{
+        //         margin-left: 0px!important;
+        //         padding-left: 5px;
+        //     }
 
-            input{
-                margin-left: 0px!important;
-                padding-left: 5px;
-                border: solid 1px #969696;
-                box-sizing: border-box;
-                outline: none;
-                width: inherit;
-            }
+        //     input{
+        //         margin-left: 0px!important;
+        //         padding-left: 5px;
+        //         border: solid 1px #969696;
+        //         box-sizing: border-box;
+        //         outline: none;
+        //         width: inherit;
+        //     }
 
-            button[name="tooltip"]{
-                position: absolute;
-                margin: 0;
-                padding: 0 10px;
-                top: 0;
-                right: 0;
-            }
-        }
+        //     button[name="tooltip"]{
+        //         position: absolute;
+        //         margin: 0;
+        //         padding: 0 10px;
+        //         top: 0;
+        //         right: 0;
+        //     }
+        // }
     }
 
     @include media-breakpoint-down(sm) {

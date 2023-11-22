@@ -1,7 +1,12 @@
 /** @odoo-module **/
+import { useRef, onMounted, onPatched, onWillPatch } from "@odoo/owl"
 import { MessageBrokerComponent } from "@work_hierarchy/components/js/base";
 import { formatFloat } from "@web/core/utils/numbers";
 import { useService } from "@web/core/utils/hooks";
+import { getStorage } from "@work_hierarchy/components/js/base";
+import { App} from "@odoo/owl";
+import { templates } from "@web/core/assets";
+import { _t } from "@web/core/l10n/translation";
 
 
 export class Line extends MessageBrokerComponent {
@@ -12,43 +17,73 @@ export class Line extends MessageBrokerComponent {
     }
 
     __setupData(){
+        this.animateDelay = 300;
+        this.childrens = [];
+        this.foldable=false;
+        this.fold=false;
+        
         this.orm = useService("orm");
         this.actionService = useService("action");
+
         this.key = this.props.key;
         this.isRoot = this.props.root || false;
         this.margin = this.props.level * Line.get_margin_unit();
-        this.animateDelay = 300;
-        this.foldable=false;
-        this.fold=false;
+        this.parent = this.props.parent;
+
+        let payload = getStorage(this.env.storage);
+        this.headers = payload.headers;
+        this.recordData = payload.datas[this.key];
+        this.currency = this.env.currency;
+        if (this.recordData.children_nodes.length){
+            this.recordData.name += ` (${this.recordData.children_nodes.length})`
+        }
+
         this.toggleFoldState = this.toggleFoldState.bind(this);
-        this.childrens = []
+        this.lineComponent = useRef("lineComponent"),
+        onPatched(() => {
+            for (let child of this.childrens) {
+                child.__owl__.destroy();
+            }
+            this.__renderChildrenNodes()
+        });
     }
 
+    onPatched(){
+    }
     __setupDOM(){
         this.childLineTemplate = Line;
-        this.saveInputCurrencyBeforeAnonymize = this.saveInputCurrencyBeforeAnonymize.bind(this);
-        this.anonymizeInputCurrency = this.anonymizeInputCurrency.bind(this);
     }
 
-    __setupState(){
-        this.data = this.env.data;
-        this.lineData = this.data[this.key];
-        this.currency = this.env.currency;
-        this.isManager = this.env.isManager;
-        if(!this.env.rootNode){
-            this.env.rootNode = this;
-        }
+    __setupLifeCycle(){
+        onMounted(()=>{
+            this.mounted();
+        })
     }
 
 
     setup() {
         super.setup()
         this.__setupData();
-        this.__setupState();
+        this.__setupLifeCycle();
         this.__setupDOM();
+        // this.__setupDOM();
     }
     // ----------------------------- DOM EVENT, UI/UX INTERACTION ----------------------------
-
+    convertNumToTime(float) {
+        var sign = (float >= 0) ? 1 : -1;
+        float = float * sign;
+        var hour = Math.floor(float);
+        var decpart = float - hour;
+        var min = 1 / 60;
+        decpart = min * Math.round(decpart / min);
+        var minute = Math.floor(decpart * 60) + '';
+        if (minute.length < 2) {
+            minute = '0' + minute; 
+        }
+        sign = sign == 1 ? '' : '-';
+        return sign + hour + ':' + minute;
+    }
+    
     elementChangeAnimation(element){
         if (element.classList.contains('element-update')){
             let self = this;
@@ -131,26 +166,38 @@ export class Line extends MessageBrokerComponent {
     }
 
     async __renderChildrenNodes(){
-        let node = this.el;
-        if (this.env.rootNode){
-            node = this.env.rootNode.el.parentNode;
+        if (this.parent?.nodeDOM){
+            this.nodeDOM = this.parent.nodeDOM;
+        } else {
+            this.nodeDOM = this.lineComponent.el.parentNode;
         }
         this.group = (Math.random() + 1).toString(36).substring(10);
-        if (this.data[this.key].children_nodes.length){
+        if (this.recordData.children_nodes.length){
             this.foldable = true;
             this.__setFoldableState();
         }
-        for (let child of this.data[this.key].children_nodes){
-            let line = new this.childLineTemplate(this, {
+        this.childrens = []
+        for (let child of this.recordData.children_nodes){
+            let props = {
                 'key': child,
                 'level': this.props.level + 1,
                 'root': false,
                 'parent': this,
                 'group': this.group
+            }
+            let line = new App(this.childLineTemplate, {
+                name: child,
+                env: this.env,
+                dev: this.env.debug,
+                templates,
+                props,
+                translatableAttributes: ["data-tooltip"],
+                translateFn: _t,
             })
-            await line.mount(node)
-            this.childrens.push(line)
-            this.el.parentNode.insertBefore(line.el, this.el.nextSibling)
+            await line.mount(this.nodeDOM)
+            let subLineComponent = line.root.component
+            this.childrens.push(subLineComponent)
+            this.nodeDOM.insertBefore(subLineComponent.lineComponent.el, this.lineComponent.el.nextSibling)
         }
     }
 
@@ -160,16 +207,16 @@ export class Line extends MessageBrokerComponent {
 
     __setFoldableState(){
         if (this.foldable){
-            this.el.classList.add('foldable')
+            this.lineComponent.el.classList.add('foldable')
         } else{
-            this.el.classList.remove('foldable')
+            this.lineComponent.el.classList.remove('foldable')
         }
     }
     __setFoldState(fold){
         if (fold){
-            this.el.classList.add('d-none')
+            this.lineComponent.el.classList.add('d-none')
         } else {
-            this.el.classList.remove('d-none')
+            this.lineComponent.el.classList.remove('d-none')
         }
     }
 
@@ -188,16 +235,28 @@ export class Line extends MessageBrokerComponent {
 
     _setFoldMark(){
         if (!this.fold){
-            this.el.classList.remove('fold')
+            this.lineComponent.el.classList.remove('fold')
         } else{
-            this.el.classList.add('fold')
+            this.lineComponent.el.classList.add('fold')
         }
     }
 
-    toggleFoldState(){
+    actionOpenRecord(event) {
+        event.stopPropagation();
+    }
+
+    toggleFoldState(event){
         this.fold = !this.fold;
         this._setFoldMark();
         this.recursiveToggleDisplay(this.fold)
+    }
+
+    onLineClick(event){
+        if (this.foldable){
+            this.toggleFoldState(event);
+        } else {
+            this.actionOpenRecord(event);   
+        }
     }
 
     updateFoldForceState(state){
@@ -214,7 +273,7 @@ export class Line extends MessageBrokerComponent {
     }
 
     forceLineState(state){
-        if (this.el) {
+        if (this.lineComponent.el) {
             this.fold = state.data;
             this._setFoldMark();
             this.recursiveForceState(state.data)
@@ -246,13 +305,9 @@ export class Line extends MessageBrokerComponent {
         return true
     }
 
-    actionOpenRecord() {
-    }
-
     mounted(){
-        super.mounted();
         this.__renderChildrenNodes();
-        this.__initEvent();
+        // this.__initEvent();
     }
 }
 

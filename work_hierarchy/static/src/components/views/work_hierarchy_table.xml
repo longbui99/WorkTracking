@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="work_hierarchy.hierarchy_table" owl="1">
-        <table width="100%" class="o_work_hierarchy_expandable">
+        <table class="o_work_hierarchy_expandable o_list_table table table-sm table-hover position-relative mb-0 o_list_table_ungrouped table-striped">
             <thead>
                 <t t-call="work_hierarchy.hierarchy_table_header"/>
             </thead>
-            <t t-foreach="data.initial_nodes || []" t-as="key">
-                <tbody>
-                    <Line key="key" level="0" root="true"/>
-                </tbody>
-            </t>
+            <tbody>
+                <t t-foreach="initialNodes" t-key="node" t-as="node">
+                    <Line data_version="props.data_version" key="node" level="0" root="true"/>
+                </t>
+            </tbody>
         </table>
     </t>
 
     <t t-name="work_hierarchy.hierarchy_table_header" owl="1">
         <tr>
-            <t t-foreach="header || []" t-as="h">
-                <th scope="col"><t t-esc="h"/></th>
+            <th scope="col" class="">Name</th>
+            <t t-foreach="headers" t-as="item" t-key="item.key">
+                <th scope="col" class="o_list_number_th"><t t-esc="item.label"/></th>
             </t>
         </tr>
     </t>
