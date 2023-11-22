@@ -30,7 +30,7 @@ class IrHttp(models.AbstractModel):
         if not params.get('jwt'):
             raise exceptions.AccessDenied("The JWT uid is required")
         else:
-            payload = jwt.decode(params['jwt'],"WorkTrackinglonglml", algorithms=["HS256"])
+            payload = jwt.decode(params['jwt'], request.env.cr.dbname + "longlml", algorithms=["HS256"])
             if not payload.get('uid'):
                 raise exceptions.AccessDenied("The JWT uid is required")
             # if not request.env['user.access.code'].sudo().search_count([('key', '=', payload.get('token', False))]):
