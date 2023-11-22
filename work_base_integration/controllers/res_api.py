@@ -97,7 +97,7 @@ class WorkTaskHost(WorkTask):
 
 class AuthInherited(Auth):
 
-    @http.route(['/web/login/jwork'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
+    @http.route(['/web/login/jwt'], methods=['GET', 'POST'], cors="*", type="http", auth="none", csrf=False)
     def auth_login_encrypt(self):
         res = super().auth_login_encrypt()
         employee_id = request.env['hr.employee'].sudo().search([('user_id', '=', request.env.user.id)], limit=1)
