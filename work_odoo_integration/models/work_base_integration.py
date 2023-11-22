@@ -425,30 +425,33 @@ class OdooHost(models.Model):
     def add_time_logs(self, task_id, time_log_ids):
         if self.host_type == "odoo":
             if time_log_ids:
-                rpc = self.make_rpc_agent()
-                val_list = [self._prepare_odoo_timesheet_log_vals(log) for log in time_log_ids]
-                res = rpc('account.analytic.line', 'create', [val_list])
-                for log, ex_id in zip(time_log_ids, res):
-                    log['id_on_wt'] = ex_id
-                return res
+                pass
+                # rpc = self.make_rpc_agent()
+                # val_list = [self._prepare_odoo_timesheet_log_vals(log) for log in time_log_ids]
+                # res = rpc('account.analytic.line', 'create', [val_list])
+                # for log, ex_id in zip(time_log_ids, res):
+                #     log['id_on_wt'] = ex_id
+                # return res
         else:
             return super().add_time_logs(task_id, time_log_ids)
 
     def update_time_logs(self, task_id, time_log_ids):
         if self.host_type == "odoo":
             if time_log_ids:
-                rpc = self.make_rpc_agent()
-                for log in time_log_ids:
-                    vals = self._prepare_odoo_timesheet_log_vals(log)
-                    rpc('account.analytic.line', 'write', [log.id_on_wt, vals])
+                pass
+                # rpc = self.make_rpc_agent()
+                # for log in time_log_ids:
+                #     vals = self._prepare_odoo_timesheet_log_vals(log)
+                #     rpc('account.analytic.line', 'write', [log.id_on_wt, vals])
         else:
             return super().update_time_logs(task_id, time_log_ids)
 
     def delete_time_logs(self, task_id, time_log_ids):
         if self.host_type == "odoo":
             if time_log_ids:
-                rpc = self.make_rpc_agent()
-                rpc('account.analytic.line', 'unlink', [time_log_ids.mapped('id_on_wt')])
+                pass
+                # rpc = self.make_rpc_agent()
+                # rpc('account.analytic.line', 'unlink', [time_log_ids.mapped('id_on_wt')])
         else:
             return super().delete_time_logs(task_id, time_log_ids)
 
