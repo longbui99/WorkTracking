@@ -2,6 +2,8 @@ from datetime import datetime
 import pytz
 from dateutil.relativedelta import relativedelta
 
+from odoo import fields
+
 
 
 def convert_second_to_time_format(time):
@@ -62,7 +64,7 @@ def get_date_range(self, periodic):
     if periodic[-2:] == "ly":
         periodic = periodic[:-2]
     tz = pytz.timezone(self.env.user.tz or 'UTC')
-    today = datetime.now()
+    today = datetime.now(tz)
     start_date, end_date = datetime.now(tz), datetime.now(tz)
     last = 0
     if periodic.startswith("last"):
@@ -83,6 +85,6 @@ def get_date_range(self, periodic):
         current_quarter = today.month // 3
         end_date = today + relativedelta(month=(current_quarter - last) * 3 + 1, day=1) - relativedelta(days=1)
         start_date = end_date - relativedelta(months=2, day=1)
-    start_date = (start_date + relativedelta(hour=0, minute=0, second=0)).astimezone(pytz.utc)
-    end_date = (end_date + relativedelta(hour=0, minute=0, second=0)).astimezone(pytz.utc)
+    start_date = (start_date).astimezone(pytz.utc) + relativedelta(hour=0, minute=0, second=0, microsecond=0)
+    end_date = (end_date).astimezone(pytz.utc) + relativedelta(hour=23, minute=59, second=59, microsecond=999999)
     return start_date, end_date

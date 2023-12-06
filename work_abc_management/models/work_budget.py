@@ -177,7 +177,7 @@ class WorkBudget(models.Model):
             for log in logs:
                 log_week = get_key(log.start_date)
                 allocation = allocation_by_user_by_finance[budget.finance_id][log.user_id].get(log_week)
-                amount_used += allocation if allocation else 0
+                amount_used += log.duration_hrs*(allocation if allocation else 0)
             budget.amount_used = amount_used + invoiced_amount
             budget.amount_percent_used = round((budget.amount_used / budget.amount)*100, 2) if budget.amount else 0
                 

@@ -46,7 +46,7 @@ class WorkTimeLog(models.Model):
     def _search_filter_date(self, operator, operand):
         if operator == "=":
             start_date, end_date = get_date_range(self, operand)
-            ids = self.search([('start_date', '>=', start_date), ('start_date', '<', end_date)])
+            ids = self.search([('start_date', '>=', start_date), ('start_date', '<=', end_date)])
             return [('id', 'in', ids.ids)]
         raise UserError(_("Search operation not supported"))
 
