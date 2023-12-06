@@ -48,7 +48,7 @@ class WorkAllocation(models.Model):
         raise UserError(_("Search operation not supported"))
     
     def unlink(self):
-        if self.mapped('allocation_group_id'):
+        if not self._context.get('delete_from_group') and self.mapped('allocation_group_id'):
             raise UserError("Cannot delete the allocation since it's link to the allocation group")
         return super().unlink()
 
@@ -88,7 +88,7 @@ class WorkAllocationGroup(models.Model):
         current_allocations = self.allocation_ids.filtered(lambda allocation: allocation.start_date < today and allocation.end_date > today)
         allocation_by_group = {allocation.allocation_group_id: allocation for allocation in current_allocations}
         for allocation_group in self:
-            allocation_group.today_allocation = allocation_by_group.get(allocation_group).allocation or 0
+            allocation_group.today_allocation = allocation_by_group.get(allocation_group).allocation if allocation_by_group.allocation_ids else 0
 
     @api.depends("user_id", "project_id", "finance_id", "employee_role_id", "start_date", "end_date")
     def _compute_name(self):
@@ -113,9 +113,6 @@ class WorkAllocationGroup(models.Model):
     def _onchange_project(self):
         if self.finance_id and self.finance_id.project_id != self.project_id:
             self.finance_id = False
-
-    def action_clear_allocations(self):
-        self.mapped('allocation_ids').unlink()
 
     def _generate_allocations(self, values, start_date, end_date, increasement):
         value_list = []
@@ -183,6 +180,9 @@ class WorkAllocationGroup(models.Model):
         action['context'] = {}
         action['domain'] = [('id', 'in', self.allocation_ids.ids)]
         return action
+
+    def action_clear_allocations(self):
+        self.mapped('allocation_ids').with_context(delete_from_group=True).unlink()
     
     def write(self, values):
         res = super().write(values)
