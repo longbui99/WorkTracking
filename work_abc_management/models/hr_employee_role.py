@@ -6,6 +6,6 @@ class WorkAllocation(models.Model):
     _description = "Employee Role"
     _order = "id desc"
 
-    employee_id = fields.Many2one(comodel_name="hr.employee", string="Employee", required=True)
-    user_id = fields.Many2one(comodel_name="res.users", string="User", related="employee_id.user_id", store=True)
     name = fields.Char(string="Name", required=True)
+    employee_id = fields.Many2one(comodel_name="hr.employee", string="Employee", related="user_id.employee_id", store=True)
+    user_id = fields.Many2one(comodel_name="res.users", string="User", required=True)

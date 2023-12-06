@@ -2,7 +2,7 @@
     'name': 'Odoo Timesheet Host',
     'summary': 'Odoo Timesheet Host',
     'category': 'Project',
-    "author": "Drake Bui",
+    "author": "Long Bui",
     "website": "https://www.longbui.met/",
     "depends": ['work_base_integration'],
     "license": "LGPL-3",

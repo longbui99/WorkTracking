@@ -1,3 +1,4 @@
+from . import queue_job
 from . import hr_employee
 from . import work_base_integration
 from . import work_overall

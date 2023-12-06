@@ -24,6 +24,8 @@ class WorkProject(models.Model):
     personal_id = fields.Many2one("res.users", string="Personal Board User")
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     name = fields.Char(string="Name", compute="_compute_name", store=True)
+    stage_id = fields.Many2one("work.project.stage", string="Stage", default=lambda self: self.env.ref('work_abc_management.stage_in_progress').id)
+    status = fields.Char(name="Status", related="stage_id.key", store=True)
 
     @api.depends('project_name', 'project_key')
     def _compute_name(self):
@@ -81,6 +83,15 @@ class WorkProject(models.Model):
         context['default_project_id'] = self.id
         action['context'] = context
         return action
+    
+    def action_open_finance(self):
+        self.ensure_one()
+        action = self.env['ir.actions.actions']._for_xml_id("work_abc_management.action_work_finance")
+        action["domain"] = [('project_id', '=', self.id)]
+        context = json.loads(action['context'])
+        context['default_project_id'] = self.id
+        action['context'] = context
+        return action
 
     def action_export_record(self, workbook):
         self.ensure_one()
@@ -125,3 +136,19 @@ class WorkProject(models.Model):
                 'personal_id': self.env.user.id
             })
         return project
+    
+    def action_open_allocation_report(self):
+        project_ids = self.ids
+        action = self.env['ir.actions.act_window']._for_xml_id("work_abc_management.action_work_allocation_pivot_report")
+        action['domain'] = [('project_id', 'in', project_ids)]
+        action['name'] = f"{self.display_name} - Allocations"
+        return action
+
+
+class WorkProject(models.Model):
+    _name = "work.project.stage"
+    _description = "Task Project Stages"
+
+    name = fields.Char(string="Name", required=True)
+    key = fields.Char(string="Key", required=True)
+    color = fields.Float(string="Color")

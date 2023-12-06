@@ -1,10 +1,16 @@
 import ast
+from collections import defaultdict
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.osv.expression import OR, AND
 
 from odoo.addons.work_abc_management.utils.xml_parser import template_to_markup
+
+import logging
+import json
+
+_logger = logging.getLogger(__name__)
 
 class WorkBudgetInvoice(models.Model):
     _name = "work.budget.invoice"
@@ -23,7 +29,7 @@ class WorkBudgetInvoice(models.Model):
     previous_invoice_id = fields.Many2one("work.budget.invoice", compute="_compute_previous_invoice", compute_sudo=True)
     
     log_hours = fields.Float(string="Logged Hours", compute="_compute_logged_information", compute_sudo=True) 
-    billable_rate = fields.Float(string="Bilable Rate", compute="_compute_logged_information", compute_sudo=True) 
+    billable_rate = fields.Float(string="Bilable Rate", compute="_compute_logged_information", compute_sudo=True)
 
     def compile_log_domain(self):
         self.ensure_one()
@@ -82,14 +88,18 @@ class WorkBudget(models.Model):
                                   default=lambda self: self.env.company.currency_id.id)
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company.id, required=True)
     amount = fields.Monetary(string="Amount")
+    amount_used = fields.Monetary(string="Amount Used", compute="_compute_amount_used")
+    amount_percent_used = fields.Float(string="Used Duration Percent", compute="_compute_amount_used", digits=(16, 2))
+
     duration = fields.Float(string="Duration", required=True, default=0)
+    duration_used = fields.Float(string="Used Duration", compute="_compute_current_duration_used", digits=(16, 2))
+    duration_percent_used = fields.Float(string="Used Duration Percent", compute="_compute_current_duration_used", digits=(16, 2))
+
     alert_duration = fields.Float(string="Alert when", default=-1)
     applicable_domain = fields.Char(string="Applicable Domain", default="[['id','=',-1]]")
     readable_user_ids = fields.Many2many("res.users", "readable_budget_user_rel", string="Readable Users")
     editable_user_ids = fields.Many2many("res.users", "editable_budget_user_rel", string="Editable Users")
 
-    duration_used = fields.Float(string="Used Duration", compute="_compute_current_duration_used", digits=(16, 2))
-    duration_percent_used = fields.Float(string="Used Duration Percent", compute="_compute_current_duration_used", digits=(16, 2))
     log_count = fields.Integer(string="Log Counts", compute="_compute_current_duration_used")
 
     notified_duration = fields.Float(string="Notified Duration", default=0, digits=(16, 2))
@@ -104,6 +114,13 @@ class WorkBudget(models.Model):
 
     budget_invoice_ids = fields.One2many("work.budget.invoice", "work_budget_id", string="Invoice")
     last_invoice_date = fields.Datetime(string="Last Invoice Date", compute="_compute_previous_invoice_date")
+    start_date = fields.Datetime(string="Start Date")
+    end_date = fields.Datetime(string="End Date")
+    log_datetime_field_id = fields.Many2one("ir.model.fields", 
+                                            string="Select on Field", 
+                                            default=lambda self:self.env.ref('work_abc_management.field_work_time_log__start_date').id, 
+                                            readonly=True)
+    freeze_duration = fields.Boolean(string="Freeze Duration?")
 
     @api.depends('project_id', 'name')
     def _compute_display_name(self):
@@ -115,25 +132,63 @@ class WorkBudget(models.Model):
     
     def compile_applicable_domain(self):
         self.ensure_one()
+        field_name = self.log_datetime_field_id.name
         applicable_domain = ast.literal_eval(self.applicable_domain)
+        if self.start_date or self.end_date:
+            if self.applicable_domain == "[['id','=',-1]]":
+                applicable_domain = []
         if self.last_invoice_date or self._context.get('ignore_last_date'):
-            applicable_domain = AND([applicable_domain, [('start_date', '>', self.last_invoice_date)]])
+            applicable_domain = AND([applicable_domain, [(field_name, '>', self.last_invoice_date)]])
+        if self.start_date:
+            applicable_domain = AND([applicable_domain, [(field_name, '>=', self.start_date)]])
+        if self.end_date:
+            applicable_domain = AND([applicable_domain, [(field_name, '<', self.end_date)]])
         return applicable_domain
 
     def get_invoiced_duration(self):
         self.ensure_one()
-        return sum(self.mapped('budget_invoice_ids.invoice_hours'))
+        invoices = self.mapped('budget_invoice_ids')
+        return sum(invoices.mapped('invoice_hours')), sum(invoices.mapped('invoice_amount'))
 
     @api.depends('applicable_domain')
     def _compute_current_duration_used(self):
         TimeLogEnv = self.env['work.time.log'].sudo()
         for budget in self:
-            invoiced_hours = budget.get_invoiced_duration()
+            invoiced_hours, _ = budget.get_invoiced_duration()
             logs = TimeLogEnv.search(budget.compile_applicable_domain())
             budget.duration_used = sum(logs.mapped('duration_hrs')) + invoiced_hours
             budget.duration_percent_used = round((budget.duration_used / budget.duration)*100, 2) if budget.duration else 0
             total_logs = TimeLogEnv.search(budget.with_context(ignore_last_date=True).compile_applicable_domain())
             budget.log_count = len(total_logs)
+
+    @api.depends('applicable_domain')
+    def _compute_amount_used(self):
+        _logger.warning("------------------------------------------------------------------------------------------------------")
+        TimeLogEnv = self.env['work.time.log'].sudo()
+        allocations = self.env['work.allocation'].search([('finance_id', 'in', self.mapped('finance_id').ids)])
+        _logger.warning(allocations)
+
+        def get_key(timestamp):
+            return timestamp.strftime("%y-%W")
+
+        allocation_by_user_by_finance = defaultdict(lambda: defaultdict(lambda: dict()))
+        for allocation in allocations:
+            allocation_week = get_key(allocation.start_date)
+            _logger.warning(allocation_week)
+            allocation_by_user_by_finance[allocation.finance_id][allocation.user_id][allocation_week] = allocation.cost_per_hour
+        
+        for budget in self:
+            _, invoiced_amount = budget.get_invoiced_duration()
+            logs = TimeLogEnv.search(budget.compile_applicable_domain())
+            amount_used = 0.0
+            for log in logs:
+                log_week = get_key(log.start_date)
+                _logger.warning(log_week)
+                allocation = allocation_by_user_by_finance[budget.finance_id][log.user_id].get(log_week)
+                amount_used += allocation if allocation else 0
+            budget.amount_used = amount_used + invoiced_amount
+            budget.amount_percent_used = round((budget.amount_used / budget.amount)*100, 2) if budget.amount else 0
+                
 
     @api.depends('budget_invoice_ids')
     def _compute_previous_invoice_date(self):
@@ -141,6 +196,12 @@ class WorkBudget(models.Model):
         for budget in self:
             last_invoice = budget.budget_invoice_ids[:1]
             budget.last_invoice_date = last_invoice.invoice_date if last_invoice else False
+
+    def unlink(self):
+        if self.filtered('freeze_duration'):
+            raise UserError("Cannot remove the Budget that generating from Finance Plan")
+        return super().unlink()
+
 
     # ====================================================== ACTION =============================================================
 
@@ -196,3 +257,4 @@ class WorkBudget(models.Model):
             elif budget.duration_used >= budget.duration and budget.duration_used != budget.notified_duration:
                 budget.action_send_notification()
                 budget.notified_duration = budget.duration_used
+

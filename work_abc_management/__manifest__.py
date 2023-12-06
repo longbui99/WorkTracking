@@ -5,7 +5,7 @@
     'name': 'Project Management',
     'summary': 'Project Management',
     'category': 'Project',
-    "author": "Drake Bui",
+    "author": "Long Bui",
     "website": "https://www.drakebui.ml/",
     "depends": ['hr', 'digest'],
     "license": "LGPL-3",
@@ -36,12 +36,17 @@
         'views/work_finance_views.xml',
         'views/work_allocation_views.xml',
 
+        'views/dependency_portal_views.xml',
+
         'views/menus.xml',
 
         'wizard/work_logging_time_views.xml',
         'wizard/kick_off_counting_views.xml',
     ],
     "application": True,
-    'assets': {
-    }
+    "assets": {
+        'web.assets_backend': [
+            'work_abc_management/static/src/**/*',
+        ],
+    },
 }

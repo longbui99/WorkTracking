@@ -15,16 +15,6 @@
                 action="work_abc_management.action_work_project"
                 sequence="10"/>
             <menuitem
-                id="work_abc_management.menu_work_board"
-                name="Boards"
-                action="work_abc_management.action_board_board"
-                sequence="20"/>
-            <menuitem
-                id="work_abc_management.menu_work_sprint"
-                name="Sprints"
-                action="work_abc_management.action_agile_sprint"
-                sequence="30"/>
-            <menuitem
                     id="work_abc_management.menu_work_task"
                     sequence="40"
                     name="Tasks">
@@ -46,6 +36,52 @@
                     sequence="50"
                     name="Work Logs"
                     action="work_abc_management.action_work_time_log"/>
+        </menuitem>
+        <menuitem
+                id="work_abc_management.operations"
+                sequence="20"
+                name="Operations">
+                <menuitem 
+                        id="work_abc_management.operation_integration"
+                        sequence="10"
+                        name="Integrations">
+                </menuitem>
+                <menuitem 
+                        id="work_abc_management.operation_generation"
+                        sequence="20"
+                        name="Generations">
+                        <menuitem
+                                id="work_abc_management.menu_task_template"
+                                sequence="10"
+                                name="Task Generations"
+                                action="work_abc_management.action_task_template"/>
+                </menuitem>
+                <menuitem 
+                        id="work_abc_management.operation_template"
+                        sequence="30"
+                        name="Templates">
+                        <menuitem
+                                id="work_abc_management.menu_work_billable_rule"
+                                sequence="20"
+                                name="Billable Rules"
+                                action="work_abc_management.action_work_billable_rule"
+                        />
+                </menuitem>
+        </menuitem>
+        <menuitem
+                id="work_abc_management.planning"
+                sequence="30"
+                name="Planning">
+                <menuitem
+                        id="work_abc_management.menu_work_board"
+                        name="Boards"
+                        action="work_abc_management.action_board_board"
+                        sequence="20"/>
+                <menuitem
+                        id="work_abc_management.menu_work_sprint"
+                        name="Sprints"
+                        action="work_abc_management.action_agile_sprint"
+                        sequence="30"/>
         </menuitem>
         <menuitem
                 id="work_abc_management.menu_budget"
@@ -80,20 +116,9 @@
                         action="work_abc_management.action_work_allocation"/>
         </menuitem>
         <menuitem
-                id="work_abc_management.operations"
+                id="work_abc_management.report"
                 sequence="60"
-                name="Operations">
-                <menuitem
-                        id="work_abc_management.menu_task_template"
-                        sequence="10"
-                        name="Task Templates"
-                        action="work_abc_management.action_task_template"/>
-                <menuitem
-                        id="work_abc_management.menu_work_billable_rule"
-                        sequence="20"
-                        name="Billable Rules"
-                        action="work_abc_management.action_work_billable_rule"
-                />
+                name="Reporting">
         </menuitem>
         <menuitem
                 id="work_abc_management.settings"

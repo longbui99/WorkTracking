@@ -37,7 +37,7 @@ class Checklist:
     def self_hosted_exporting(self, ac_ids):
         return ac_ids.mapped(
             lambda r: {
-                "name": r.wt_raw_name,
+                "name": r.host_raw_name,
                 "checked": r.checked,
                 "rank": r.sequence,
                 "isHeader": r.is_header,
@@ -89,6 +89,10 @@ class Task:
         self.priority = load_from_key_paths(task_fields, map.priority)
         self.priority_key = load_from_key_paths(task_fields, map.priority_key)
         raw_checklist = load_from_key_paths(task_fields, map.checklist)
+        self.depends = []
+        for issue_dict in load_from_key_paths(task_fields, map.depend_key) or []:
+            if 'inwardIssue' in issue_dict:
+                self.depends.append(issue_dict['inwardIssue']['key'])
         if raw_checklist:
             self.checklists = map.map_checklists(raw_checklist)
         else:
@@ -128,6 +132,7 @@ class ImportJiraCloudTask:
         self.labels = [key_pair['task_labels']]
         self.priority = [key_pair['priority']]
         self.priority_key = [key_pair['priority'], 'id']
+        self.depend_key = [key_pair['depends']]
 
     def map_checklists(self, data):
         fields = md2json(data)
@@ -202,11 +207,11 @@ class ImportingJiraSelfHostedWorkLog:
         self.time = ['timeSpent']
         self.duration = ['timeSpentSeconds']
         self.description = ['comment']
-        self.id_on_wt = ['id']
+        self.id_onhost = ['id']
         self.start_date = ['started']
         self.author = ['updateAuthor', 'name']
         self.author_name = ['updateAuthor', 'displayName']
-        self.task_id = ['taskId']
+        self.task_id = ['issueId']
         self.create_date = ['created']
         self.write_date = ['updated']
 
@@ -216,12 +221,12 @@ class ImportingJiraCloudWorkLog:
         self.time = ['timeSpent']
         self.duration = ['timeSpentSeconds']
         self.description = ['comment']
-        self.id_on_wt = ['id']
+        self.id_onhost = ['id']
         self.start_date = ['started']
         self.author = ['updateAuthor', 'emailAddress']
         self.author_name = ['updateAuthor', 'displayName']
         self.author_accountId = ['updateAuthor', 'accountId']
-        self.task_id = ['taskId']
+        self.task_id = ['issueId']
         self.create_date = ['created']
         self.write_date = ['updated']
 
@@ -231,7 +236,7 @@ class Log:
         self.time = load_from_key_paths(fields, map.time)
         self.duration = load_from_key_paths(fields, map.duration)
         self.description = load_from_key_paths(fields, map.description)
-        self.remote_id = int(load_from_key_paths(fields, map.id_on_wt))
+        self.remote_id = int(load_from_key_paths(fields, map.id_onhost))
         self.start_date = load_from_key_paths(fields, map.start_date)
         self.author = load_from_key_paths(fields, map.author)
         self.author_name = load_from_key_paths(fields, map.author_name)

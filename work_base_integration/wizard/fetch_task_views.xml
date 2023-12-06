@@ -21,7 +21,7 @@
     </record>
 
     <record id="work_fetch_task_action_form" model="ir.actions.act_window">
-        <field name="name">Fetch Tasks</field>
+        <field name="name">Load Tasks</field>
         <field name="res_model">work.fetch.task</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="fetch_by_endpoint_form_view"/>
@@ -29,10 +29,10 @@
     </record>
     
     <menuitem id="work_base_integration.work_fetch_task_menu"
-              name="Fetch Task"
+              name="Load Task"
               action="work_base_integration.work_fetch_task_action_form"
               sequence="1"
-              parent="work_abc_management.operations"
+              parent="work_abc_management.operation_integration"
               >
     </menuitem>
 </odoo>

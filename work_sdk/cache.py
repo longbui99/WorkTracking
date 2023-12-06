@@ -8,7 +8,7 @@ if token_mode == 'mac':
     token = getmac()
 elif token_mode == 'env':
     default_token = 'odoo-token:long-bui'
-    odoo_config_token = odoo_config.get('wt_token', default_token)
+    odoo_config_token = odoo_config.get('host_token', default_token)
     token = os.getenv('WT_TOKEN', odoo_config_token)
 else:
     raise ValidationError("The token mode is incorrect")

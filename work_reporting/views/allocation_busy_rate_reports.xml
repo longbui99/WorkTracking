@@ -10,8 +10,8 @@
     <menuitem id="work_reporting.work_allocation_rate_report"
               name="Busy Rates"
               action="work_reporting.action_allocation_rate_report"
-              sequence="65"
-              parent="work_abc_management.menu_application"
+              sequence="10"
+              parent="work_abc_management.report"
               >
     </menuitem>
 

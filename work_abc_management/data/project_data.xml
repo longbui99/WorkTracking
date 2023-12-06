@@ -11,4 +11,34 @@
         <field name="doall" eval="False"/>
     </record>
 
+    <record id="stage_discovery" model="work.project.stage">
+        <field name="name">Discovery</field>
+        <field name="key">in_progress</field>
+        <field name="color">1</field>
+    </record>
+
+    <record id="stage_in_progress" model="work.project.stage">
+        <field name="name">In Progress</field>
+        <field name="key">in_progress</field>
+        <field name="color">2</field>
+    </record>
+
+    <record id="stage_on_hold" model="work.project.stage">
+        <field name="name">On Hold</field>
+        <field name="key">on_hold</field>
+        <field name="color">3</field>
+    </record>
+
+    <record id="stage_done" model="work.project.stage">
+        <field name="name">Done</field>
+        <field name="key">done</field>
+        <field name="color">4</field>
+    </record>
+
+    <record id="stage_cancel" model="work.project.stage">
+        <field name="name">Cancel</field>
+        <field name="key">cancel</field>
+        <field name="color">5</field>
+    </record>
+
 </odoo>

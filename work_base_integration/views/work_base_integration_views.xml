@@ -24,6 +24,7 @@
                     <button groups="work_abc_management.group_work_manager" name="load_projects" type="object" string="Load All Projects" class="btn-primary"/>
                     <button groups="work_abc_management.group_work_manager" invisible="host_type != 'atlassian'" name="load_boards" type="object" string="Load Boards" class="btn-primary"/>
                     <button groups="work_abc_management.group_work_manager" invisible="host_type != 'atlassian'" name="load_sprints" type="object" string="Load Sprints" class="btn-primary"/>
+                    <button groups="work_abc_management.group_work_admin" invisible="host_type != 'atlassian'" name="action_regenerate_field_maps" type="object" string="Re-Generate Field Maps" class="btn-secondary"/>
                     <button groups="work_abc_management.group_work_manager" name="load_all_users" type="object" string="Load Users" class="btn-primary"/>
                     <button groups="work_abc_management.group_work_manager" name="load_all_tasks" type="object" string="Load All Tasks" class="btn-primary"/>
                     <button name="load_my_tasks" type="object" string="Load My Tasks" class="btn-primary"/>
@@ -59,7 +60,7 @@
                             <field name="work_host_url"/>
                             <field name="work_agile_url"/>
                             <field name="auth_type"/>
-                            <field name="host_type"/>
+                            <field name="host_service"/>
                         </group>
                     </group>
                     <notebook>

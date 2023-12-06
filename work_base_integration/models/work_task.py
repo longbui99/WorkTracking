@@ -31,7 +31,7 @@ class WorkProject(models.Model):
     last_export = fields.Datetime("Last Export Time", copy=False)
     auto_export_success = fields.Boolean(string="Export Successful?", default=True, copy=False)
     sprint_key = fields.Integer(string="Sprint ID on WT", copy=False)
-    work_id = fields.Integer(string="Task ID", copy=False)
+    id_onhost = fields.Integer(string="Task ID", copy=False)
     src_task_id = fields.Many2one("work.task", string="Source Task", copy=False)
     cloned_task_ids = fields.One2many("work.task", 'src_task_id', string="Cloned Tasks", copy=False)
 
@@ -47,7 +47,7 @@ class WorkProject(models.Model):
     def import_task_work(self):
         self = self.with_context(bypass_cross_user=True)
         res = {'task': self.mapped('task_key')}
-        self.host_id._search_load(res)
+        self.host_id.with_context(local_task_domain=[('project_id', '=', self.project_id.id)])._search_load(res)
 
     def action_done_work_log(self, values={}):
         res = super().action_done_work_log(values)
@@ -125,7 +125,7 @@ class WorkProject(models.Model):
         
     def export_to_host(self):
         for task in self:
-            if task.work_id:
+            if task.id_onhost:
                 raise UserError("Sorry, we don't support update on JIRA Server yet")
             if not task.host_id:
                 if not task.project_id.host_id:

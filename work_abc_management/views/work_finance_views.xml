@@ -7,6 +7,9 @@
             <tree>
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
+                <field name="recurrence_type"/>
+                <field name="start_recurrence_date"/>
+                <field name="due_date"/>
                 <field name="company_id"/>
             </tree>
         </field>
@@ -17,8 +20,9 @@
         <field name="model">work.finance</field>
         <field name="arch" type="xml">
             <form>
+                <field name="id" invisible="1"/>
                 <sheet>
-                    <div class="oe_button_box">
+                    <div class="oe_button_box" name="button_box">
                         <button type="object"
                             name="action_open_budgets"
                             class="oe_stat_button"
@@ -30,44 +34,47 @@
                             name="action_open_allocation"
                             class="oe_stat_button"
                             icon="fa-clock-o"
-                            string="Allocations" 
-                            invisible="not budget_count">
+                            string="Allocations" >
                         </button>
                     </div>
-                    <label for="name" class="oe_edit_only"/>
-                    <h1>
-                        <field name="name"/>
-                    </h1>
-                    <group>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Name..."/>
+                        </h1>
+                    </div>
+                    <group string="General">
                         <group>
                             <field name="project_id"/>
                             <field name="due_date" widget="date"/>
+                            <label for="duration"/>
+                            <div name="duration_segment d-flex">
+                                <field name="duration"/>
+                                <span class="d-flex" style="font-size: 0.85em;font-weight:700;">
+                                    (
+                                    <field name="duration_used" style="width: min-content;" class="text-warning" string="Billing Hours" invisible="duration_percent_used &gt;= 100"/> 
+                                    <field name="duration_used" style="width: min-content;" class="text-info" string="Billing Hours" invisible="duration_percent_used != 100"/> 
+                                    <field name="duration_used" style="width: min-content;" class="text-danger" string="Billing Hours" invisible="duration_percent_used &lt;= 100"/>
+                                    , <field name="duration_percent_used" style="width: min-content;"/>%)
+                                </span>
+                            </div>
+                            <field name="amount"/>
                         </group>
                         <group>
-                            <field name="access_user_ids" widget="many2many_tags"/>
+                            <field name="recurrence_type"/>
+                            <field name="start_recurrence_date" invisible="recurrence_type == False" required="recurrence_type != False"/>
+                            <field name="recurrence_budget_id" invisible="recurrence_type == False" required="recurrence_type != False" domain="[('finance_id', '=', id)]"/>
                         </group>
                     </group>
                     <group>
-                        <group>
-                            <label for="duration"/>
-                            <div name="duration_segment">
-                                <field name="duration"/>
-                                <span style="font-size: 0.85em;font-weight:700;">
-                                    (
-                                    <field name="duration_used" class="text-warning" string="Billing Hours" invisible="duration_percent_used &gt;= 100"/> 
-                                    <field name="duration_used" class="text-info" string="Billing Hours" invisible="duration_percent_used != 100"/> 
-                                    <field name="duration_used" class="text-danger" string="Billing Hours" invisible="duration_percent_used &lt;= 100"/>
-                                    , <field name="duration_percent_used"/>%)
-                                </span>
-                            </div>
-                        </group>
-                        <group>
-                            <field name="amount"/>
-                        </group>
                     </group>
                     <notebook>
                         <page string="Budgets" name="budgets">
-                            <field name="work_budget_ids" readonly="1"/>
+                            <field name="work_budget_ids" readonly="1" context="{'tree_view_ref': 'work_abc_management.work_budget_minify_tree_view'}"/>
+                        </page>
+                        <page string="Security" name="security">
+                            <group>
+                                <field name="access_user_ids" widget="many2many_tags"/>
+                            </group>
                         </page>
                         <page string="Miscellaneous" name="miscellaneous">
                             <group>
@@ -88,6 +95,7 @@
                 <field name="name"/>
                 <field name="company_id"/>
                 <filter string="Company" name="group_by_company" context="{'group_by':'company_id'}"/>
+                <filter string="Project" name="group_by_project" context="{'group_by': 'project_id'}"/>
             </search>
         </field>
     </record>

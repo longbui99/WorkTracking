@@ -1,0 +1,35 @@
+.node-segment {
+    border: solid 1px black;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.node-segment .title{
+    font-weight: 700;
+}
+.node-segment .description{
+    font-weight: 400;
+    font-size: 0.5em;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.node-segment .assignee{
+    font-weight: 400;
+    font-size: 0.5em;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.node-segment .addtional-description{
+    font-weight: 400;
+    font-size: 0.5em;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

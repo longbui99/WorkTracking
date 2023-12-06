@@ -20,6 +20,7 @@ from odoo.addons.work_base_integration.utils.urls import find_url
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.osv.expression import AND, OR
 import re
 
 
@@ -50,7 +51,7 @@ class TaskHost(models.Model):
     timezone = fields.Selection(_tz_get, string='Timezone', default="UTC", required=True)
     auth_type = fields.Selection([('basic', 'Basic'), ('api_token', 'API Token')], string="Authentication Type",
                                  default="api_token")
-    host_service = fields.Selection([('self_hosting', 'Self-Hosted'), ('cloud', 'Cloud')], string="Server Type",
+    host_service = fields.Selection([('self_hosting', 'Self-Hosted'), ('cloud', 'Cloud')], string="Hosting Service",
                                    default="cloud")
     import_work_log = fields.Boolean(string='Import Work Logs?')
     auto_export_work_log = fields.Boolean(string="Auto Export Work Logs?")
@@ -117,6 +118,12 @@ class TaskHost(models.Model):
             host.work_host_url = f"{host.base_url}/rest/api/2"
             host.work_agile_url = f"{host.base_url}/rest/agile/1.0"
             host.map_endpoint_url()
+
+    def action_regenerate_field_maps(self):
+        work_field_map_env = self.env['work.field.map'].sudo()
+        for host in self:
+            work_field_map_env.search([('host_id', '=', host.id)]).unlink()
+            work_field_map_env.create_template(host)
 
     def __load_master_data(self):
         self.ensure_one()
@@ -444,7 +451,6 @@ class TaskHost(models.Model):
                 'epic_ok': epic_ok
             })
 
-
     def get_user(self):
         return {(r.partner_id.email or r.login, self.company_id.id): r.id for r in self.env['res.users'].sudo().search([])}
     
@@ -500,7 +506,7 @@ class TaskHost(models.Model):
                     raise UserError("Exporting incorrect")
                 for index, task in enumerate(tasks):
                     task.update({
-                        'work_id': dict_tasks[index]['id'],
+                        'id_onhost': dict_tasks[index]['id'],
                         'task_key': dict_tasks[index]['key'],
                         'task_url': f"https://{host_url}/browse/{dict_tasks[index]['key']}"
                     })
@@ -675,17 +681,27 @@ class TaskHost(models.Model):
         request_data['body'] = payload
         res = self.make_request(request_data, headers)
         return res
+    
+    def get_task_dict(self, domain):
+        return {(r.task_key, r.company_id.id): r for r in self.env['work.task'].sudo().with_context(active_test=False).search(domain + [('company_id', '=', self.company_id.id)])}
+    
+    def get_project_dict(self, domain):
+        return {(r.project_key, r.company_id.id): r.id for r in self.env['work.project'].sudo().with_context(active_test=False).search([('company_id', '=', self.company_id.id)])}
 
     def get_local_task_data(self, domain=[]):
+        if self._context.get('local_task_domain'):
+            domain = OR([domain, self._context.get('local_task_domain')])
         refresh_month = self.env['ir.config_parameter'].sudo().get_param('work_base_integration.refresh_duration_month')
         if refresh_month and int(refresh_month):
-            domain = domain + [('write_date' ,'>=', fields.Datetime.now() + relativedelta(months=int(refresh_month)))]
+            domain = AND([domain, ['|',
+                ('write_date' ,'>=', fields.Datetime.now() - relativedelta(months=int(refresh_month))),
+                ('epic_ok', '=', True)
+                ]
+            ])
         return {
-            'dict_project_key': {(r.project_key, r.company_id.id): r.id for r in
-                                 self.env['work.project'].sudo().with_context(active_test=False).search([('company_id', '=', self.company_id.id)])},
+            'dict_project_key': self.get_project_dict(domain),
             'dict_user': self.sudo().with_context(active_test=False).get_user(),
-            'dict_task_key': {(r.task_key, r.company_id.id): r for r in
-                               self.env['work.task'].sudo().with_context(active_test=False).search(domain + [('company_id', '=', self.company_id.id)])},
+            'dict_task_key': self.get_task_dict(domain),
             'dict_status': {(r.key, r.company_id.id): r.id for r in
                             self.env['work.status'].sudo().with_context(active_test=False).search([('company_id', '=', self.company_id.id)])},
             'dict_type': {(r.key, r.company_id.id): r.id for r in self.env["work.type"].sudo().with_context(active_test=False).search([('company_id', '=', self.company_id.id)])},
@@ -708,16 +724,18 @@ class TaskHost(models.Model):
             'story_point': task.hour_point and task.hour_point or task.fibonacci_point,
             'story_point_unit': task.hour_point and 'hrs' or 'general',
             'host_id': self.id,
-            'work_id': task.remote_id,
+            'id_onhost': task.remote_id,
             'project_id': local['dict_project_key'].get((task.project_key, self.company_id.id)),
             'assignee_id': local['dict_user'].get((task.assignee_email or task.assignee_accountId, self.company_id.id)),
             'tester_id': local['dict_user'].get((task.tester_email or task.tester_accountId, self.company_id.id)),
             'status_id': local['dict_status'].get((task.status_key, self.company_id.id)),
             'task_type_id': local['dict_type'].get((task.task_type_key, self.company_id.id)),
-            'priority_id': local['dict_priority'].get((task.priority_key, self.company_id.id))
+            'priority_id': local['dict_priority'].get((task.priority_key, self.company_id.id)),
         }
         if task.epic:
             curd_data['epic_id'] = local['dict_task_key'].get((task.epic.task_key, self.company_id.id)).id
+        if task.depends:
+            curd_data['depend_task_ids'] = [(4, local['dict_task_key'][(depend_key, self.company_id.id)].id) for depend_key in task.depends]
         if isinstance(task.raw_sprint, list) and len(task.raw_sprint):
             task.raw_sprint = task.raw_sprint[0]
         if isinstance(task.raw_sprint, dict) and task.raw_sprint.get('id', None):
@@ -862,6 +880,22 @@ class TaskHost(models.Model):
         except Exception as e:
             _logger.error(task.task_key)
             raise e
+        
+    def create_missing_depends(self, tasks, local):
+        company = self.company_id
+        to_load_keys = []
+        for task in tasks:
+            for depend in task.depends:
+                key = (depend, company.id)
+                if key not in local['dict_task_key']:
+                    to_load_keys.append(depend)
+        
+        if to_load_keys:
+            new_tasks = self._search_load({
+                'task': to_load_keys
+            })
+            dicts = self.get_task_dict([('id', 'in', new_tasks.ids)])
+            local['dict_task_key'].update(dicts)
 
     def processing_task_raw_data(self, local, raw):
         if not self.is_load_acs:
@@ -880,6 +914,7 @@ class TaskHost(models.Model):
         self.create_missing_epics(tasks, local)
         self.create_missing_labels(tasks, local)
         self.create_missing_priorities(tasks, local)
+        self.create_missing_depends(tasks, local)
         for task in tasks:
             self.mapping_task(local, task, response)
         return response
@@ -962,8 +997,7 @@ class TaskHost(models.Model):
                 request_data = {
                     'endpoint': f"{self.work_host_url}/issue/{key.upper()}",
                 }
-                task_ids |= self.do_request(request_data,
-                                             ['|', ('task_key', 'in', res['task']), ('epic_ok', '=', True)])
+                task_ids |= self.do_request(request_data, [])
         else:
             params = []
             if 'project' in res:
@@ -1005,7 +1039,7 @@ class TaskHost(models.Model):
     def get_local_worklog_data(self, task_id, domain):
         return {
             'dict_log': {x.id_onhost: x for x in task_id.time_log_ids if x.id_onhost},
-            'dict_task': {task_id.work_id: task_id.id},
+            'dict_task': {task_id.id_onhost: task_id.id},
             'dict_task_to_log': {}
         }
 
@@ -1027,8 +1061,8 @@ class TaskHost(models.Model):
             'source': 'sync',
             'task_id': task.get(log.remote_task_id, False),
             'export_state': 1,
-            'work_create_date': self.convert_host_tz_to_utc(log.create_date),
-            'work_write_date': self.convert_host_tz_to_utc(log.write_date),
+            'host_create_date': self.convert_host_tz_to_utc(log.create_date),
+            'host_write_date': self.convert_host_tz_to_utc(log.write_date),
             'company_id': self.company_id.id
         }
         return curd_data
@@ -1092,7 +1126,7 @@ class TaskHost(models.Model):
                 task_ids = self.env['work.task'].search([('project_id', 'in', projects.ids)])
                 local_data = {
                     'dict_log': {},
-                    'dict_task': {task_id.work_id: task_id.id for task_id in task_ids},
+                    'dict_task': {task_id.id_onhost: task_id.id for task_id in task_ids},
                     'dict_user': self.with_context(active_test=False).get_user()
                 }
                 flush = set()
@@ -1161,10 +1195,10 @@ class TaskHost(models.Model):
                 mapping = ImportingJiraWorkLog(self.host_service, self.work_host_url)
                 headers = self.with_user(user).__get_request_headers()
                 task_ids = self.env['work.task'].search(
-                    [('work_id', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
+                    [('id_onhost', '!=', False), ('write_date', '>=', datetime.fromtimestamp(unix / 1000))])
                 local_data = {
                     'dict_log': {x.id_onhost: x for x in task_ids.mapped('time_log_ids') if x.id_onhost},
-                    'dict_task': {task_id.work_id: task_id.id for task_id in task_ids},
+                    'dict_task': {task_id.id_onhost: task_id.id for task_id in task_ids},
                     'dict_user': self.with_context(active_test=False).get_user()
                 }
                 flush = []
@@ -1293,8 +1327,8 @@ class TaskHost(models.Model):
                 logs = mapping.parse_logs(logs)
                 for log in logs:
                     new_logs.append(self.prepare_worklog_data(local_data, log, {}, {}))
-                work_ids = list(map(lambda r: r['id_onhost'], new_logs))
-                if set(ids) - set(work_ids):
+                ids_onhost = list(map(lambda r: r['id_onhost'], new_logs))
+                if set(ids) - set(ids_onhost):
                     break
                 else:
                     continue

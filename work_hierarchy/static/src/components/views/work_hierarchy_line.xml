@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates xml:space="preserve">
     <t t-name="work_hierarchy.work_hierarchy_line" owl="1">
-        <tr class="o_work_hierarchy_report_line" t-att-data-level="level" t-att-data-group="props.group" t-ref="lineComponent">
-            <th class="o_list_char o_group_name fs-6 fw-bold text-900" t-on-click="onLineClick">
+        <tr t-attf-class="o_work_hierarchy_report_line {{recordData.style}}" t-att-data-level="level" t-att-data-group="props.group" t-ref="lineComponent" t-on-click="onLineClick">
+            <th class="o_list_char o_group_name ">
                 <div t-att-style="'margin-left: ' + margin + 'px;'" class="display-name">
                     <span t-attf-class="o_account_reports_caret_icon">
                         <i class="fa fa-caret-down" role="img"
@@ -13,8 +13,9 @@
                     <span ><t t-esc="recordData.name || ''"/></span>
                 </div>
             </th>
-            <td t-foreach="headers" t-as="item" t-key="item.key" class="o_list_number">
+            <td t-foreach="headers" t-as="item" t-key="item.key" t-attf_class="o_list_number {{recordData['style_'+ item.key]}}">
                 <t t-esc="convertNumToTime(recordData[item.key])"/>
+                <sup class="standard-deviation" t-if="recordData[item.key+'_standard_deviation'] !== undefined" t-esc="100*recordData[item.key+'_standard_deviation']"/>
             </td>
         </tr>
     </t>

@@ -20,3 +20,5 @@ from . import work_task_template
 from . import work_budget
 from . import work_finance
 from . import work_allocation
+from . import work_param
+from . import ir_module_module

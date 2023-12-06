@@ -20,7 +20,8 @@ class FieldMap(models.Model):
         ('task_labels', 'Task Labels'),
         ('sprint', 'Sprint'),
         ('priority', 'priority'),
-        ('checklist', 'Checklist')
+        ('checklist', 'Checklist'),
+        ('depends', 'Depends')
     ])
     value = fields.Char(string="Value")
     template_id = fields.Many2one("work.base.integration.map.template", string="Template")
@@ -43,7 +44,8 @@ class FieldMap(models.Model):
             'task_created_date': 'created',
             'task_labels': 'labels',
             'sprint': 'customfield_10020',
-            'checklist': 'customfield_10035'
+            'checklist': 'customfield_10035',
+            'depends': 'issuelinks'
         }
         values = []
         for key, value in template.items():

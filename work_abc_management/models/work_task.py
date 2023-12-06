@@ -1,4 +1,4 @@
-
+import ast
 import base64
 import datetime
 import json
@@ -13,6 +13,7 @@ from odoo.osv import expression
 
 from odoo.addons.work_abc_management.utils.search_parser import get_search_request
 from odoo.addons.work_abc_management.utils.time_parsing import convert_second_to_log_format
+from odoo.addons.work_abc_management.utils.random_string import generate_random_string
 from odoo.addons.work_base_integration.utils.urls import find_url
 _logger = logging.getLogger(__name__)
 
@@ -70,6 +71,8 @@ class WorkProject(models.Model):
         string="Billable?",
         default='bill'
     )
+    depend_task_ids = fields.Many2many("work.task", "depend_task_rel", "blocked_task_id", "blocking_task_id", string="Depends")
+    block_task_ids = fields.Many2many("work.task", "depend_task_rel", "blocking_task_id", "blocked_task_id",  string="Depends")
 
     @api.depends('task_key', 'task_name')
     def _compute_display_name(self):
@@ -465,3 +468,41 @@ class WorkProject(models.Model):
         to_be_remove_tasks = yesterday_tasks.filtered(lambda task: not (bool(task.ac_ids) or bool(task.work_log_ids) or bool(task.time_log_ids)))
         if to_be_remove_tasks:
             to_be_remove_tasks.unlink()
+
+    def action_launch_dependency(self):
+        res = self.env['work.param'].sudo().create({
+            'key': generate_random_string(10),
+            'model': self._name,
+            'kwargs': {
+                "ids": self.ids
+            }
+        })
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/planning/dependencies?key={res.key}",
+        }
+
+    def _recursive_launch_dependency(self):
+        res = self
+        if self.mapped('block_task_ids'):
+            res |= self.mapped('block_task_ids')._recursive_launch_dependency()
+        return res
+
+    def _load_all_needed_tasks(self, tasks):
+        res = dict()
+        for task in tasks:
+            if task not in self:
+                continue
+            res[str(task.id)] = {
+                'datas': task.read()[0],
+                'children': task.block_task_ids.mapped(lambda r: str(r.id))
+            }
+        return res
+
+    def launch_flow(self, param):
+        data_dict = ast.literal_eval(param.kwargs)
+        task_ids = data_dict['ids']
+        tasks = self.browse(task_ids)
+        exploding_tasks = tasks.sudo()._recursive_launch_dependency()
+        res = tasks._load_all_needed_tasks(exploding_tasks)
+        return res

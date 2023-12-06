@@ -5,8 +5,11 @@
         <field name="model">work.allocation</field>
         <field name="arch" type="xml">
             <pivot string="Allocations Analysis" sample="1">
-                <field name="user_id" type="col"/>
-                <field name="start_date" interval="week" type="row"/>
+                <field name="project_id" type="row"/>
+                <field name="finance_id" type="row"/>
+                <field name="user_id" type="row"/>
+                <field name="start_date" interval="month" type="col"/>
+                <field name="start_date" interval="day" type="col"/>
                 <field name="allocation" type="measure"/>
             </pivot>
         </field>
@@ -16,17 +19,20 @@
         <field name="name">Task Allocations</field>
         <field name="model">work.allocation</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
-                <field name="currency_id" invisible="1"/>
-                <field name="employee_id" invisible="1"/>
-                <field name="project_id" optional="hide"/>
-                <field name="finance_id" optional="show"/>
-                <field name="user_id" optional="show"/>
+            <tree editable="bottom" multi_edit="1">
+                <field name="generated_from_group" column_invisible="1"/>
+                <field name="start_date" optional="show" widget="date" readonly="generated_from_group"/>
+                <field name="end_date" optional="show" widget="date" readonly="generated_from_group"/>
+                <field name="project_id" optional="show" readonly="generated_from_group"/>
+                <field name="finance_id" optional="show" readonly="generated_from_group"/>
+                <field name="user_id" optional="show" readonly="generated_from_group"/>
+                <field name="employee_id" optional="hide" readonly="generated_from_group"/>
                 <field name="allocation" optional="show"/>
-                <field name="start_date" optional="hide"/>
-                <field name="end_date" optional="hide"/>
                 <field name="cost_per_hour" optional="hide"/>
+                <field name="currency_id" optional="hide" readonly="generated_from_group"/>
+                <field name="standard_deviation" widget="percentage" optional="show" readonly="generated_from_group"/>
                 <field name="employee_role_id" optional="hide" invisible="not user_id" groups="work_abc_management.group_work_user" context="{'default_employee_id': employee_id}"/>
+                <field name="allocation_group_id" optional="hide" groups="work_abc_management.group_work_user"/>
             </tree>
         </field>
     </record>
@@ -39,7 +45,21 @@
                 <field name="project_id"/>
                 <field name="finance_id"/>
                 <field name="user_id"/>
+                <filter string="From Today" name="filter_from_today" domain="[('start_date', '&gt;=', time.strftime('%Y-%m-%d'))]"/>
+                <group expand="0"  string="Date Range">
+                    <filter string="Last Week" name="last_week" domain="[('filter_date', '=', 'last_1_week')]"/>
+                    <filter string="This Week" name="current_week" domain="[('filter_date', '=', 'week')]"/>
+                    <filter string="Last Month" name="last_month" domain="[('filter_date', '=', 'last_1_month')]"/>
+                    <filter string="This Month" name="current_month" domain="[('filter_date', '=', 'month')]"/>
+                    <filter string="Last Quarter" name="last_quarter" domain="[('filter_date', '=', 'last_1_quarter')]"/>
+                    <filter string="This Quarter" name="current_quarter" domain="[('filter_date', '=', 'quarter')]"/>
+                </group>
                 <filter string="My Allocations" name="filter_my_allocation" domain="[('user_id','=', uid)]"/>
+                <separator/>
+                <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
+                <filter string="Finance" name="group_by_finance" context="{'group_by':'finance_id'}"/>
+                <filter string="Group" name="group_by_allocation_group" context="{'group_by':'allocation_group_id'}"/>
+                <filter string="User" name="group_by_user" context="{'group_by':'user_id'}"/>
             </search>
         </field>
     </record>
@@ -52,6 +72,7 @@
                 <header>
                     <button name="action_generate_allocations" confirm="This action will generate allocations" string="Generate Allocations" type="object" class="btn btn-primary"/>
                     <button name="action_clear_allocations" confirm="Perform this action will clear generated allocation" string="Clear Allocations" type="object" class="btn btn-danger"/>
+                    <button name="action_open_allocations" string="Open Allocations" type="object" class="btn btn-secondary"/>
                 </header>
                 <sheet>
                     <field name="employee_id" invisible="1"/>
@@ -66,8 +87,10 @@
                             <field name="employee_role_id" invisible="not user_id" groups="work_abc_management.group_work_user" context="{'default_employee_id': employee_id}"/>
                         </group>
                         <group>
+                            <field name="today_allocation"/>
                             <field name="allocation"/>
                             <field name="cost_per_hour"/>
+                            <field name="standard_deviation" widget="percentage"/>
                             <field name="is_compute_timeline"/>
                         </group>
                     </group>
@@ -85,7 +108,7 @@
                             <field name="allocation_type"/>
                         </group>
                     </group>
-                    <field name="allocation_ids" readonly="1" context="{'tree_view_ref': 'work_abc_management.work_allocation_tree_view'}"/>
+                    <field name="allocation_ids" options="{'no_create': 1, 'no_quick_create': 1, 'no_create_edit': 1}" context="{'tree_view_ref': 'work_abc_management.work_allocation_tree_view'}"/>
                 </sheet>
             </form>
         </field>
@@ -100,7 +123,7 @@
                 <field name="project_id" optional="hide"/>
                 <field name="finance_id" optional="show"/>
                 <field name="user_id" optional="show"/>
-                <field name="allocation" optional="show"/>
+                <field name="today_allocation" optional="show"/>
                 <field name="start_date" optional="hide"/>
                 <field name="end_date" optional="hide"/>
             </tree>
@@ -117,32 +140,39 @@
                 <field name="finance_id"/>
                 <field name="user_id"/>
                 <field name="allocation_type"/>
+                <filter string="From Today" name="filter_from_today" domain="[('start_date', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
                 <filter string="My Allocations" name="filter_my_allocation" domain="[('user_id','=', uid)]"/>
+                <filter string="Project" name="group_by_project" context="{'group_by':'project_id'}"/>
+                <filter string="Finance" name="group_by_finance" context="{'group_by':'finance_id'}"/>
+                <filter string="User" name="group_by_user" context="{'group_by':'user_id'}"/>
             </search>
         </field>
     </record>
 
     <record id="action_work_group_allocation" model="ir.actions.act_window">
-        <field name="name">Task Allocation Action</field>
+        <field name="name">Task Allocation</field>
         <field name="res_model">work.allocation.group</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="work_allocation_group_tree_view"/>
+        <field name="context">{'search_default_group_by_project': True}</field>
         <field name="search_view_id" ref="work_abc_management.work_allocation_group_search_view"/>
     </record>
 
     <record id="action_work_allocation" model="ir.actions.act_window">
-        <field name="name">Task Allocations</field>
+        <field name="name">Allocations</field>
         <field name="res_model">work.allocation</field>
         <field name="view_mode">tree,pivot</field>
         <field name="view_id" ref="work_allocation_tree_view"/>
+        <field name="context">{'search_default_filter_my_allocation': True, 'search_default_current_month': True, 'search_default_group_by_project': True}</field>
         <field name="search_view_id" ref="work_abc_management.work_allocation_search_view"/>
     </record>
 
-    <record id="action_work_cost_allocation" model="ir.actions.act_window">
-        <field name="name">Task Allocations</field>
+    <record id="action_work_allocation_pivot_report" model="ir.actions.act_window">
+        <field name="name">Allocations</field>
         <field name="res_model">work.allocation</field>
-        <field name="view_mode">tree,pivot</field>
+        <field name="view_mode">pivot</field>
         <field name="view_id" ref="work_allocation_tree_view"/>
+        <field name="context">{'search_default_filter_from_today': True}</field>
         <field name="search_view_id" ref="work_abc_management.work_allocation_search_view"/>
     </record>
 </odoo>

@@ -35,13 +35,13 @@ class WorkTimeLog(models.Model):
     encode_string = fields.Char(string="Hash String")
     project_id = fields.Many2one(string='Project', related="task_id.project_id", store=True, search="_search_project", ondelete="cascade")
     duration_hrs = fields.Float(string="Duration(hrs)", compute="_compute_duration_hrs", store=True)
-    filter_date = fields.Char(string="Filter", store=False, search='_search_filter_date')
     company_id = fields.Many2one('res.company', string='Company', required=True, related='task_id.company_id', store=True)
     billable_state = fields.Selection(
         string="Billable?",
         related="task_id.billable_state",
         store=True
     )
+    filter_date = fields.Char(string="Filter", store=False, search='_search_filter_date')
 
     def _search_filter_date(self, operator, operand):
         if operator == "=":

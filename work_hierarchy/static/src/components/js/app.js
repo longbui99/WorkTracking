@@ -42,14 +42,15 @@ export class App extends MessageBrokerComponent {
     async onClickViewButton(params){
         let response = await this.orm.call(
             this.props.action.context.model,
-            'launch_report',
+            'action_click_header_button',
             [],
             params.clickParams.kwargs
         );
-        this.arch = response.archInfo;
-        setStorage(this.env.storage, response);
-        this.state.data_version += 1;
-        this.render(true)
+        if (response?.arch){
+            this.arch = response.arch;
+            setStorage(this.env.storage, response);
+            this.render(true)
+        }
     }
 
     get display() {
@@ -77,7 +78,7 @@ export class App extends MessageBrokerComponent {
             'launch_report',
             this.params
         );
-        this.arch = response.archInfo;
+        this.arch = response.arch;
         setStorage(this.env.storage, response)
     }
 

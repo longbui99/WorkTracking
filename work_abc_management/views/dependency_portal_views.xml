@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="work_abc_management.dependency_planning" name="Web layout">&lt;!DOCTYPE html&gt;
+        <html t-att="html_data or {}">
+            <head>
+                <meta charset="utf-8"/>
+                <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+                <title t-esc="title or 'Odoo'"/>
+                <link type="image/x-icon" rel="shortcut icon" t-att-href="x_icon or '/web/static/img/favicon.ico'"/>
+                <script id="web.layout.odooscript" type="text/javascript">
+                    var odoo = {
+                        csrf_token: "<t t-nocache="The csrf token must always be up to date." t-esc="request.csrf_token(None)"/>",
+                        debug: "<t t-esc="debug"/>",
+                    };
+                </script>
+                <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+                <link href="https://cdn.jsdelivr.net/npm/reactflow@11.7.4/dist/style.min.css" rel="stylesheet"/>
+            </head>
+            <body>
+                <div id="app" class="my-app" style="width:100vw;height:100vh"></div>
+            </body>
+            <script src="/work_abc_management/static/public/js/dependency.js" type="text/babel" data-type="module"></script>
+            <link href="/work_abc_management/static/public/css/dependency.css" rel="stylesheet"></link>
+        </html>
+    </template>
+</odoo>

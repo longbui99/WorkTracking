@@ -4,7 +4,7 @@
         <div class="o_list_view o_view_controller o_action o_work_hierarchy_page">
             <Layout display="display">
                 <t t-set-slot="control-panel-always-buttons">
-                    <t t-foreach="arch.headerButtons" t-as="button" t-key="button.id">
+                    <t t-foreach="arch.headerVisibleButtons" t-as="button" t-key="button.id">
                         <ViewButton
                             className="button.className"
                             clickParams="button.clickParams"
@@ -17,7 +17,7 @@
                 </t>
                 <t t-set-slot="control-panel-selection-actions">
                     <div class="d-flex gap-1">
-                        <t t-foreach="archInfo.headerButtons" t-as="button" t-key="button.id">
+                        <t t-foreach="arch.headerButtons" t-as="button" t-key="button.id">
                             <ViewButton
                                 className="button.className"
                                 clickParams="button.clickParams"

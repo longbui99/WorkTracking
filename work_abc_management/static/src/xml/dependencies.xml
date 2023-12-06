@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="work_abc_management.Dependencies">
+        <div class="o_view_controller o_action o_work_hierarchy_page">
+        </div>
+    </t>
+</templates>

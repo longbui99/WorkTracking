@@ -65,10 +65,11 @@ class WorkProject(models.Model):
                     else:
                         for user in applicable_users:
                             project_by_user_by_host[host][user.id] |= project
-        
+
         if new_projects_by_user:
             for user, projects in new_projects_by_user.items():
                 projects.with_user(user).load_new_project()
+
         if len(project_by_user_by_host.keys()):
             for host, project_by_user in project_by_user_by_host.items():
                 host.with_delay().update_projects(latest_unix, project_by_user)

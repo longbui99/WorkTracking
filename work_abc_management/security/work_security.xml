@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
+
         <record model="ir.module.category" id="module_category_work">
             <field name="name">Task</field>
         </record>
@@ -8,6 +9,40 @@
         <record id="group_work_user" model="res.groups">
             <field name="name">Task User</field>
             <field name="category_id" ref="work_abc_management.module_category_work"/>
+        </record>
+
+        <record model="ir.module.category" id="module_category_work_finance">
+            <field name="name">Finance</field>
+        </record>
+
+        <record id="group_work_finance_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="work_abc_management.module_category_work_finance"/>
+            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
+        </record>
+
+        <record id="group_work_finance_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="work_abc_management.module_category_work_finance"/>
+            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record model="ir.module.category" id="module_category_work_resource">
+            <field name="name">Resources</field>
+        </record>
+
+        <record id="group_work_resource_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
+            <field name="category_id" ref="work_abc_management.module_category_work_resource"/>
+        </record>
+
+        <record id="group_work_resource_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="work_abc_management.module_category_work_resource"/>
+            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_resource_user'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
         </record>
 
         <record id="group_work_manager" model="res.groups">
@@ -19,38 +54,10 @@
         <record id="group_work_admin" model="res.groups">
             <field name="name">Administrator</field>
             <field name="category_id" ref="work_abc_management.module_category_work"/>
-            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_manager'))]"/>
+            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_manager')), 
+            (4, ref('work_abc_management.group_work_resource_manager')), 
+            (4, ref('work_abc_management.group_work_finance_manager'))]"/>
             <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
-        </record>
-
-        <record model="ir.module.category" id="module_category_work_finance">
-            <field name="name">Finance</field>
-        </record>
-
-        <record id="group_work_finance_user" model="res.groups">
-            <field name="name">Finance User</field>
-            <field name="category_id" ref="work_abc_management.module_category_work_finance"/>
-        </record>
-
-        <record id="group_work_finance_manager" model="res.groups">
-            <field name="name">Finance Manager</field>
-            <field name="category_id" ref="work_abc_management.module_category_work_finance"/>
-            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
-        </record>
-
-        <record model="ir.module.category" id="module_category_work_resource">
-            <field name="name">Resources</field>
-        </record>
-
-        <record id="group_work_resource_user" model="res.groups">
-            <field name="name">User</field>
-            <field name="category_id" ref="work_abc_management.module_category_work_resource"/>
-        </record>
-
-        <record id="group_work_resource_manager" model="res.groups">
-            <field name="name">Manager</field>
-            <field name="category_id" ref="work_abc_management.module_category_work_resource"/>
-            <field name="implied_ids" eval="[(4, ref('work_abc_management.group_work_resource_user'))]"/>
         </record>
 
     </data>
@@ -168,24 +175,50 @@
             <field name="domain_force">['|', ('project_id','=',False), ('project_id.allowed_user_ids', '=', user.id), '|',('company_id','=',False),('company_id', 'in', company_ids)]</field>
         </record>
 
+
+        <record id="work_finance_admin_rule" model="ir.rule">
+            <field name="name">Admin Full Access</field>
+            <field name="model_id" ref="model_work_finance"/>
+            <field name="domain_force">[(1,'=',1)]</field>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_manager'))]"/>
+        </record>
+
+        <record id="work_finance_user_limited_owner_rule" model="ir.rule">
+            <field name="name">User Limited Owner Access</field>
+            <field name="model_id" ref="model_work_finance"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        </record>
+
+        <record id="work_finance_user_limited_readonly_rule" model="ir.rule">
+            <field name="name">User Limited Read Access</field>
+            <field name="model_id" ref="model_work_finance"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
+            <field name="perm_read" eval="1"/>
+            <field name="perm_create" eval="0"/>
+            <field name="perm_write" eval="1"/>
+            <field name="perm_unlink" eval="0"/>
+            <field name="domain_force">[('access_user_ids', 'in', user.id)]</field>
+        </record>
+
         <record id="work_budget_admin_rule" model="ir.rule">
             <field name="name">Admin Full Access</field>
             <field name="model_id" ref="model_work_budget"/>
             <field name="domain_force">[(1,'=',1)]</field>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_admin'))]"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_manager'))]"/>
         </record>
 
         <record id="work_budget_user_limited_owner_rule" model="ir.rule">
             <field name="name">User Limited Owner Access</field>
             <field name="model_id" ref="model_work_budget"/>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
             <field name="domain_force">[('create_uid', '=', user.id)]</field>
         </record>
 
         <record id="work_budget_user_limited_readonly_rule" model="ir.rule">
             <field name="name">User Limited Read Access</field>
             <field name="model_id" ref="model_work_budget"/>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
             <field name="perm_read" eval="1"/>
             <field name="perm_create" eval="0"/>
             <field name="perm_write" eval="0"/>
@@ -196,7 +229,7 @@
         <record id="work_budget_user_limited_edit_rule" model="ir.rule">
             <field name="name">User Limited Edit Access</field>
             <field name="model_id" ref="model_work_budget"/>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
             <field name="perm_read" eval="1"/>
             <field name="perm_create" eval="0"/>
             <field name="perm_write" eval="1"/>
@@ -204,30 +237,15 @@
             <field name="domain_force">[('editable_user_ids', 'in', user.id)]</field>
         </record>
 
-
-        <record id="work_finance_admin_rule" model="ir.rule">
-            <field name="name">Admin Full Access</field>
-            <field name="model_id" ref="model_work_finance"/>
-            <field name="domain_force">[(1,'=',1)]</field>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_admin'))]"/>
-        </record>
-
-        <record id="work_finance_user_limited_owner_rule" model="ir.rule">
-            <field name="name">User Limited Owner Access</field>
-            <field name="model_id" ref="model_work_finance"/>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
-            <field name="domain_force">[('create_uid', '=', user.id)]</field>
-        </record>
-
-        <record id="work_finance_user_limited_readonly_rule" model="ir.rule">
+        <record id="work_budget_user_limited_readonly_rule_from_finance" model="ir.rule">
             <field name="name">User Limited Read Access</field>
-            <field name="model_id" ref="model_work_finance"/>
-            <field name="groups" eval="[(4, ref('work_abc_management.group_work_user'))]"/>
+            <field name="model_id" ref="model_work_budget"/>
+            <field name="groups" eval="[(4, ref('work_abc_management.group_work_finance_user'))]"/>
             <field name="perm_read" eval="1"/>
             <field name="perm_create" eval="0"/>
             <field name="perm_write" eval="1"/>
             <field name="perm_unlink" eval="0"/>
-            <field name="domain_force">[('access_user_ids', 'in', user.id)]</field>
+            <field name="domain_force">[('finance_id.access_user_ids', 'in', user.id)]</field>
         </record>
     </data>
 </odoo>

@@ -52,8 +52,8 @@ class OdooHost(models.Model):
         if self.env.context.get('rpc'):
             return self.env.context.get('rpc')
         user = self.env.user
-        wt_private_key = user.get_token(self)
-        login, password = self.split_odoo_credential(wt_private_key)
+        host_private_key = user.get_token(self)
+        login, password = self.split_odoo_credential(host_private_key)
         common = xmlrpc.client.ServerProxy('{}/xmlrpc/2/common'.format(self.base_url))
         uid = common.authenticate(self.database, login, password, {})
         model = xmlrpc.client.ServerProxy('{}/xmlrpc/2/object'.format(self.base_url))
@@ -69,14 +69,14 @@ class OdooHost(models.Model):
                 domain = [('id', 'in', gather_project_ids)]
             forced_project_domain = self._context.get('forced_project_domain') or []
             domain += forced_project_domain
-            projects = self.env['wt.project']
+            projects = self.env['work.project']
             rpc = self.make_rpc_agent()
             project_datas = rpc('project.project', 'search_read', [
                 domain,# Domain
                 ['name']
             ])
             id_list = [project_data['id'] for project_data in project_datas]
-            project_external_ids = set(self.env['wt.project'].search([('external_id', 'in', id_list), ('host_id','=', self.id)]).mapped('external_id'))
+            project_external_ids = set(self.env['work.project'].search([('external_id', 'in', id_list), ('host_id','=', self.id)]).mapped('external_id'))
             value_list = []
             user_id = self.env.user
             for project_data in project_datas:
@@ -158,14 +158,14 @@ class OdooHost(models.Model):
             ids = list(map(lambda task: task['id'], task_datas))
             tasks = self.env['work.task'].search([
                 ('host_id', '=', self.id),
-                ('wt_id', 'in', ids)
+                ('host_id', 'in', ids)
             ])
-            task_ids = set(tasks.mapped('wt_id'))
+            task_ids = set(tasks.mapped('id_onhost'))
             user_ids = [j for sub in list(map(lambda r: r['user_ids'], task_datas)) for j in sub]
             self._check_missing_users(user_ids)
             user_emails = rpc('res.users', 'search_read', [[('id', 'in', user_ids)], ['login']])
             local_user_by_email = self.generate_record_by_key(self.env['res.users'].with_context(active_test=False).search([]), 'login')
-            local_project_by_id = self.generate_record_by_key(self.env['wt.project'].search([('host_id', '=', self.id)]), 'external_id')
+            local_project_by_id = self.generate_record_by_key(self.env['work.project'].search([('host_id', '=', self.id)]), 'external_id')
             external_user_by_id = self.generate_record_by_key(user_emails, 'id')
             
             to_fetch_projects = []
@@ -198,7 +198,7 @@ class OdooHost(models.Model):
                         'project_id': project_id,
                         'task_key': f"{project_key}-{task_data['id']}",
                         'assignee_id': assignee_id,
-                        'wt_id': task_data['id'],
+                        'host_id': task_data['id'],
                         'host_id': self.id,
                         'task_url': self.base_task_url%task_data['id']
                     })
@@ -226,45 +226,44 @@ class OdooHost(models.Model):
             self = self.with_context(bypass_cross_user=True)
             str_updated_date = datetime.fromtimestamp(unix / 1000).strftime('%Y-%m-%d %H:%M')
             gather_logs_ids = self._context.get('gather_logs_ids')
-            domain = []
+            domain = [('user_id', '!=', False), ('task_id', '!=', False)]
             if gather_logs_ids:
                 domain += [('id', 'in', gather_logs_ids)]
             forced_log_domain = self._context.get('forced_log_domain') or []
             domain += forced_log_domain
             domain += [('write_date', '>=', str_updated_date)]
             rpc = self.make_rpc_agent()
-            _logger.warning(domain)
             log_datas = rpc('account.analytic.line', 'search_read', [
                 domain,
                 ['date', 'user_id', 'name', 'project_id', 'task_id', 'unit_amount', 'create_date', 'write_date']
             ])
             ids = list(map(lambda log: log['id'], log_datas))
-            logs = self.env['wt.time.log'].with_context(active_test=False).\
-                            search([('id_on_wt', 'in', ids)])
-            log_by_id = self.generate_record_by_key(logs, 'id_on_wt')
+            logs = self.env['work.time.log'].with_context(active_test=False).\
+                            search([('id_onhost', 'in', ids)])
+            log_by_id = self.generate_record_by_key(logs, 'id_onhost')
             user_ids = list(map(lambda log: log['user_id'][0], log_datas))
             user_emails = rpc('res.users', 'search_read', [[('id', 'in', user_ids)], ['login']])
             local_user_by_email = self.generate_record_by_key(self.env['res.users'].with_context(active_test=False).search([]), 'login')
             external_user_by_id = self.generate_record_by_key(user_emails, 'id')
-            task_by_wt_id = self.generate_record_by_key(self.env['work.task'].with_context(active_test=False).search([('host_id', '=', self.id)]), 'wt_id')
+            task_by_in_onhost = self.generate_record_by_key(self.env['work.task'].with_context(active_test=False).search([('host_id', '=', self.id)]), 'id_onhost')
             to_fetch_tasks = []
             for log in log_datas:
                 task_id = False
-                task = task_by_wt_id.get(log['task_id'][0])
+                task = task_by_in_onhost.get(log['task_id'][0])
                 if not task:
                     to_fetch_tasks.append(log['task_id'][0])
 
             if to_fetch_tasks:
                 tasks = self.with_context(gather_task_ids=to_fetch_tasks).load_all_tasks()
-                concat_task_by_wt_id = self.generate_record_by_key(tasks, 'wt_id')
-                task_by_wt_id.update(concat_task_by_wt_id)
+                concat_task_by_in_onhost = self.generate_record_by_key(tasks, 'id_onhost')
+                task_by_in_onhost.update(concat_task_by_in_onhost)
 
             value_list = []
             for log in log_datas:
                 if log['id'] not in log_by_id:
                     company_id = self.company_id.id
                     task_id = False
-                    task = task_by_wt_id.get(log['task_id'][0])
+                    task = task_by_in_onhost.get(log['task_id'][0])
                     if not task:
                         raise UserError("Cannot find task for %s"%str(log))
                     else:
@@ -284,9 +283,9 @@ class OdooHost(models.Model):
                         'task_id': task_id,
                         'start_date': log['date'],
                         'export_state': 1,
-                        'id_on_wt': log['id'],
-                        'wt_create_date': log['create_date'],
-                        'wt_write_date': log['write_date'],
+                        'id_onhost': log['id'],
+                        'host_create_date': log['create_date'],
+                        'host_write_date': log['write_date'],
                         'company_id': company_id,
                         'state': 'done'
                     })
@@ -301,11 +300,11 @@ class OdooHost(models.Model):
                         vals['description'] = log['name']
                     vals['export_state'] = 1
                     odoo_log.update(vals)
-            return self.env['wt.time.log'].sudo().create(value_list)
+            return self.env['work.time.log'].sudo().create(value_list)
 
     def load_missing_work_logs_by_unix(self, unix, users, projects, batch=900, end_unix=-1):
         if self.host_type == "odoo":
-            res = self.env['wt.time.log']
+            res = self.env['work.time.log']
             for user in users:
                 user_self = self.with_user(user)
                 domain = []
@@ -335,14 +334,14 @@ class OdooHost(models.Model):
 
     def load_work_logs_by_unix(self, unix, users, batch=900):
         if self.host_type == "odoo":
-            res = self.env['wt.time.log']
+            res = self.env['work.time.log']
             if self.import_work_log:
                 self = self.with_context(bypass_cross_user=True)
-                project_ids = list(map(int,self.env['wt.project'].search([('host_id', 'in', self.ids)]).mapped('external_id')))
+                project_ids = list(map(int,self.env['work.project'].search([('host_id', 'in', self.ids)]).mapped('external_id')))
                 tasks = self.env['work.task'].search([('host_id', 'in', self.ids)])
-                task_ids = tasks.mapped('wt_id')
+                task_ids = tasks.mapped('id_onhost')
                 local_logs = tasks.mapped('time_log_ids').filtered(lambda r: r.export_state != 0)
-                local_log_ex_ids = set(local_logs.mapped('id_on_wt'))
+                local_log_ex_ids = set(local_logs.mapped('id_onhost'))
                 log_data_set = set()
                 for user in users:
                     user_self = self.with_user(user)
@@ -354,14 +353,14 @@ class OdooHost(models.Model):
                         res |= user_self.with_context(rpc=rpc).load_logs_by_unix(unix)
                 to_delete_ex_ids = local_log_ex_ids - log_data_set
                 if to_delete_ex_ids:
-                    self.env['wt.time.log'].search([('id_on_wt', 'in', list(to_delete_ex_ids)), ('task_id.host_id', 'in', self.ids)]).unlink()
+                    self.env['work.time.log'].search([('id_onhost', 'in', list(to_delete_ex_ids)), ('task_id.host_id', 'in', self.ids)]).unlink()
             return res
         else:
             return super().load_work_logs_by_unix(unix, users, batch)
     
     def load_work_logs(self, task_ids, paging=100, domain=[], load_all=False):
         if self.host_type == "odoo":
-            domain = [('task_id', 'in', task_ids.mapped('wt_id'))]
+            domain = [('task_id', 'in', task_ids.mapped('id_onhost'))]
             res = self.with_context(forced_log_domain=domain).load_logs_by_unix(0)
             return res
         else:
@@ -413,7 +412,7 @@ class OdooHost(models.Model):
             'date': log.start_date.strftime('%Y-%m-%d'),
             'name': log.description,
             'unit_amount': log.duration_hrs,
-            'task_id': log.task_id.wt_id
+            'task_id': log.task_id.host_id
         }
 
     def export_specific_log(self, task_id, log_ids):
@@ -429,7 +428,7 @@ class OdooHost(models.Model):
                 val_list = [self._prepare_odoo_timesheet_log_vals(log) for log in time_log_ids]
                 res = rpc('account.analytic.line', 'create', [val_list])
                 for log, ex_id in zip(time_log_ids, res):
-                    log['id_on_wt'] = ex_id
+                    log['id_onhost'] = ex_id
                 return res
         else:
             return super().add_time_logs(task_id, time_log_ids)
@@ -440,7 +439,7 @@ class OdooHost(models.Model):
                 rpc = self.make_rpc_agent()
                 for log in time_log_ids:
                     vals = self._prepare_odoo_timesheet_log_vals(log)
-                    rpc('account.analytic.line', 'write', [log.id_on_wt, vals])
+                    rpc('account.analytic.line', 'write', [log.id_onhost, vals])
         else:
             return super().update_time_logs(task_id, time_log_ids)
 
@@ -448,7 +447,7 @@ class OdooHost(models.Model):
         if self.host_type == "odoo":
             if time_log_ids:
                 rpc = self.make_rpc_agent()
-                rpc('account.analytic.line', 'unlink', [time_log_ids.mapped('id_on_wt')])
+                rpc('account.analytic.line', 'unlink', [time_log_ids.mapped('id_onhost')])
         else:
             return super().delete_time_logs(task_id, time_log_ids)
 

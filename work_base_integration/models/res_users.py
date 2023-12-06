@@ -33,20 +33,20 @@ class ResUsers(models.Model):
             if not fetch_ok:
                 raise UserError(_("The Token is invalid, please check again"))
 
-    def token_exists(self, ):
+    def token_exists(self, host):
         existing_token_users = self.env['res.users']
         for user in self:
             try:
-                user.get_token()
+                user.get_token(host)
                 existing_token_users |= user
-            except:
+            except Exception  as e:
                 continue
         return existing_token_users 
 
     @ormcache('host')
     def token_exists_by_host(self, host):
         users = self.env['res.users']
-        existing_tokens = self.token_exists()
+        existing_tokens = self.token_exists(host)
         errors = []
         unaccess_users = host.get_unaccess_token_users()
         for user in existing_tokens:

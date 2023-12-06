@@ -1,47 +1,4 @@
 .o_work_hierarchy_page {
-    // background-color: $o-view-background-color;
-    // margin: 16px auto;
-    // padding: 24px 16px;
-
-    // .o_work_hierarchy_header{
-    //     width: 100%;
-    //     display: flex;
-    //     flex-flow: column;
-    //     .top-panel{
-    //         width: 100%;
-    //     }
-    //     .inner-panel{
-    //         width: 100%;
-    //         display: flex;
-    //         align-items: start;
-    //         justify-content: space-between;
-    //         .left-inner-panel{
-    //             width: 45%;
-    //         }
-    //         .right-inner-panel{
-    //             width: 45%;
-    //         }
-    //     }
-    // }
-
-    // // Manage expand icon
-    // table.o_work_hierarchy_expandable {
-    //     thead tr {
-    //         border-width: 2px;
-    //         border-top-style: groove;
-    //         border-bottom-style: groove;
-    //     }
-    //     tbody tr {
-    //         border-width: 1px;
-    //         border-top-style: solid;
-    //         border-bottom-style: groove;
-    //     }
-    //     tbody, tfoot {
-    //         & > tr > td ~ td > span {
-    //             margin-left: 10px;
-    //         }
-    //     }
-    // }
     .o_list_number_th {
         max-width: 150px;
     }
@@ -82,33 +39,56 @@
 
     .o_work_hierarchy_report_line {
         cursor: pointer;
-        // td{
 
-        //     .o_account_reports_caret_icon{
-        //         padding: 0px;
-        //         margin: 0px;
-        //     }
+        &.foldable{
+            font-weight: 600;
+            th, td{
+                vertical-align: middle;
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+        }
 
-        //     span{
-        //         margin-left: 0px!important;
-        //         padding-left: 5px;
-        //     }
-
-        //     input{
-        //         margin-left: 0px!important;
-        //         padding-left: 5px;
-        //         border: solid 1px #969696;
-        //         box-sizing: border-box;
-        //         outline: none;
-        //         width: inherit;
-        //     }
-
-        //     button[name="tooltip"]{
-        //         position: absolute;
-        //         margin: 0;
-        //         padding: 0 10px;
-        //         top: 0;
-        //         right: 0;
+        .danger{
+            color: #ed3e3e;
+        }
+        
+        .info {
+            color: #006c7c;
+        }
+        
+        &.info-line{
+            font-size: 0.8rem;
+            color: gray;
+            font-weight: 400;
+            font-style: italic;
+            .display-name{
+                .o_account_reports_caret_icon{
+                    margin-left: 15px;
+                }
+            }
+        }
+        .standard-deviation{
+            font-size: 0.7em;
+            z-index: 1000;
+            &::before{
+                content:" (±"
+            }
+            &::after{
+                content: "%)";
+            }
+        }
+        td{
+            overflow: unset!important;
+            position: relative;
+            sup{
+                position: absolute;
+                line-height: 15px;
+            }
+        }
+        // &.base-line{
+        //     .o_list_number{
+        //         font-weight: 600;
         //     }
         // }
     }
@@ -121,7 +101,6 @@
             }
         }
     }
-
 
 
     @keyframes updatingBackground {

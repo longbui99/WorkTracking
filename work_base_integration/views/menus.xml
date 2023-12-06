@@ -8,16 +8,23 @@
               parent="work_abc_management.settings">
     </menuitem>
 
-    <menuitem id="work_base_integration.work_field_clone_rules"
-              name="Work Integration Rules"
-              action="work_base_integration.work_clone_rule_action"
-              sequence="2"
-              parent="work_abc_management.operations"
-              >
+    <menuitem 
+            id="work_abc_management.operation_template"
+            sequence="40"
+            name="Template"
+            parent="work_abc_management.operations"
+            >
+            <menuitem id="work_base_integration.work_field_clone_rules"
+                    name="Clone Patterns"
+                    action="work_base_integration.work_clone_rule_action"
+                    sequence="2"
+                    >
+            </menuitem>
     </menuitem>
+
     
     <menuitem id="work_base_integration.work_field_map_dashboard"
-              name="Map Fields"
+              name="Atlassian Fields"
               action="work_base_integration.action_work_field_map"
               sequence="3"
               parent="work_abc_management.settings"

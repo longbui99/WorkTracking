@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="work_load_date_range_form_view" model="ir.ui.view">
+        <field name="name">work.load.date.range.form</field>
+        <field name="model">work.load.date.range</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="start_date"/>
+                        </group>
+                        <group>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="host_ids" widget="many2many_tags"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_load" string="Load" type="object" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="work_load_date_range_form_action" model="ir.actions.act_window">
+        <field name="name">work.load.date.range.form.action</field>
+        <field name="res_model">work.load.date.range</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="work_load_date_range_form_view"/>
+        <field name="target">new</field>
+    </record>
+    
+    <menuitem id="work_base_integration.work_load_date_range"
+              name="Reload From"
+              action="work_base_integration.work_load_date_range_form_action"
+              sequence="10"
+              parent="work_abc_management.operation_integration"
+              >
+    </menuitem>
+</odoo>

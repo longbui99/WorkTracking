@@ -5,10 +5,11 @@
         <field name="priority">1</field>
         <field name="model">work.project</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree multi_edit="1">
                 <field name="sequence" widget="handle"/>
                 <field name="project_name"/>
                 <field name="project_key"/>
+                <field name="stage_id" options="{'color_field': 'color'}"/>
             </tree>
         </field>
     </record>
@@ -41,19 +42,13 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_start_latest_chain" string="Start Latest Chain" type="object"
-                            class="btn-primary"/>
-                    <button name="action_start_kick_off" string="Chain Work" type="object" class="btn-primary"/>
                     <button name="fetch_user_from_task" string="Fetch User" type="object" class="btn-secondary"/>
+                    <field name="stage_id" widget="statusbar" options="{'clickable': '1'}"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box">
-                        <button class="oe_stat_button" 
-                                name="action_open_allocation"
-                                type="object" 
-                                icon="fa-file-text-o"
-                                string="Open Allocations">
-                        </button>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_finance" string="Finance Plan" icon="fa-money" type="object" class="oe_stat_button" />
+                        <button name="action_open_allocation_report" string="Allocation Report" icon="fa-clock-o" type="object" class="oe_stat_button"/>
                     </div>
                     <label for="project_name" class="oe_edit_only"/>
                     <h1>
@@ -95,10 +90,11 @@
         <field name="model">work.project</field>
         <field name="arch" type="xml">
             <search>
-                <field name="project_key"/>
                 <field name="project_name"/>
                 <field name="company_id"/>
                 <filter string="My projects" name="filter_my_project" domain="[('allowed_user_ids','=', uid)]"/>
+                <filter string="Company" name="groupby_company" context="{'group_by': 'company_id'}"/>
+                <filter string="Stage" name="groupby_stage" context="{'group_by': 'stage_id'}"/>
             </search>
         </field>
     </record>

@@ -4,6 +4,8 @@ from odoo.exceptions import UserError
 
 class HREmployee(models.AbstractModel):
     _inherit = 'hr.employee.base'
+    _parent_name = "parent_id"
+    _parent_store = True
 
     maximum_search_result = fields.Integer(string="# Search Result", default=11)
     maximum_relative_result = fields.Integer(string="# Relative Active", default=4)
@@ -26,6 +28,7 @@ class HREmployee(models.AbstractModel):
     default_nbr_days = fields.Integer(string="Default Show Tracking Last (days)", default=7)
     auto_remove_access = fields.Boolean(string="Auto Remove Access", default=True)
     maximum_connection = fields.Integer(string="Maximum Extension Connection", default=4)
+    parent_path = fields.Char(index=True, unaccent=False)
 
     @api.constrains('default_nbr_days')
     def _check_default_nbr_days(self):

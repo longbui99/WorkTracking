@@ -28,8 +28,8 @@ class WorkTimeLog(models.Model):
 
     id_onhost = fields.Integer(string='ID on Task')
     is_exported = fields.Boolean(string="Is Exported?", default=False)
-    work_create_date = fields.Datetime(string="Work Create On")
-    work_write_date = fields.Datetime(string="Work Update On")
+    host_create_date = fields.Datetime(string="Work Create On")
+    host_write_date = fields.Datetime(string="Work Update On")
     export_state = fields.Integer( string="Export State", default=False)
     capture_export_description = fields.Char(string="Capture Export Description")
     capture_export_duration = fields.Integer(string="Capture Export Duration")

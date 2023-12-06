@@ -40,4 +40,21 @@
         <field name="state">code</field>
         <field name="code">records.write({'allow_to_fetch': True})</field>
     </record>
+
+
+    <record id="work_project_search_view" model="ir.ui.view">
+        <field name="name">Task Projects</field>
+        <field name="model">work.project</field>
+        <field name="inherit_id" ref="work_abc_management.work_project_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="groupby_company" position="after">
+                <filter string="Host" name="groupby_host" context="{'group_by': 'host_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="work_abc_management.action_work_project" model="ir.actions.act_window">
+        <field name="context">{'search_default_filter_my_project': True, 'search_default_groupby_host': True, 'search_default_groupby_stage': True}</field>
+    </record>
+
 </odoo>

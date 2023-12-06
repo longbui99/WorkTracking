@@ -18,3 +18,8 @@ access_work_epic_field_rule,work.clone.epic.rule,model_work_clone_epic_rule,work
 access_work_priority_field_rule,work.clone.priority.rule,model_work_clone_priority_rule,work_abc_management.group_work_admin,1,1,1,1
 access_clone_to_host_user,clone.to.host,model_clone_to_host,work_abc_management.group_work_user,1,1,1,1
 access_work_fetch_task_user,work.fetch.task.user,model_work_fetch_task,work_abc_management.group_work_user,1,1,1,1
+
+
+access_work_load_date_range,work.load.date.range.user,model_work_load_date_range,work_abc_management.group_work_manager,1,1,1,1
+
+access_queue_job_work_manager,queue.job.work.manager,model_queue_job,work_abc_management.group_work_manager,1,1,0,0

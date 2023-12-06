@@ -2,7 +2,7 @@
     'name': 'Work Integration',
     'summary': 'Work Integration',
     'category': 'Project',
-    "author": "Drake Bui",
+    "author": "Long Bui",
     "website": "https://www.drakebui.ml/",
     "depends": ['work_abc_management', 'queue_job'],
     "license": "LGPL-3",
@@ -29,7 +29,8 @@
         'wizard/export_by_pivot_time_views.xml',
         'wizard/token_confirmation.xml',
         'wizard/clone_to_host_views.xml',
-        'wizard/fetch_task_views.xml'
+        'wizard/fetch_task_views.xml',
+        'wizard/load_date_range_views.xml',
 
     ],
     "application": False,
