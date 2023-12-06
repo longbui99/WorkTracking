@@ -88,7 +88,7 @@ class WorkAllocationGroup(models.Model):
         current_allocations = self.allocation_ids.filtered(lambda allocation: allocation.start_date < today and allocation.end_date > today)
         allocation_by_group = {allocation.allocation_group_id: allocation for allocation in current_allocations}
         for allocation_group in self:
-            allocation_group.today_allocation = allocation_by_group.get(allocation_group).allocation if allocation_by_group.allocation_ids else 0
+            allocation_group.today_allocation = allocation_by_group.get(allocation_group).allocation if allocation_group.allocation_ids else 0
 
     @api.depends("user_id", "project_id", "finance_id", "employee_role_id", "start_date", "end_date")
     def _compute_name(self):
