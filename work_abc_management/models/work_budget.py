@@ -7,10 +7,6 @@ from odoo.osv.expression import OR, AND
 
 from odoo.addons.work_abc_management.utils.xml_parser import template_to_markup
 
-import logging
-import json
-
-_logger = logging.getLogger(__name__)
 
 class WorkBudgetInvoice(models.Model):
     _name = "work.budget.invoice"
@@ -163,10 +159,8 @@ class WorkBudget(models.Model):
 
     @api.depends('applicable_domain')
     def _compute_amount_used(self):
-        _logger.warning("------------------------------------------------------------------------------------------------------")
         TimeLogEnv = self.env['work.time.log'].sudo()
         allocations = self.env['work.allocation'].search([('finance_id', 'in', self.mapped('finance_id').ids)])
-        _logger.warning(allocations)
 
         def get_key(timestamp):
             return timestamp.strftime("%y-%W")
@@ -174,7 +168,6 @@ class WorkBudget(models.Model):
         allocation_by_user_by_finance = defaultdict(lambda: defaultdict(lambda: dict()))
         for allocation in allocations:
             allocation_week = get_key(allocation.start_date)
-            _logger.warning(allocation_week)
             allocation_by_user_by_finance[allocation.finance_id][allocation.user_id][allocation_week] = allocation.cost_per_hour
         
         for budget in self:
@@ -183,7 +176,6 @@ class WorkBudget(models.Model):
             amount_used = 0.0
             for log in logs:
                 log_week = get_key(log.start_date)
-                _logger.warning(log_week)
                 allocation = allocation_by_user_by_finance[budget.finance_id][log.user_id].get(log_week)
                 amount_used += allocation if allocation else 0
             budget.amount_used = amount_used + invoiced_amount
