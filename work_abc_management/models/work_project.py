@@ -26,6 +26,7 @@ class WorkProject(models.Model):
     name = fields.Char(string="Name", compute="_compute_name", store=True)
     stage_id = fields.Many2one("work.project.stage", string="Stage", default=lambda self: self.env.ref('work_abc_management.stage_in_progress').id)
     status = fields.Char(name="Status", related="stage_id.key", store=True)
+    allowed_type_ids = fields.Many2many("work.type", string="Allowed Issue Types")
 
     @api.depends('project_name', 'project_key')
     def _compute_name(self):
@@ -92,7 +93,7 @@ class WorkProject(models.Model):
         context['default_project_id'] = self.id
         action['context'] = context
         return action
-
+    
     def action_export_record(self, workbook):
         self.ensure_one()
         header_format = workbook.add_format({
@@ -117,6 +118,16 @@ class WorkProject(models.Model):
         return super().create(values)
 
     def write(self, values):
+        if 'project_key' in values:
+            for project in self:
+                tasks = self.env['work.task'].search([('project_id', '=', project.id)])
+                update_stmt = f"""
+                    UPDATE work_task SET task_key = REGEXP_REPLACE(task_key, '{project.project_key}', '{values['project_key']}') WHERE id IN %(task_ids)s
+                """
+                self._cr.execute(update_stmt, {
+                    'task_ids': tuple(tasks.ids)
+                })
+
         res = super().write(values)
         if len(values.get('allowed_manager_ids', [])):
             new_record = self.new(values)
@@ -124,6 +135,7 @@ class WorkProject(models.Model):
                 new_users = new_record.allowed_manager_ids - record.allowed_user_ids
                 if (new_users):
                     record.allowed_user_ids = [fields.Command.link(user._origin.id) for user in new_users]
+
         return res
 
     def gather_personal_project(self):

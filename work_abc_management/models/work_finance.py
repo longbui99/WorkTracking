@@ -1,3 +1,5 @@
+import ast
+
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -17,11 +19,16 @@ class WorkFinance(models.Model):
     name = fields.Char(string='Name', required=True)
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company.id, required=True)
     work_budget_ids = fields.One2many("work.budget", 'finance_id', string="Budgets")
+
     duration = fields.Float(string="Total Duration", compute='_compute_current_duration_used')
     duration_used = fields.Float(string="Total Used Duration", compute="_compute_current_duration_used")
     duration_percent_used = fields.Float(string="Duration Used Percent", compute="_compute_current_duration_used")
-    budget_count = fields.Integer(string="Budget Count", compute="_compute_current_duration_used")
+
     amount = fields.Float(string="Total Amount", compute="_compute_current_duration_used")
+    amount_used = fields.Float(string="Total Amount", compute="_compute_current_duration_used")
+    amount_percent_used = fields.Float(string="Total Amount", compute="_compute_current_duration_used")
+
+    budget_count = fields.Integer(string="Budget Count", compute="_compute_current_duration_used")
     project_id = fields.Many2one("work.project", string="Project", required=True)
     access_user_ids = fields.Many2many("res.users", "access_finance_user_rel", string="Accessible Users")
     start_recurrence_date = fields.Datetime(string="Start Recurrence Date")
@@ -36,12 +43,16 @@ class WorkFinance(models.Model):
 
     def _compute_current_duration_used(self):
         self.mapped('work_budget_ids.duration_used')
+        self.mapped('work_budget_ids.amount_used')
         for finance in self:
             finance.duration = sum(finance.work_budget_ids.mapped('duration'))
             finance.duration_used = sum(finance.work_budget_ids.mapped('duration_used'))
             finance.duration_percent_used = 100*finance.duration_used/finance.duration if finance.duration else 0
             finance.budget_count = len(finance.work_budget_ids)
+
             finance.amount = sum(finance.work_budget_ids.mapped('amount'))
+            finance.amount_used = sum(finance.work_budget_ids.mapped('amount_used'))
+            finance.amount_percent_used = 100*finance.amount_used/finance.amount if finance.amount else 0
 
     def get_period_from_to(self, from_date, to_date, interval_type='monthly'):
         kwargs = dict()
@@ -155,7 +166,8 @@ class WorkFinance(models.Model):
         action['context'] = {
             'search_default_group_by_allocation_group': True,
             'default_finance_id': self.id, 
-            'default_project_id': self.project_id.id
+            'default_project_id': self.project_id.id,
+            'expand': True
         }
         return action
     

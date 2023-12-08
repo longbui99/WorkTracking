@@ -19,7 +19,7 @@
         <field name="name">Task Allocations</field>
         <field name="model">work.allocation</field>
         <field name="arch" type="xml">
-            <tree editable="bottom" multi_edit="1">
+            <tree editable="bottom" multi_edit="1" expand="context.get('expand', False)" >
                 <field name="generated_from_group" column_invisible="1"/>
                 <field name="start_date" optional="show" widget="date" readonly="generated_from_group"/>
                 <field name="end_date" optional="show" widget="date" readonly="generated_from_group"/>
@@ -118,7 +118,7 @@
         <field name="name">Task Allocations</field>
         <field name="model">work.allocation.group</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree expand="context.get('expand', False)" >
                 <field name="name"/>
                 <field name="project_id" optional="hide"/>
                 <field name="finance_id" optional="show"/>

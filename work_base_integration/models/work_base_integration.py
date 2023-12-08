@@ -19,7 +19,7 @@ from odoo.addons.base.models.res_partner import _tz_get
 from odoo.addons.work_base_integration.utils.urls import find_url
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.osv.expression import AND, OR
 import re
 
@@ -196,19 +196,41 @@ class TaskHost(models.Model):
         }
         response = self.make_request(request_data, headers)
 
-    def _get_single_project(self, project_key):
-        headers = self.__get_request_headers()
-        result = requests.get(f"{self.work_host_url}/project/{project_key}", headers=headers)
-        record = json.loads(result.text)
+    def _get_project_issuetypes_data(self, record):
+        res = []
+        if 'issueTypes' in record:
+            project_types = {x.key: x for x in self.env['work.type'].search([])}
+            for issue_type in record['issueTypes']:
+                work_type = project_types.get(issue_type['id'])
+                if not work_type:
+                    self.load_types()
+                    project_types = {x.key: x for x in self.env['work.type'].search([])}
+                    work_type = project_types.get(issue_type['id'])
+                if work_type:
+                    res.append(fields.Command.link(work_type.id))
+        return res
+
+    def get_project_data(self, record):
+        _logger.warning(record)
         res = {
             'project_name': record['name'],
             'project_key': record['key'],
             'host_id': self.id,
             'allow_to_fetch': True,
             'allowed_manager_ids': [(4, self.env.user.id, False)],
-            'company_id': self.company_id.id
+            'company_id': self.company_id.id,
+            'allowed_type_ids': self._get_project_issuetypes_data(record)
         }
-        return self.env['work.project'].sudo().create(res)
+        return res
+
+    def _get_single_project(self, project_key):
+        headers = self.__get_request_headers()
+        request_data = {
+            'endpoint': f"{self.work_host_url}/project/{project_key}",
+            'method': 'get',
+        }
+        record = self.make_request(request_data, headers)
+        return self.env['work.project'].sudo().create(self.get_project_data(record))
 
     def _get_current_employee(self):
         return {
@@ -248,25 +270,24 @@ class TaskHost(models.Model):
                 users |= new_user
                 travel_login.add(record['emailAddress'])
                 
-    def load_projects(self):
+    def load_projects(self, specific_project=""):
         self.ensure_one()
         self.env.user.token_exists_by_host(self)
         headers = self.__get_request_headers()
-        result = requests.get(f"{self.work_host_url}/project", headers=headers)
+        request_data = {
+            'endpoint': f"{self.work_host_url}/project{specific_project}?expand=issueTypes",
+            'method': 'get',
+        }
+        result_recs = self.make_request(request_data, headers)
         existing_project = self.env['work.project'].search([])
         existing_project_dict = {f"{r.project_key}": r for r in existing_project}
         user_id = self.env.user
         new_project = []
-        for record in json.loads(result.text):
+        if not isinstance(result_recs, list):
+            result_recs = [result_recs]
+        for record in result_recs:
+            res = self.get_project_data(record)
             if not existing_project_dict.get(record.get('key', False), False):
-                res = {
-                    'project_name': record['name'],
-                    'project_key': record['key'],
-                    'host_id': self.id,
-                    'allow_to_fetch': True,
-                    'external_id': record['id'],
-                    'company_id': self.company_id.id,
-                }
                 if user_id:
                     res['allowed_manager_ids'] = [(4, user_id.id, False)]
                 new_project.append(res)
@@ -274,6 +295,10 @@ class TaskHost(models.Model):
                 project = existing_project_dict.get(record.get('key', False), False)
                 if user_id:
                     project.sudo().allowed_manager_ids = [(4, user_id.id, False)]
+                current_types = set(project.allowed_type_ids.ids)
+                upcoming_types = [x for x in res['allowed_type_ids'] if x[1] if x not in current_types]
+                if upcoming_types:
+                    project['allowed_type_ids'] = upcoming_types
         projects = self.env['work.project']
         if new_project:
             projects = self.env['work.project'].sudo().create(new_project)
@@ -348,7 +373,7 @@ class TaskHost(models.Model):
                 task_key = host.fetch_task_by_enpoint(query)
             except Exception as e:
                 _logger.error(str(e))
-        if not task_key:
+        if not task_key and not host:
             host = False
         return host, task_key
 
@@ -385,15 +410,15 @@ class TaskHost(models.Model):
         method = getattr(requests, request_data.get('method', 'get'))
         result = method(url=endpoint, headers=headers, data=body)
         if result.status_code >= 400:
-            raise Exception(result.text)
+            raise UserError(result.text)
         if result.text == "":
             return ""
         body = result.json()
         if isinstance(body, dict):
             if len(body.get('errors') or []):
-                raise Exception(body.get('errors'))
+                raise UserError(body.get('errors'))
             if len(body.get('errorMessages') or []):
-                raise Exception(body.get('errorMessages'))
+                raise UserError(body.get('errorMessages'))
         return body
     
     def load_priorities(self):
@@ -476,7 +501,7 @@ class TaskHost(models.Model):
         for task in tasks:
             values.append(self.__prepare_values_jira_task(task))
         return {
-            'taskUpdates': values
+            'issueUpdates': values
         }
 
     @api.model
@@ -501,7 +526,7 @@ class TaskHost(models.Model):
                 }
                 request_data['body'] = content
                 response = host.make_request(request_data, header)
-                dict_tasks = response.get('tasks') or []
+                dict_tasks = response.get('issues') or []
                 if len(tasks) != len(dict_tasks):
                     raise UserError("Exporting incorrect")
                 for index, task in enumerate(tasks):
@@ -525,7 +550,7 @@ class TaskHost(models.Model):
                             'method': 'post',
                         }
                         request_data['body'] = {
-                            "tasks": tasks.mapped('task_key')
+                            "issues": tasks.mapped('task_key')
                         }
                     response = host.make_request(request_data, header)
                 if len(task_by_sprint.keys()):
@@ -535,7 +560,7 @@ class TaskHost(models.Model):
                             'method': 'post',
                         }
                         request_data['body'] = {
-                            "tasks": tasks.mapped('task_key')
+                            "issues": tasks.mapped('task_key')
                         }
                     response = host.make_request(request_data, header)
                 
@@ -994,6 +1019,7 @@ class TaskHost(models.Model):
             if not isinstance(res['task'], (list, tuple)):
                 res['task'] = [res['task']]
             for key in res['task']:
+                _logger.warning("====" + key)
                 request_data = {
                     'endpoint': f"{self.work_host_url}/issue/{key.upper()}",
                 }

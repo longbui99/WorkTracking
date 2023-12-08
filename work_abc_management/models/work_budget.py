@@ -8,6 +8,8 @@ from odoo.osv.expression import OR, AND
 from odoo.addons.work_abc_management.utils.xml_parser import template_to_markup
 
 
+
+
 class WorkBudgetInvoice(models.Model):
     _name = "work.budget.invoice"
     _description = "Budget Invoice"
@@ -44,7 +46,7 @@ class WorkBudgetInvoice(models.Model):
         for invoice in self:
             previous_invoice_line = False
             last_invoice_date = False
-            invoices = invoice.work_budget_id.budget_invoice_ids
+            invoices = invoice.work_budget_id.budget_invoice_ids.filtered(lambda iv: isinstance(iv.id, int))
             if invoices:
                 for todo_invoice in invoices.sorted('invoice_date'):
                     if todo_invoice.id >= invoice.id:
@@ -71,7 +73,7 @@ class WorkBudgetInvoice(models.Model):
 class WorkBudget(models.Model):
     _name = "work.budget"
     _description = "Budget Planning"
-    _order = 'sequence, id desc'
+    _order = 'start_date desc, id desc'
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     sequence = fields.Integer(string="Sequence")

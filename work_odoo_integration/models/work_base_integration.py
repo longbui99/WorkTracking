@@ -37,15 +37,18 @@ class OdooHost(models.Model):
     @api.model
     def parse_name_to_key(self, name):
         names = name.split(' ')
-        res = ""
+        res = "O"
         count = 0
         for segment in names:
             if segment.strip().isalnum():
                 res += segment[0].upper()
                 count +=1
                 if count == 3:
+                    if self.env['work.project'].search([('project_key', '=', res)]):
+                        count -=1
+                        continue
                     break
-        return "O" + res
+        return res
 
     def make_rpc_agent(self):
         self.ensure_one()
@@ -61,7 +64,7 @@ class OdooHost(models.Model):
             return model.execute_kw(self.database, uid, password, *args)
         return env
     
-    def load_projects(self):
+    def load_projects(self, specific_project=""):
         if self.host_type == "odoo":
             gather_project_ids = self._context.get('gather_project_ids')
             domain = []
@@ -96,7 +99,7 @@ class OdooHost(models.Model):
             projects |= projects.sudo().create(value_list)
             return projects
         else:
-            return super().load_projects()
+            return super().load_projects(specific_project)
         
     def load_all_users(self, user_email=''):
         if self.host_type == "odoo":
@@ -198,7 +201,7 @@ class OdooHost(models.Model):
                         'project_id': project_id,
                         'task_key': f"{project_key}-{task_data['id']}",
                         'assignee_id': assignee_id,
-                        'host_id': task_data['id'],
+                        'id_onhost': task_data['id'],
                         'host_id': self.id,
                         'task_url': self.base_task_url%task_data['id']
                     })
@@ -412,7 +415,7 @@ class OdooHost(models.Model):
             'date': log.start_date.strftime('%Y-%m-%d'),
             'name': log.description,
             'unit_amount': log.duration_hrs,
-            'task_id': log.task_id.host_id
+            'task_id': log.task_id.id_onhost
         }
 
     def export_specific_log(self, task_id, log_ids):
@@ -426,6 +429,7 @@ class OdooHost(models.Model):
             if time_log_ids:
                 rpc = self.make_rpc_agent()
                 val_list = [self._prepare_odoo_timesheet_log_vals(log) for log in time_log_ids]
+                _logger.warning(val_list)
                 res = rpc('account.analytic.line', 'create', [val_list])
                 for log, ex_id in zip(time_log_ids, res):
                     log['id_onhost'] = ex_id

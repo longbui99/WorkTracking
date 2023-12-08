@@ -57,4 +57,17 @@
         <field name="context">{'search_default_filter_my_project': True, 'search_default_groupby_host': True, 'search_default_groupby_stage': True}</field>
     </record>
 
+    <record id="work_project_form_view" model="ir.ui.view">
+        <field name="name">Task Projects</field>
+        <field name="priority">1</field>
+        <field name="model">work.project</field>
+        <field name="inherit_id" ref="work_abc_management.work_project_form_view"/>
+        <field name="arch" type="xml">
+            <button name="fetch_user_from_task" position="after">
+                    <button name="action_reload_project" string="Reload Project" type="object" class="btn btn-secondary"/>
+            </button>
+        </field>
+    </record>
+
+
 </odoo>

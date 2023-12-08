@@ -12,5 +12,5 @@ class HREmployee(models.AbstractModel):
         action['context'] = {'default_employee_id': self.id}
         return action
 
-    def update_token(self, token):
-        self.user_id and self.user_id.set_token(token)
+    def update_token(self, host, token):
+        self.user_id and self.user_id.set_token(host, token)

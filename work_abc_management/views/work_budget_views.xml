@@ -4,7 +4,7 @@
         <field name="name">work.budget.tree.view</field>
         <field name="model">work.budget</field>
         <field name="arch" type="xml">
-            <tree decoration-muted="(state == 'invoiced')">
+            <tree decoration-muted="(state == 'invoiced')" expand="context.get('expand', True)" >
                 <field name="currency_id" column_invisible="True"/>
                 <field name="start_date" widget="date" />
                 <field name="end_date" widget="date" />
@@ -24,7 +24,7 @@
         <field name="name">work.budget.tree.view</field>
         <field name="model">work.budget</field>
         <field name="arch" type="xml">
-            <tree decoration-muted="(state == 'invoiced')" default_order="start_date desc, id desc">
+            <tree decoration-muted="(state == 'invoiced')" default_order="start_date desc, id desc" expand="context.get('expand', True)" >
                 <field name="currency_id" column_invisible="True"/>
                 <field name="name"/>
                 <field name="start_date" widget="date" />

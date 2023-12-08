@@ -13,11 +13,19 @@ class WorkProject(models.Model):
     last_update = fields.Datetime("Last Update Cron")
     allow_to_fetch = fields.Boolean("Should Fetch?")
     external_id = fields.Char(string="External ID")
+    
+    def action_reload_project(self):
+        self.ensure_one()
+        if self.host_id:
+            self.host_id.load_projects(f"/{self.project_key}")
  
     @api.model
     def cron_fetch_task(self, load_create=True):
+        domain = [('allow_to_fetch', '=', True), ('host_id.active', '=', True)]
         if not self:
-            self = self.search([('allow_to_fetch', '=', True), ('host_id.active', '=', True)])
+            self = self.search(domain)
+        else:
+            self = self.filtered_domain(domain)
         latest_unix = int(self.env['ir.config_parameter'].sudo().get_param('latest_unix'))
         checkpoint_unix = datetime.now()
         doable_user_ids = self.mapped('allowed_manager_ids') | self.mapped('allowed_user_ids')

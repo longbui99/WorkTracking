@@ -4,7 +4,7 @@
         <field name="name">Priority</field>
         <field name="model">work.priority</field>
         <field name="arch" type="xml">
-            <tree editable="bottom">
+            <tree editable="bottom" multi_edit="1">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="icon_url"/>

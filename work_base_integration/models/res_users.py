@@ -21,14 +21,14 @@ class ResUsers(models.Model):
         key = host.get_prefix() + str(self.id)
         self.env['token.storage'].set_token(key, value)
         self.env['token.storage'].clear_caches()
-        self.load_projects()
+        self.load_projects(host)
         self.env.cr.commit()
 
-    def load_projects(self, existing_):
+    def load_projects(self, existing_host):
         fetch_ok = False
-        if existing_:
-            to_fetch_projects = self.env['work.project'].search(['|', ('host_id', '=', existing_.id), ('company_id', '=', existing_.company_id.id)])
-            to_fetch_projects |= existing_.load_initial_projects()
+        if existing_host:
+            to_fetch_projects = self.env['work.project'].search(['|', ('host_id', '=', existing_host.id), ('company_id', '=', existing_host.company_id.id)])
+            to_fetch_projects |= existing_host.load_initial_projects()
             fetch_ok = True
             if not fetch_ok:
                 raise UserError(_("The Token is invalid, please check again"))

@@ -4,7 +4,7 @@
         <field name="name">work.finance.tree.view</field>
         <field name="model">work.finance</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree expand="context.get('expand', False)" >
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="recurrence_type"/>
@@ -48,7 +48,7 @@
                             <field name="due_date" widget="date"/>
                             <label for="duration"/>
                             <div name="duration_segment d-flex">
-                                <field name="duration"/>
+                                <field name="duration" style="width: min-content; margin-right: 2px"/>
                                 <span class="d-flex" style="font-size: 0.85em;font-weight:700;">
                                     (
                                     <field name="duration_used" style="width: min-content;" class="text-warning" string="Billing Hours" invisible="duration_percent_used &gt;= 100"/> 
@@ -57,7 +57,17 @@
                                     , <field name="duration_percent_used" style="width: min-content;"/>%)
                                 </span>
                             </div>
-                            <field name="amount"/>
+                            <label for="amount"/>
+                            <div name="amount_segment d-flex">
+                                <field name="amount" style="width: min-content; margin-right: 2px"/>
+                                <span class="d-flex" style="font-size: 0.85em;font-weight:700;">
+                                    (
+                                    <field name="amount_used" style="width: min-content;" class="text-warning" string="Billing Hours" invisible="amount_percent_used &gt;= 100"/> 
+                                    <field name="amount_used" style="width: min-content;" class="text-info" string="Billing Hours" invisible="amount_percent_used != 100"/> 
+                                    <field name="amount_used" style="width: min-content;" class="text-danger" string="Billing Hours" invisible="amount_percent_used &lt;= 100"/>
+                                    , <field name="amount_percent_used" style="width: min-content;"/>%)
+                                </span>
+                            </div>
                         </group>
                         <group>
                             <field name="recurrence_type"/>
