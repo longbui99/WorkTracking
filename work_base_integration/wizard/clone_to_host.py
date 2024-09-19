@@ -22,7 +22,7 @@ class CloneToHost(models.TransientModel):
 
     def confirm(self):
         self.ensure_one()
-        return self.task_ids.action_clone_to_host(self.host_id, self)
+        return self.task_ids.with_context(force_clone_template_rule=self.rule_template_id).action_clone_to_host(self.host_id, self)
 
     def _compute_is_all_same(self):
         for record in self:
@@ -35,20 +35,20 @@ class CloneToHost(models.TransientModel):
         sample_task = task_env.new(value)
 
         epics = self.mapped('task_ids.epic_id')
-        if len(epics) == 1:
-            sample_task.epic_id = epics.id
+        if len(epics) >= 1:
+            sample_task.epic_id = epics[0].id
 
         types = self.mapped('task_ids.task_type_id')
-        if len(types) == 1:
-            sample_task.task_type_id = types.id
+        if len(types) >= 1:
+            sample_task.task_type_id = types[0].id
 
         projects = self.mapped('task_ids.project_id')
-        if len(projects) == 1:
-            sample_task.project_id = projects.id
+        if len(projects) >= 1:
+            sample_task.project_id = projects[0].id
 
         priorities = self.mapped('task_ids.priority_id')
-        if len(projects) == 1:
-            sample_task.priority_id = priorities.id
+        if len(projects) >= 1:
+            sample_task.priority_id = priorities[0].id
 
         template = src_host.with_context(force_clone_template_rule=self.rule_template_id).load_clone_template(self.host_id, self)
         task_env.map_template_to_values(sample_task, value, template, 'task_type_id', 'types')

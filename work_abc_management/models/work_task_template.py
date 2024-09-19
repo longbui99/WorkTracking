@@ -24,7 +24,7 @@ class WorkTaskTemplate(models.Model):
     project_id = fields.Many2one("work.project", string="Project", required=True, domain=lambda self: [['company_id', 'in', self.env.user.company_ids]])
     company_id = fields.Many2one("res.company", string="Company", related="project_id.company_id")
     epic_id = fields.Many2one("work.task", domain="[['epic_ok', '=', True], ['project_id', '=', project_id]]")
-    type_id = fields.Many2one("work.type", string="Type", domain="[['company_id', '=', company_id]]")
+    type_id = fields.Many2one("work.type", string="Type", domain="[('project_ids', '=', project_id)]")
     priority_id = fields.Many2one("work.priority", string="Priority", domain="[['company_id', '=', company_id]]")
     template_line_ids = fields.One2many("work.task.template.line", "template_id", string="Template Lines")
     allowed_user_ids = fields.Many2many("res.users", string="Allowed Users")

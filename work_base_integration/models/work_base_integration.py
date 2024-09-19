@@ -373,6 +373,8 @@ class TaskHost(models.Model):
                 task_key = host.fetch_task_by_enpoint(query)
             except Exception as e:
                 _logger.error(str(e))
+        else:
+            task_key = query
         if not task_key and not host:
             host = False
         return host, task_key
@@ -539,7 +541,7 @@ class TaskHost(models.Model):
                 task_by_sprint = defaultdict(lambda: self.env['work.task'])
                 task_by_epic = defaultdict(lambda: self.env['work.task'])
                 for task in tasks:
-                    if task.epic_id:
+                    if task.epic_id and not task.task_type_id.epic_ok:
                         task_by_epic[task.epic_id] |= task
                     if task.sprint_id:
                         task_by_sprint[task.sprint_id] |= task
@@ -916,8 +918,9 @@ class TaskHost(models.Model):
                     to_load_keys.append(depend)
         
         if to_load_keys:
+            query_stmt = f'issuekey IN ({",".join(to_load_keys)})'
             new_tasks = self._search_load({
-                'task': to_load_keys
+                'jql': query_stmt
             })
             dicts = self.get_task_dict([('id', 'in', new_tasks.ids)])
             local['dict_task_key'].update(dicts)
@@ -930,7 +933,7 @@ class TaskHost(models.Model):
             'new': [],
             'updated': self.env['work.task']
         }
-        raw_tasks = raw.get('tasks', [raw])
+        raw_tasks = raw.get('issues', [raw])
         tasks = importing_base.parse_tasks(raw_tasks)
         self.create_missing_projects(tasks, local)
         self.create_missing_users(tasks, local)
@@ -1019,7 +1022,6 @@ class TaskHost(models.Model):
             if not isinstance(res['task'], (list, tuple)):
                 res['task'] = [res['task']]
             for key in res['task']:
-                _logger.warning("====" + key)
                 request_data = {
                     'endpoint': f"{self.work_host_url}/issue/{key.upper()}",
                 }
@@ -1455,7 +1457,6 @@ class TaskHost(models.Model):
             query_projects = ",".join(projects.mapped(lambda p: f'"{p.project_key}"'))
             params = f"""jql=updated >= '{str_updated_date}' AND PROJECT IN ({query_projects})"""
             request_data = {'endpoint': f"{self.work_host_url}/search", "params": [params]}
-
             task_ids = self.do_request(request_data, load_all=True)
 
             _logger.info(f"Batch Load Of User {user.display_name}: {len(task_ids)}")

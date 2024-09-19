@@ -20,7 +20,7 @@ class WorkBudgetInvoice(models.Model):
     invoice_date = fields.Datetime(string="Invoiced Date", default=fields.Datetime.now(), required=True)
     invoice_hours = fields.Float(string="Invoiced Hours", required=True)
     invoice_amount = fields.Monetary(string="Amount")
-    work_budget_id = fields.Many2one("work.budget", string="Budget", required=True)
+    work_budget_id = fields.Many2one("work.budget", string="Budget", required=True, ondelete="cascade")
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, readonly=True,
                                   default=lambda self: self.env.company.currency_id.id)
     last_invoice_date = fields.Datetime(string="Last Invoice Date", compute="_compute_previous_invoice", compute_sudo=True)
@@ -192,8 +192,11 @@ class WorkBudget(models.Model):
             budget.last_invoice_date = last_invoice.invoice_date if last_invoice else False
 
     def unlink(self):
-        if self.filtered('freeze_duration'):
-            raise UserError("Cannot remove the Budget that generating from Finance Plan")
+        source_finance = self._context.get('source_finance')
+        if not source_finance:
+            for record in self:
+                if record.freeze_duration and record.finance_id and record.finance_id != source_finance:
+                    raise UserError("Cannot remove the Budget that generating from Finance Plan")
         return super().unlink()
 
 

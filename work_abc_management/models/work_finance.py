@@ -31,15 +31,15 @@ class WorkFinance(models.Model):
     budget_count = fields.Integer(string="Budget Count", compute="_compute_current_duration_used")
     project_id = fields.Many2one("work.project", string="Project", required=True)
     access_user_ids = fields.Many2many("res.users", "access_finance_user_rel", string="Accessible Users")
-    start_recurrence_date = fields.Datetime(string="Start Recurrence Date")
+    start_recurrence_date = fields.Datetime(string="Start Recurrence Date", copy=False)
     due_date = fields.Datetime(string="End Date", default=lambda self: fields.Datetime.now())
-    recurrence_budget_id = fields.Many2one("work.budget", string="Recurrence Budget")
+    recurrence_budget_id = fields.Many2one("work.budget", string="Recurrence Budget", copy=False)
     recurrence_type = fields.Selection([
         ('weekly', 'Weekly'),
         ('monthly', 'Monthly'),
         ('quarterly', 'Quarterly'),
         ('anually', 'Anually')
-    ], string="Recurrence Type")
+    ], string="Recurrence Type", copy=False)
 
     def _compute_current_duration_used(self):
         self.mapped('work_budget_ids.duration_used')
@@ -114,7 +114,7 @@ class WorkFinance(models.Model):
             budget_periods = interval_periods[:budget_count]
 
         if to_remove_budgets:
-            to_remove_budgets.unlink()
+            to_remove_budgets.with_context(source_finance=self.id).unlink()
 
         if budget_periods and to_update_budgets:
             for budget, interval in zip(to_update_budgets, budget_periods):
@@ -129,8 +129,8 @@ class WorkFinance(models.Model):
                 new_budget.freeze_duration = True
                 new_budget.finance_id = self.id
         
-        if not self.recurrence_budget_id:
-            self.recurrence_budget_id = self.work_budget_ids[0].id
+        # if not self.recurrence_budget_id:
+        #     self.recurrence_budget_id = self.work_budget_ids[0].id
 
     def generate_recurrence_budgets(self):
         for finance in self:

@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import json
+import traceback
 
 from odoo import http, fields, _
 from odoo.http import request
@@ -66,7 +67,8 @@ class WorkTask(http.Controller):
             task_ids = request.env['work.task'].browse(task_ids)
             if not task_ids.exists():
                 return str(MissingError("Cannot found task in our system!"))
-        return self._get_tasks_data(task_ids)
+        res = self._get_tasks_data(task_ids)
+        return res
 
     @handling_req_res
     @http.route(['/management/task/get/<int:task_id>',
@@ -146,7 +148,7 @@ class WorkTask(http.Controller):
         key = request.share_params.get('key')
         if not key and not id:
             raise MissingParams("Task's ID or KEY must be specific!")
-        task_id = request.env['work.task'].search(['|', ('id', '=', id), ('task_key', '=', key)])
+        task_id = request.env['work.task'].search(['&', ('task_key', '!=', False), '|', ('id', '=', id), ('task_key', '=', key)])
         if not task_id.exists():
             raise NotFound("Cannot found task")
         return task_id

@@ -23,5 +23,5 @@ def handling_req_res(func):
             return res
         except Exception as e:
             log_error()
-            return Response(str(e), content_type='application/json', status=404)
+            return Response(str(e), content_type='application/json', status=400)
     return wrapper_func

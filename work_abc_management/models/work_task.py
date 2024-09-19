@@ -36,7 +36,7 @@ class WorkProject(models.Model):
     project_id = fields.Many2one('work.project', string='Project', required=True, ondelete="cascade")
     assignee_id = fields.Many2one('res.users', string='Assignee')
     tester_id = fields.Many2one("res.users", string="Tester")
-    task_type_id = fields.Many2one("work.type", string="Type")
+    task_type_id = fields.Many2one("work.type", string="Type", domain="[('project_ids', '=', project_id)]")
     ac_ids = fields.One2many("work.ac", "task_id", string="Checklist", copy=False)
     suitable_assignee = fields.Many2many('res.users', store=False, compute='_compute_suitable_assignee',
                                          compute_sudo=True)

@@ -40,7 +40,7 @@ class OdooHost(models.Model):
         res = "O"
         count = 0
         for segment in names:
-            if segment.strip().isalnum():
+            if segment and segment[0].strip().isalnum():
                 res += segment[0].upper()
                 count +=1
                 if count == 3:
@@ -83,7 +83,7 @@ class OdooHost(models.Model):
             value_list = []
             user_id = self.env.user
             for project_data in project_datas:
-                if project_data['id'] not in project_external_ids:
+                if str(project_data['id']) not in project_external_ids:
                     key = self.parse_name_to_key(project_data['name'])
                     res = {
                         'project_name': project_data['name'],

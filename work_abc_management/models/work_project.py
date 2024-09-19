@@ -28,6 +28,10 @@ class WorkProject(models.Model):
     status = fields.Char(name="Status", related="stage_id.key", store=True)
     allowed_type_ids = fields.Many2many("work.type", string="Allowed Issue Types")
 
+    _sql_constraints = [
+        ("name_uniq", "unique(project_name)", "Project name must be unique")
+    ]
+
     @api.depends('project_name', 'project_key')
     def _compute_name(self):
         for project in self:
@@ -121,12 +125,13 @@ class WorkProject(models.Model):
         if 'project_key' in values:
             for project in self:
                 tasks = self.env['work.task'].search([('project_id', '=', project.id)])
-                update_stmt = f"""
-                    UPDATE work_task SET task_key = REGEXP_REPLACE(task_key, '{project.project_key}', '{values['project_key']}') WHERE id IN %(task_ids)s
-                """
-                self._cr.execute(update_stmt, {
-                    'task_ids': tuple(tasks.ids)
-                })
+                if tasks:
+                    update_stmt = f"""
+                        UPDATE work_task SET task_key = REGEXP_REPLACE(task_key, '{project.project_key}', '{values['project_key']}') WHERE id IN %(task_ids)s
+                    """
+                    self._cr.execute(update_stmt, {
+                        'task_ids': tuple(tasks.ids)
+                    })
 
         res = super().write(values)
         if len(values.get('allowed_manager_ids', [])):

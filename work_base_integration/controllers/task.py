@@ -43,17 +43,17 @@ class WorkTaskHost(WorkTask):
     @http.route(['/management/task/search', 
                  '/management/issue/search'], type="http", cors="*", methods=['POST'], auth='jwt', csrf=False)
     def search_task_post(self):
-        try:
-            kwargs = request.share_params
-            res = super().search_task_post()
-            offset = int(kwargs.get('offset', 0))
-            if res.data == b'[]' and offset == 0:
-                task_ids = request.env['work.base.integration'].query_candidate_task(kwargs.get('query', ''))
-                if task_ids:
-                    data = self._get_task(task_ids)
-                    return http.Response(json.dumps(data), content_type='application/json', status=200)
-        except Exception as e:
-            return http.Response(str(e), content_type='application/json', status=400)
+        # try:
+        kwargs = request.share_params
+        res = super().search_task_post()
+        offset = int(kwargs.get('offset', 0))
+        if res.data == b'[]' and offset == 0:
+            task_ids = request.env['work.base.integration'].query_candidate_task(kwargs.get('query', ''))
+            if task_ids:
+                data = self._get_task(task_ids)
+                return http.Response(json.dumps(data), content_type='application/json', status=200)
+        # except Exception as e:
+        #     return http.Response(str(e), content_type='application/json', status=400)
         return res
 
     @handling_req_res
