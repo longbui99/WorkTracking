@@ -1,5 +1,2 @@
 # Time-Management
 
-
-
-Xin Chao
